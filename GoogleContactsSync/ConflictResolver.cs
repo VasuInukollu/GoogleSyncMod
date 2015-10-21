@@ -146,7 +146,7 @@ namespace GoContactSyncMod
             _form.Text = "Outlook Contact deleted";
             _form.messageLabel.Text =
                 "Outlook Contact \"" + name +
-                "\" doesn't exist aynmore. Do you want to delete it also on Google side?";                       
+                "\" doesn't exist anymore. Do you want to delete it also on Google side?";                       
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
@@ -279,7 +279,7 @@ namespace GoContactSyncMod
             _form.Text = "Google note deleted";
             _form.messageLabel.Text =
                 "Google note \"" + outlookNote.Subject +
-                "\" doesn't exist aynmore. Do you want to delete it also on Outlook side?";
+                "\" doesn't exist anymore. Do you want to delete it also on Outlook side?";
 
             _form.OutlookItemTextBox.Text = outlookNote.Body;
             _form.GoogleItemTextBox.Text = string.Empty;
@@ -297,7 +297,7 @@ namespace GoContactSyncMod
             _form.Text = "Outlook note deleted";
             _form.messageLabel.Text =
                 "Outlook note \"" + googleNote.Title +
-                "\" doesn't exist aynmore. Do you want to delete it also on Google side?";
+                "\" doesn't exist anymore. Do you want to delete it also on Google side?";
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = NotePropertiesUtils.GetBody(sync, googleNote);
@@ -390,7 +390,7 @@ namespace GoContactSyncMod
             _form.Text = "Google appointment deleted";
             _form.messageLabel.Text =
                 "Google appointment \"" + outlookAppointment.Subject + " - " + outlookAppointment.Start +
-                "\" doesn't exist aynmore. Do you want to delete it also on Outlook side?";
+                "\" doesn't exist anymore. Do you want to delete it also on Outlook side?";
 
             _form.GoogleItemTextBox.Text = String.Empty;            
             _form.OutlookItemTextBox.Text += outlookAppointment.Body;
@@ -410,7 +410,7 @@ namespace GoContactSyncMod
             _form.Text = "Outlook appointment deleted";
             _form.messageLabel.Text =
                 "Outlook appointment \"" + googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment) +
-                "\" doesn't exist aynmore. Do you want to delete it also on Google side?";
+                "\" doesn't exist anymore. Do you want to delete it also on Google side?";
 
             _form.OutlookItemTextBox.Text = String.Empty;            
             _form.GoogleItemTextBox.Text += googleAppointment.Description;
