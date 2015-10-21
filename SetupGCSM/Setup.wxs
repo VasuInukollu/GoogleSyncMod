@@ -168,7 +168,8 @@
     <!-- Set the components defined in our fragment files that will be used for our feature  -->
     <Feature Id="GoogleContactSyncModFeature" Title="!(loc.ProductName)" Level="1">
 
-      <ComponentGroupRef Id="MicrosoftAPIFiles"/>
+      <!--remove Interop DLL from setup, because it is embedded in executable-->
+      <!--<ComponentGroupRef Id="MicrosoftAPIFiles"/>-->
       <ComponentGroupRef Id="GoogleContactsSync.Binaries"/>
       <ComponentGroupRef Id="Shortcuts"/>
 

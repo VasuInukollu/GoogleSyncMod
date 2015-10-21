@@ -61,7 +61,9 @@
     <Content Include="Includes\Variables.wxi" />
     <Content Include="Lang\GPLv3.rtf" />
     <Content Include="packages.config" />
-    <Content Include="README.md" />
+    <Content Include="README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\WixUIDialogBanner.bmp" />
     <Content Include="Resources\WixUITopBanner.bmp" />
     <Content Include="TODO.txt" />
