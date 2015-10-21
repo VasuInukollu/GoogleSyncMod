@@ -14,7 +14,7 @@ namespace GoContactSyncMod
         {
             get
             {
-                return VersionInformation.GetWindowsVersionName();
+                return VersionInformation.GetWindowsVersion();
             }
         }
 

@@ -22,6 +22,7 @@ namespace GoContactSyncMod
             Outlook2007,
             Outlook2010,
             Outlook2013,
+            Outlook2016,
             OutlookUnknownVersion,
             OutlookNoInstance
         }
@@ -43,6 +44,8 @@ namespace GoContactSyncMod
                     return OutlookMainVersion.Outlook2010;
                 case "15":
                     return OutlookMainVersion.Outlook2013;
+                case "16":
+                    return OutlookMainVersion.Outlook2016;
                 default:
                     {
                         if (appVersion != null)
@@ -60,19 +63,17 @@ namespace GoContactSyncMod
         /// <summary>
         /// detect windows main version
         /// </summary>
-        public static string GetWindowsVersionName()
+        public static string GetWindowsVersion()
         {
-            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem"))
+            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", 
+                    "SELECT * FROM Win32_OperatingSystem"))
             {
                 foreach (ManagementObject managementObject in searcher.Get())
                 {
-                    /*//iterate trough all properties
-                    foreach (PropertyData prop in managementObject.Properties)
-                    {
-                        Console.WriteLine("{0}: {1}", prop.Name, prop.Value);
-                    }
-                     */
-                    return (string)managementObject["Caption"];
+                    string versionString = managementObject["Caption"].ToString() + " (" +
+                                           managementObject["OSArchitecture"].ToString() + "; " +
+                                           managementObject["Version"].ToString() + ")";
+                    return versionString;
                 }
             }
             return "Unknown Windows Version";

@@ -55,7 +55,7 @@ namespace GoContactSyncMod
             richTextBoxError.AppendText("GCSM VERSION:    " + VersionInformation.getGCSMVersion().ToString());
             richTextBoxError.AppendText(Environment.NewLine);
             richTextBoxError.AppendText("OUTLOOK VERSION: " + VersionInformation.GetOutlookVersion(Synchronizer.OutlookApplication).ToString() + Environment.NewLine);
-            richTextBoxError.AppendText("OS VERSION:      " + VersionInformation.GetWindowsVersionName() + Environment.NewLine);
+            richTextBoxError.AppendText("OS VERSION:      " + VersionInformation.GetWindowsVersion() + Environment.NewLine);
             richTextBoxError.AppendText(Environment.NewLine);
             richTextBoxError.AppendText("ERROR MESAGE:" + Environment.NewLine + Environment.NewLine);
             AppendTextWithColor(ex.Message + Environment.NewLine,Color.Firebrick);
