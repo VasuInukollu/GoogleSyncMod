@@ -1,6 +1,21 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+### Version [3.9.13] - 01.11.2015
+###### SVN commits
+**r567 - r571**:	
+	- FIX: [bugs:#780]
+	- UPDATE: nuget packages
+	- IMPROVEMENT: detect version Outlook 2016
+	- IMPROVEMENT: log windows version: name, architecture, number
+	- IMPROVEMENT: do not copy the interop dll to output dir
+	- IMPROVEMENT: do not include interop into setup
+    - CHANGE: target type to AnyCPU
+	- CHANGE: remove Office.dll (not necessary)
+	- IMPROVEMENT: Added notes how to repair VS2013 installation after modifying machine.config for UnitTests
+	- prepared new setup
+
 ### Version [3.9.12] - 16.10.2015
+**r563 - r566**:
 - Reverted change from 3.9.11: Referenced Outlook 2013 Interop API and copied it locally
 	turned out, also not runnable with Outlook 2016
 	and has issues with Older Office 2010 and 2007 installations

@@ -1,23 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.Remoting;
 using System.Runtime.InteropServices;
 using System.Collections;
 using System.Globalization;
 using Google.Apis.Util.Store;
 using Google.Apis.Calendar.v3.Data;
-using System.Net;
-using System.Net.Mime;
 
 
 namespace GoContactSyncMod
@@ -96,7 +89,7 @@ namespace GoContactSyncMod
             set
             {
                 RegistryKey regKeyAppRoot = Registry.CurrentUser.CreateSubKey(AppRootKey);
-                if ( value != null)
+                if (value != null)
                 {
                     regKeyAppRoot.SetValue(RegistrySyncProfile, value);
                 }
@@ -146,39 +139,35 @@ namespace GoContactSyncMod
         private Icon Icon330 = GoContactSyncMod.Properties.Resources.sync_330;
 
         private SettingsForm()
-		{
-			InitializeComponent();
+        {
+            InitializeComponent();
             Text = Text + " - " + Application.ProductVersion;
-			Logger.LogUpdated += new Logger.LogUpdatedHandler(Logger_LogUpdated);
+            Logger.LogUpdated += new Logger.LogUpdatedHandler(Logger_LogUpdated);
             Logger.Log("Started application " + Application.ProductName + " (" + Application.ProductVersion + ") on " + VersionInformation.GetWindowsVersion(), EventType.Information);
             ContactsMatcher.NotificationReceived += new ContactsMatcher.NotificationHandler(OnNotificationReceived);
             NotesMatcher.NotificationReceived += new NotesMatcher.NotificationHandler(OnNotificationReceived);
             AppointmentsMatcher.NotificationReceived += new AppointmentsMatcher.NotificationHandler(OnNotificationReceived);
-			PopulateSyncOptionBox();
+            PopulateSyncOptionBox();
 
             //temporary remove the listener to avoid to load the settings twice, because it is set from SettingsForm.Designer.cs
             this.cmbSyncProfile.SelectedIndexChanged -= new System.EventHandler(this.cmbSyncProfile_SelectedIndexChanged);
-            if (fillSyncProfileItems()) 
+            if (fillSyncProfileItems())
                 LoadSettings(cmbSyncProfile.Text);
-            else 
+            else
                 LoadSettings(null);
             //enable the listener
             this.cmbSyncProfile.SelectedIndexChanged += new System.EventHandler(this.cmbSyncProfile_SelectedIndexChanged);
 
             TimerSwitch(true);
-			lastSyncLabel.Text = "Not synced";
+            lastSyncLabel.Text = "Not synced";
 
-			ValidateSyncButton();
+            ValidateSyncButton();
 
             //Register Session Lock Event
             SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEvents_SessionSwitch);
             //Register Power Mode Event
             SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(SystemEvents_PowerModeSwitch);
-            
-            
-		}
-
-        
+        }
 
         private void PopulateSyncOptionBox()
         {
@@ -464,7 +453,7 @@ namespace GoContactSyncMod
                     //ignored;
                 }
             }
-            
+
             ReadRegistryIntoCheckBox(btSyncContacts, regKeyAppRoot.GetValue(RegistrySyncContacts));
             ReadRegistryIntoCheckBox(chkUseFileAs, regKeyAppRoot.GetValue(RegistryUseFileAs));
 
@@ -683,7 +672,7 @@ namespace GoContactSyncMod
 
         private void syncButton_Click(object sender, EventArgs e)
         {
-            Sync();	    
+            Sync();
         }
 
         private void Sync()
@@ -699,7 +688,6 @@ namespace GoContactSyncMod
                 if (!ValidSyncFolders)
                     throw new Exception("At least one Outlook folder is not selected or invalid! You have to choose one folder for each item you want to sync!");
 
-
                 //IconTimerSwitch(true);
                 ThreadStart starter = new ThreadStart(Sync_ThreadStarter);
                 syncThread = new Thread(starter);
@@ -713,6 +701,7 @@ namespace GoContactSyncMod
                 // wait for thread to start
                 for (int i = 0; !syncThread.IsAlive && i < 10; i++)
                     Thread.Sleep(1000);//DoNothing, until the thread was started, but only wait maximum 10 seconds
+
 
             }
             catch (Exception ex)
@@ -1372,12 +1361,12 @@ namespace GoContactSyncMod
             else
             {
                 FormWindowState oldState = WindowState;
-                
+
                 Show();
                 Activate();
                 WindowState = FormWindowState.Normal;
                 fillSyncFolderItems();
-               
+
                 if (oldState != WindowState)
                     CheckVersion();
             }
@@ -1403,7 +1392,7 @@ namespace GoContactSyncMod
                     }
 
                     NewVersionLinkLabel.Visible = true;
-                    
+
                 }
                 finally
                 {

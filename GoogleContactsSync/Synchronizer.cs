@@ -155,7 +155,7 @@ namespace GoContactSyncMod
         /// if true, use Outlook's FileAs for Google Title/FullName. If false, use Outlook's Fullname
         /// </summary>
         public bool UseFileAs { get; set; }
-   
+
         public void LoginToGoogle(string username)
         {
             Logger.Log("Connecting to Google...", EventType.Information);
