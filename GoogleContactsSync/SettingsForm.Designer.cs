@@ -110,7 +110,7 @@ namespace GoContactSyncMod
             this.UserName.Location = new System.Drawing.Point(100, 18);
             this.UserName.Name = "UserName";
             this.UserName.Size = new System.Drawing.Size(342, 21);
-            this.UserName.TabIndex = 1;
+            this.UserName.TabIndex = 0;
             this.toolTip.SetToolTip(this.UserName, "Type in your Google Mail User Name (full name)");
             this.UserName.TextChanged += new System.EventHandler(this.UserName_TextChanged);
             // 
@@ -120,7 +120,7 @@ namespace GoContactSyncMod
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(75, 17);
             this.label2.TabIndex = 0;
-            this.label2.Text = "&User:";
+            this.label2.Text = "E-&Mail:";
             // 
             // syncButton
             // 
@@ -130,7 +130,7 @@ namespace GoContactSyncMod
             this.syncButton.Location = new System.Drawing.Point(3, 3);
             this.syncButton.Name = "syncButton";
             this.syncButton.Size = new System.Drawing.Size(79, 25);
-            this.syncButton.TabIndex = 1;
+            this.syncButton.TabIndex = 0;
             this.syncButton.Text = "S&ync";
             this.syncButton.UseVisualStyleBackColor = true;
             this.syncButton.Click += new System.EventHandler(this.syncButton_Click);
@@ -149,7 +149,7 @@ namespace GoContactSyncMod
             this.syncOptionBox.MinimumSize = new System.Drawing.Size(170, 0);
             this.syncOptionBox.Name = "syncOptionBox";
             this.syncOptionBox.Size = new System.Drawing.Size(180, 125);
-            this.syncOptionBox.TabIndex = 4;
+            this.syncOptionBox.TabIndex = 8;
             this.toolTip.SetToolTip(this.syncOptionBox, resources.GetString("syncOptionBox.ToolTip"));
             this.syncOptionBox.SelectedIndexChanged += new System.EventHandler(this.syncOptionBox_SelectedIndexChanged);
             // 
@@ -300,8 +300,8 @@ namespace GoContactSyncMod
             this.reportSyncResultCheckBox.AutoSize = true;
             this.reportSyncResultCheckBox.Location = new System.Drawing.Point(14, 65);
             this.reportSyncResultCheckBox.Name = "reportSyncResultCheckBox";
-            this.reportSyncResultCheckBox.Size = new System.Drawing.Size(226, 17);
-            this.reportSyncResultCheckBox.TabIndex = 6;
+            this.reportSyncResultCheckBox.Size = new System.Drawing.Size(225, 17);
+            this.reportSyncResultCheckBox.TabIndex = 2;
             this.reportSyncResultCheckBox.Text = "Re&port Sync Result in System Tray";
             this.reportSyncResultCheckBox.UseVisualStyleBackColor = true;
             // 
@@ -369,7 +369,7 @@ namespace GoContactSyncMod
             0});
             this.futureMonthInterval.Name = "futureMonthInterval";
             this.futureMonthInterval.Size = new System.Drawing.Size(49, 21);
-            this.futureMonthInterval.TabIndex = 18;
+            this.futureMonthInterval.TabIndex = 11;
             this.futureMonthInterval.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // pastMonthInterval
@@ -382,7 +382,7 @@ namespace GoContactSyncMod
             0});
             this.pastMonthInterval.Name = "pastMonthInterval";
             this.pastMonthInterval.Size = new System.Drawing.Size(49, 21);
-            this.pastMonthInterval.TabIndex = 7;
+            this.pastMonthInterval.TabIndex = 10;
             this.pastMonthInterval.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.pastMonthInterval.Value = new decimal(new int[] {
             1,
@@ -399,7 +399,7 @@ namespace GoContactSyncMod
             this.appointmentGoogleFoldersComboBox.Location = new System.Drawing.Point(161, 146);
             this.appointmentGoogleFoldersComboBox.Name = "appointmentGoogleFoldersComboBox";
             this.appointmentGoogleFoldersComboBox.Size = new System.Drawing.Size(428, 21);
-            this.appointmentGoogleFoldersComboBox.TabIndex = 17;
+            this.appointmentGoogleFoldersComboBox.TabIndex = 7;
             this.toolTip.SetToolTip(this.appointmentGoogleFoldersComboBox, "Select the Google Appointments folder you want to sync");
             this.appointmentGoogleFoldersComboBox.SelectedIndexChanged += new System.EventHandler(this.appointmentGoogleFoldersComboBox_SelectedIndexChanged);
             this.appointmentGoogleFoldersComboBox.Enter += new System.EventHandler(this.appointmentGoogleFoldersComboBox_Enter);
@@ -744,7 +744,7 @@ namespace GoContactSyncMod
             this.appointmentTimezonesComboBox.Name = "appointmentTimezonesComboBox";
             this.appointmentTimezonesComboBox.Size = new System.Drawing.Size(235, 21);
             this.appointmentTimezonesComboBox.Sorted = true;
-            this.appointmentTimezonesComboBox.TabIndex = 13;
+            this.appointmentTimezonesComboBox.TabIndex = 9;
             this.toolTip.SetToolTip(this.appointmentTimezonesComboBox, "Select or enter Timezone (default is UTC), only for Recurrences!!!");
             this.appointmentTimezonesComboBox.TextChanged += new System.EventHandler(this.appointmentTimezonesComboBox_TextChanged);
             // 
@@ -754,7 +754,7 @@ namespace GoContactSyncMod
             this.btSyncAppointments.Location = new System.Drawing.Point(10, 119);
             this.btSyncAppointments.Name = "btSyncAppointments";
             this.btSyncAppointments.Size = new System.Drawing.Size(136, 17);
-            this.btSyncAppointments.TabIndex = 10;
+            this.btSyncAppointments.TabIndex = 5;
             this.btSyncAppointments.Text = "Sync &Appointments";
             this.toolTip.SetToolTip(this.btSyncAppointments, "This specifies whether appointments are synchronized.");
             this.btSyncAppointments.UseVisualStyleBackColor = true;
@@ -769,7 +769,7 @@ namespace GoContactSyncMod
             this.appointmentFoldersComboBox.Location = new System.Drawing.Point(161, 119);
             this.appointmentFoldersComboBox.Name = "appointmentFoldersComboBox";
             this.appointmentFoldersComboBox.Size = new System.Drawing.Size(428, 21);
-            this.appointmentFoldersComboBox.TabIndex = 9;
+            this.appointmentFoldersComboBox.TabIndex = 6;
             this.toolTip.SetToolTip(this.appointmentFoldersComboBox, "Select the Outlook Appointments folder you want to sync");
             this.appointmentFoldersComboBox.SelectedIndexChanged += new System.EventHandler(this.appointmentFoldersComboBox_SelectedIndexChanged);
             // 
@@ -781,7 +781,7 @@ namespace GoContactSyncMod
             this.btSyncContacts.Location = new System.Drawing.Point(10, 69);
             this.btSyncContacts.Name = "btSyncContacts";
             this.btSyncContacts.Size = new System.Drawing.Size(108, 17);
-            this.btSyncContacts.TabIndex = 6;
+            this.btSyncContacts.TabIndex = 3;
             this.btSyncContacts.Text = "Sync &Contacts";
             this.toolTip.SetToolTip(this.btSyncContacts, "This specifies whether contacts are synchronized.");
             this.btSyncContacts.UseVisualStyleBackColor = true;
@@ -795,7 +795,7 @@ namespace GoContactSyncMod
             this.btPromptDelete.Location = new System.Drawing.Point(121, 44);
             this.btPromptDelete.Name = "btPromptDelete";
             this.btPromptDelete.Size = new System.Drawing.Size(118, 17);
-            this.btPromptDelete.TabIndex = 8;
+            this.btPromptDelete.TabIndex = 2;
             this.btPromptDelete.Text = "Prompt De&letion";
             this.toolTip.SetToolTip(this.btPromptDelete, resources.GetString("btPromptDelete.ToolTip"));
             this.btPromptDelete.UseVisualStyleBackColor = true;
@@ -808,7 +808,7 @@ namespace GoContactSyncMod
             this.panel1.Location = new System.Drawing.Point(6, 179);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(580, 1);
-            this.panel1.TabIndex = 3;
+            this.panel1.TabIndex = 8;
             // 
             // btSyncDelete
             // 
@@ -818,7 +818,7 @@ namespace GoContactSyncMod
             this.btSyncDelete.Location = new System.Drawing.Point(10, 44);
             this.btSyncDelete.Name = "btSyncDelete";
             this.btSyncDelete.Size = new System.Drawing.Size(105, 17);
-            this.btSyncDelete.TabIndex = 2;
+            this.btSyncDelete.TabIndex = 1;
             this.btSyncDelete.Text = "Sync &Deletion";
             this.toolTip.SetToolTip(this.btSyncDelete, "This specifies whether deletions are\r\nsynchronized. Enabling this option\r\nmeans i" +
         "f you delete a contact from\r\nGoogle, then it will be deleted from\r\nOutlook and v" +
@@ -835,7 +835,7 @@ namespace GoContactSyncMod
             this.cmbSyncProfile.Location = new System.Drawing.Point(161, 19);
             this.cmbSyncProfile.Name = "cmbSyncProfile";
             this.cmbSyncProfile.Size = new System.Drawing.Size(428, 21);
-            this.cmbSyncProfile.TabIndex = 1;
+            this.cmbSyncProfile.TabIndex = 0;
             this.toolTip.SetToolTip(this.cmbSyncProfile, "This is a profile name of your choice.\r\nIt must be unique in each computer\r\nand a" +
         "ccount you intend to sync with\r\nyour Google Mail account.");
             this.cmbSyncProfile.SelectedIndexChanged += new System.EventHandler(this.cmbSyncProfile_SelectedIndexChanged);
@@ -849,7 +849,7 @@ namespace GoContactSyncMod
             this.contactFoldersComboBox.Location = new System.Drawing.Point(161, 65);
             this.contactFoldersComboBox.Name = "contactFoldersComboBox";
             this.contactFoldersComboBox.Size = new System.Drawing.Size(428, 21);
-            this.contactFoldersComboBox.TabIndex = 6;
+            this.contactFoldersComboBox.TabIndex = 4;
             this.toolTip.SetToolTip(this.contactFoldersComboBox, "Select the Outlook Contacts folder you want to sync");
             this.contactFoldersComboBox.SelectedIndexChanged += new System.EventHandler(this.contacFoldersComboBox_SelectedIndexChanged);
             // 
@@ -920,7 +920,7 @@ namespace GoContactSyncMod
             this.linkLabelRevokeAuthentication.Location = new System.Drawing.Point(7, 42);
             this.linkLabelRevokeAuthentication.Name = "linkLabelRevokeAuthentication";
             this.linkLabelRevokeAuthentication.Size = new System.Drawing.Size(135, 13);
-            this.linkLabelRevokeAuthentication.TabIndex = 8;
+            this.linkLabelRevokeAuthentication.TabIndex = 1;
             this.linkLabelRevokeAuthentication.TabStop = true;
             this.linkLabelRevokeAuthentication.Text = "Revoke Authentication";
             this.toolTip.SetToolTip(this.linkLabelRevokeAuthentication, "If you want to authenticate GoogleContactsSyncMod again, or if something didn\'t w" +
@@ -945,7 +945,7 @@ namespace GoContactSyncMod
             this.proxySettingsLinkLabel.Location = new System.Drawing.Point(7, 69);
             this.proxySettingsLinkLabel.Name = "proxySettingsLinkLabel";
             this.proxySettingsLinkLabel.Size = new System.Drawing.Size(90, 13);
-            this.proxySettingsLinkLabel.TabIndex = 4;
+            this.proxySettingsLinkLabel.TabIndex = 2;
             this.proxySettingsLinkLabel.TabStop = true;
             this.proxySettingsLinkLabel.Text = "Proxy Settings";
             this.toolTip.SetToolTip(this.proxySettingsLinkLabel, resources.GetString("proxySettingsLinkLabel.ToolTip"));
@@ -958,7 +958,7 @@ namespace GoContactSyncMod
             this.resetMatchesLinkLabel.Location = new System.Drawing.Point(52, 585);
             this.resetMatchesLinkLabel.Name = "resetMatchesLinkLabel";
             this.resetMatchesLinkLabel.Size = new System.Drawing.Size(89, 13);
-            this.resetMatchesLinkLabel.TabIndex = 2;
+            this.resetMatchesLinkLabel.TabIndex = 0;
             this.resetMatchesLinkLabel.TabStop = true;
             this.resetMatchesLinkLabel.Text = "&Reset Matches";
             this.toolTip.SetToolTip(this.resetMatchesLinkLabel, "This unlinks Outlook contacts with their\r\ncorresponding Google contatcs. If you\r\n" +
@@ -1036,7 +1036,7 @@ namespace GoContactSyncMod
             this.cancelButton.Location = new System.Drawing.Point(88, 3);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(79, 25);
-            this.cancelButton.TabIndex = 2;
+            this.cancelButton.TabIndex = 1;
             this.cancelButton.Text = "&Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.CancelButton_Click);
@@ -1050,7 +1050,7 @@ namespace GoContactSyncMod
             this.hideButton.Location = new System.Drawing.Point(173, 3);
             this.hideButton.Name = "hideButton";
             this.hideButton.Size = new System.Drawing.Size(66, 25);
-            this.hideButton.TabIndex = 3;
+            this.hideButton.TabIndex = 2;
             this.hideButton.Text = "&Hide";
             this.hideButton.UseVisualStyleBackColor = true;
             this.hideButton.Click += new System.EventHandler(this.hideButton_Click);
@@ -1087,8 +1087,8 @@ namespace GoContactSyncMod
             this.NewVersionLinkLabel.LinkColor = System.Drawing.Color.Blue;
             this.NewVersionLinkLabel.Location = new System.Drawing.Point(269, 603);
             this.NewVersionLinkLabel.Name = "NewVersionLinkLabel";
-            this.NewVersionLinkLabel.Size = new System.Drawing.Size(412, 13);
-            this.NewVersionLinkLabel.TabIndex = 7;
+            this.NewVersionLinkLabel.Size = new System.Drawing.Size(410, 13);
+            this.NewVersionLinkLabel.TabIndex = 1;
             this.NewVersionLinkLabel.TabStop = true;
             this.NewVersionLinkLabel.Text = "Version of GCSM is uptodate, click to open GCSM homepage on sf.net!";
             this.NewVersionLinkLabel.Visible = false;

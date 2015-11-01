@@ -681,7 +681,7 @@ namespace GoContactSyncMod
             {
                 if (!ValidCredentials)
                     //return;
-                    throw new Exception("Gmail Credentials are incomplete or incorrect! Maybe a typo, or you have to allow less secure apps to access your account, see https://www.google.com/settings/security/lesssecureapps");
+                    throw new Exception("E-Mail address and or Sync-Profile is incomplete or incorrect - Maybe a typo or no selection...");
 
                 fillSyncFolderItems();
 
