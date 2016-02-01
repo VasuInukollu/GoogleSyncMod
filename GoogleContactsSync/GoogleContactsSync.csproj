@@ -271,6 +271,7 @@
     <Compile Include="NotesMatcher.cs" />
     <Compile Include="GCSMOAuth2WebAuthorizationBroker.cs" />
     <Compile Include="OutlookContactInfo.cs" />
+    <Compile Include="OutlookRegistryUtils.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

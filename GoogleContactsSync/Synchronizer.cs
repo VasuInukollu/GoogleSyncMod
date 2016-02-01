@@ -314,58 +314,107 @@ namespace GoContactSyncMod
 
         }
 
-        private static void CreateOutlookInstance()
+        private static void CreateOutlookApplication()
         {
-            if (OutlookApplication == null || _outlookNamespace == null)
+            //Try to create new Outlook application 3 times, because mostly it fails the first time, if not yet running
+            for (int i = 0; i < 3; i++)
             {
-
-                //Try to create new Outlook application 3 times, because mostly it fails the first time, if not yet running
-                for (int i = 0; i < 3; i++)
+                try
                 {
+                    // First try to get the running application in case Outlook is already started
                     try
                     {
-                        // First try to get the running application in case Outlook is already started
-                        try
-                        {
-                            OutlookApplication = Marshal.GetActiveObject("Outlook.Application") as Microsoft.Office.Interop.Outlook.Application;
-                        }
-                        catch (COMException)
-                        {
-                            // That failed - try to create a new application object, launching Outlook in the background
-                            OutlookApplication = new Outlook.Application();
-                        }
-                        break;  //Exit the for loop, if creating outllok application was successful
+                        OutlookApplication = Marshal.GetActiveObject("Outlook.Application") as Microsoft.Office.Interop.Outlook.Application;
+                        break;  //Exit the for loop, if creating outlook application was successful
                     }
                     catch (COMException ex)
                     {
-                        if (i == 2)
-                            throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
-                        else //wait ten seconds and try again
-                            System.Threading.Thread.Sleep(1000 * 10);
+                        if (ex.ErrorCode == -2147312566) //0x80029c4a
+                            throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                        // That failed - try to create a new application object, launching Outlook in the background
+                        OutlookApplication = new Outlook.Application();
+                        break;
                     }
-                }
-
-                if (OutlookApplication == null)
-                    throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.");
-
-
-                //Try to create new Outlook namespace 3 times, because mostly it fails the first time, if not yet running
-                for (int i = 0; i < 3; i++)
-                {
-                    try
+                    catch (InvalidCastException ex)
                     {
-                        _outlookNamespace = OutlookApplication.GetNamespace("MAPI");
-                        break;  //Exit the for loop, if creating outllok application was successful
+                        throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
                     }
-                    catch (COMException ex)
+                    catch (Exception ex)
                     {
                         if (i == 2)
                             throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                         else //wait ten seconds and try again
                             System.Threading.Thread.Sleep(1000 * 10);
-                    }
+                    }   
                 }
+                catch (COMException ex)
+                {
+                    if (ex.ErrorCode == -2147312566) //0x80029c4a
+                        throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                    if (i == 2)
+                        throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
+                    else //wait ten seconds and try again
+                        System.Threading.Thread.Sleep(1000 * 10);
+                }
+                catch (InvalidCastException ex)
+                {
+                    throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                }
+                catch (Exception ex)
+                {
+                    if (i == 2)
+                        throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
+                    else //wait ten seconds and try again
+                        System.Threading.Thread.Sleep(1000 * 10);
+                }
+            }
+        }
 
+        private static void CreateOutlookNamespace()
+        {
+            //Try to create new Outlook namespace 3 times, because mostly it fails the first time, if not yet running
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    _outlookNamespace = OutlookApplication.GetNamespace("MAPI");
+                    break;  //Exit the for loop, if gettng outlook namespace was successful
+                }
+                catch (COMException ex)
+                {
+                    if (ex.ErrorCode == -2147312566) //0x80029c4a
+                        throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                    if (i == 2)
+                        throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
+                    else //wait ten seconds and try again
+                        System.Threading.Thread.Sleep(1000 * 10);
+                }
+                catch (InvalidCastException ex)
+                {
+                    throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                }
+                catch (Exception ex)
+                {
+                    if (i == 2)
+                        throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
+                    else //wait ten seconds and try again
+                        System.Threading.Thread.Sleep(1000 * 10);
+                }
+            }
+        }
+
+
+        private static void CreateOutlookInstance()
+        {
+            if (OutlookApplication == null || _outlookNamespace == null)
+            {
+                CreateOutlookApplication();
+
+                if (OutlookApplication == null)
+                    throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.");
+
+                CreateOutlookNamespace();
+                
                 if (_outlookNamespace == null)
                     throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.");
                 else
@@ -383,14 +432,29 @@ namespace GoContactSyncMod
             }
             _outlookNamespace.Logon(profileName, null, true, false);*/
 
-            //Just try to access the outlookNamespace to check, if it is still accessible, throws COMException, if not reachable           
-            if (string.IsNullOrEmpty(SyncContactsFolder))
+            //Just try to access the outlookNamespace to check, if it is still accessible, throws COMException, if not reachable 
+            try
             {
-                _outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderContacts);
+                if (string.IsNullOrEmpty(SyncContactsFolder))
+                {
+                    _outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderContacts);
+                }
+                else
+                {
+                    _outlookNamespace.GetFolderFromID(SyncContactsFolder);
+                }
+                
             }
-            else
+            catch (COMException ex)
             {
-                _outlookNamespace.GetFolderFromID(SyncContactsFolder);
+                if (ex.ErrorCode == -2147312566) //0x80029c4a
+                {
+                    throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                }
+                else
+                {
+                    throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
+                }
             }
         }
 

@@ -307,6 +307,7 @@ namespace GoContactSyncMod
                         Logger.Log("Loaded Outlook folders.", EventType.Information);
 
                     }
+                   
                     catch (Exception e)
                     {
                         Logger.Log("Error getting available Outlook and Google folders: " + e.Message, EventType.Warning);
