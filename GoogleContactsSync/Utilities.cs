@@ -86,7 +86,7 @@ namespace GoContactSyncMod
 
                 return image;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
