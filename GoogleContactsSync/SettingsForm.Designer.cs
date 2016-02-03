@@ -111,7 +111,7 @@ namespace GoContactSyncMod
             this.UserName.Name = "UserName";
             this.UserName.Size = new System.Drawing.Size(342, 21);
             this.UserName.TabIndex = 0;
-            this.toolTip.SetToolTip(this.UserName, "Type in your Google Mail User Name (full name)");
+            this.toolTip.SetToolTip(this.UserName, "Type in your Google Mail User Name (example: username@gmail.com)");
             this.UserName.TextChanged += new System.EventHandler(this.UserName_TextChanged);
             // 
             // label2

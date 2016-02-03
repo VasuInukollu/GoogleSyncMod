@@ -2,10 +2,10 @@
 
 ### Version [3.9.13] - 01.11.2015
 ###### SVN commits
-**r567 - r571**:	
+**r567 - r571**:
 	- FIX: [bugs:#780]
 	- UPDATE: nuget packages
-	- IMPROVEMENT: detect version Outlook 2016
+	- IMPROVEMENT: detect version: Outlook 2016
 	- IMPROVEMENT: log windows version: name, architecture, number
 	- IMPROVEMENT: do not copy the interop dll to output dir
 	- IMPROVEMENT: do not include interop into setup
@@ -15,27 +15,24 @@
 	- prepared new setup
 
 ### Version [3.9.12] - 16.10.2015
+###### SVN commits
 **r563 - r566**:
-- Reverted change from 3.9.11: Referenced Outlook 2013 Interop API and copied it locally
+	- Reverted change from 3.9.11: Referenced Outlook 2013 Interop API and copied it locally
 	turned out, also not runnable with Outlook 2016
 	and has issues with Older Office 2010 and 2007 installations
 
 ### Version [3.9.11] - 15.10.2015
-**r560 - r562**:	
+###### SVN commits
+**r558 - r562**:
 	- FIX: Workaround, to not overwrite tentative/free Calendar items, see [bugs:#709]
 	- FIX: [bugs:#731]
 	- UPDATE: nuget packages
-	- FIX: dont load old registry settings to avoid profile errors
-
-###### SVN commits
-**r555 - r557**:
+	- FIX: don't load old registry settings to avoid profile errors
 	- FIX: Remove recurrence from slave, if removed from master
 	- FIX: Extended ListSeparator for GoogleGroups
 	- FIX: handle exception when saving Outlook appointment fails (log warning instead of stop and throw error)
 
-
 ### Version [3.9.10] - 16.05.2015
-
 ###### SVN commits
 **r555 - r557**:
 	- FIX: Remove recurrence from slave, if removed from master
@@ -43,35 +40,30 @@
 	- FIX: handle exception when saving Outlook appointment fails (log warning instead of stop and throw error)
 
 ### Version [3.9.9] - 12.05.2015
-
 ###### SVN commits
 **r552 - r553**
 	- FIX: Improved GUI behavior, if CheckVersion fails (e.g. because of missing internet connection or wrong proxy settings)
 	- FIX: added America/Phoenix to the timezone Dropdown
 
 ### Version [3.9.8] - 04.05.2015
-
 ###### SVN commits
 **r546 - r550**
-	- FIX: stopped duplicating Group combinations and adding them to Google, see   https://sourceforge.net/p/googlesyncmod/bugs/691/
-	- FIX: avoid "Forbidden" error message, if calender item cannot be changed by Google account, see https://sourceforge.net/p/googlesyncmod/bugs/696/
+	- FIX: stopped duplicating Group combinations and adding them to Google, [see](https://sourceforge.net/p/googlesyncmod/bugs/691/)
+	- FIX: avoid "Forbidden" error message, if calender item cannot be changed by Google account, [see](https://sourceforge.net/p/googlesyncmod/bugs/696/)
 	- FIX: removed debug update detection code
 	- UPDATE: Google.Apis.Calendar.v3
 	- FIX: moving "Copy to Clipboard" back to own STA-Thread
 	- FIX: ballon tooltip for update was always shown (svn commit error)
 
 ### Version [3.9.7] - 21.04.2015
-
 ###### SVN commits
 **r542 - r544**
-
-  - FIX: Removed Notes Sync, because not supported by Google anymore
-  - FIX: Handle null values in Registry Profiles http://sourceforge.net/p/googlesyncmod/bugs/675/
+	- FIX: Removed Notes Sync, because not supported by Google anymore
+	- FIX: Handle null values in Registry Profiles, [see](http://sourceforge.net/p/googlesyncmod/bugs/675/)
 
 **Free Open Source Software, Hell Yeah!**
 
 ### Version [3.9.6] - 15.04.2015
-
 ###### SVN commits
 **r536 - r541**
 
@@ -90,16 +82,14 @@
 
 ###### SVN commits
 **r535**
-
-  - **FIX**: Fix errors when reading registry into checkbox or number textbox, see
-  https://sourceforge.net/p/googlesyncmod/bugs/667/
-  https://sourceforge.net/p/googlesyncmod/bugs/695/
-  https://sourceforge.net/p/googlesyncmod/support-requests/354/, and others
-  - **FIX**: Invalid recurrence pattern for yearly events, see
-  https://sourceforge.net/p/googlesyncmod/support-requests/324/
-  https://sourceforge.net/p/googlesyncmod/support-requests/363/
-  https://sourceforge.net/p/googlesyncmod/support-requests/344/
-  - **IMPROVEMENT**: Swtiched to number textboxes for the months range
+	- **FIX**: Fix errors when reading registry into checkbox or number textbox, see https://sourceforge.net/p/googlesyncmod/bugs/667/
+	https://sourceforge.net/p/googlesyncmod/bugs/695/
+	https://sourceforge.net/p/googlesyncmod/support-requests/354/, and others
+	- **FIX**: Invalid recurrence pattern for yearly events, see
+	https://sourceforge.net/p/googlesyncmod/support-requests/324/
+	https://sourceforge.net/p/googlesyncmod/support-requests/363/
+	https://sourceforge.net/p/googlesyncmod/support-requests/344/
+	- **IMPROVEMENT**: Swtiched to number textboxes for the months range
 
 **Free Open Source Software, Hell Yeah!**
 
@@ -110,8 +100,8 @@
   - **FIX**: persist GoogleCalendar setting into Registry, see
 	https://sourceforge.net/p/googlesyncmod/bugs/685/
 	https://sourceforge.net/p/googlesyncmod/bugs/684/
-  - **FIX**: FIX: more spelling corrections 
-  - **FIX**: spelling/typos corrections [bugs:#662] - UPD: nuget packages 
+  - **FIX**: FIX: more spelling corrections
+  - **FIX**: spelling/typos corrections [bugs:#662] - UPD: nuget packages
 
 **Free Open Source Software, Hell Yeah!**
 
@@ -142,8 +132,8 @@
 
 **Free Open Source Software, Hell Yeah!**
 
-[3.9.2]: http://sourceforge.net/projects/googlesyncmod/files/Releases/3.9.2/SetupGCSM-3.9.2.msi/download 
- 
+[3.9.2]: http://sourceforge.net/projects/googlesyncmod/files/Releases/3.9.2/SetupGCSM-3.9.2.msi/download
+
 ### Version [3.9.1] - 27.12.2014
 
 ###### SVN commits
@@ -156,27 +146,27 @@
   - **FIX**: Proxy Port was not used, because of missing exclamation mark before the null check
   - **FIX**: bugfixes for Calendar sync
   - **FIX**: replaced ClientLoginAuthenticator by OAuth2 Version and enabled Notes sync again
-  - **FIX**: removed 5 minutes minimum timespan again (doesn't make sense for 2 syncs, would make sense between changes of Outlook items, but this we cannot control 
+  - **FIX**: removed 5 minutes minimum timespan again (doesn't make sense for 2 syncs, would make sense between changes of Outlook items, but this we cannot control
   - **FIX**: Instead of deleting the registry settings, copy it from old WebGear structure ...
-  - **FIX**: copy error message to clipboard see [bugs:#542] 
+  - **FIX**: copy error message to clipboard see [bugs:#542]
 
   - **CHANGE**: search only .net 4.0 full profile as startup condition
-  - **CHANGE**: changed Auth-Class 
-                removed password field 
-				added possibility to delete user auth tokens 
-				changed auth folder 
-				changed registry settings tree name 
-				remove old settings-tree 
-  - **CHANGE**: use own OAuth-Broker 
-                added own implementation of OAuth2-Helper class to append user (parameter: login_hint) to authorization url 
-                add user email to authorization uri 
-  - **CHANGE**: removed build setting for old GoogleAPIDir 
+  - **CHANGE**: changed Auth-Class
+                removed password field
+				added possibility to delete user auth tokens
+				changed auth folder
+				changed registry settings tree name
+				remove old settings-tree
+  - **CHANGE**: use own OAuth-Broker
+                added own implementation of OAuth2-Helper class to append user (parameter: login_hint) to authorization url
+                add user email to authorization uri
+  - **CHANGE**: removed build setting for old GoogleAPIDir
 
-  - **IMPROVEMENT**: simplified code 
-                     rename class file - small code cleanup 
-  - **IMPROVEMENT**: Authentication between GCSM and Google is done with OAuth2 - no password needed anymore 
-  - **IMPROVEMENT**: changed layout and added labels for appointment fields 
-                     set timezone before appointment sync! see [feature-requests:#112] 
+  - **IMPROVEMENT**: simplified code
+                     rename class file - small code cleanup
+  - **IMPROVEMENT**: Authentication between GCSM and Google is done with OAuth2 - no password needed anymore
+  - **IMPROVEMENT**: changed layout and added labels for appointment fields
+                     set timezone before appointment sync! see [feature-requests:#112]
   - **IMPROVEMENT**: setting culture for error messages to english
 
 **Free Open Source Software, Hell Yeah!**
@@ -184,7 +174,7 @@
 [3.9.1]: http://sourceforge.net/projects/googlesyncmod/files/Releases/3.9.1/SetupGCSM-3.9.1.msi/download
 
 
-### Version 3.9.0 
+### Version 3.9.0
 FIX: Got UnitTests running and confirmed pass results, to create setup for version 3.9.0
 FIX: crash with .NET4.0 because of AccessViolationException when accessing RTFBoxy http://sourceforge.net/p/googlesyncmod/bugs/528
 FIX: Make use of Timezone settings for recurring events optional
@@ -406,7 +396,7 @@ IMPROVEMENT: added pdb file to installation to get some more information, when u
 IMPROVEMENT: Added also email to not require FullName
 IMPROVEMENT: Added company as unique property, if FullName is emptyFullName
 
-See also Feature Request 
+See also Feature Request
 https://sourceforge.net/tracker/index.php?func=detail&aid=3297935&group_id=369321&atid=1539126
 FIX: handled exception when updating Birthday and anniversary with invalid date, see https://sourceforge.net/tracker/?func=detail&aid=3397921&group_id=369321&atid=1539126
 FIX: Handle Nullpointerexception when Release Marshall Objects at GetOutlookItems, maybe this helps to fix the Nullpointer Exceptions in LoadOutlookContacts
@@ -446,4 +436,3 @@ IMPROVEMENT:
 Improvement: added progress notifications (which contact is currently syncing or matching)
 Improvement: Sync also State and PostOfficeBox, see Tracker item https://sourceforge.net/tracker/?func=detail&aid=3276467&group_id=369321&atid=1539126
 Improvement: Avoid MatchContacts when just resetting matches (Performance improvement)
-

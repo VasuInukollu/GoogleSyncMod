@@ -28,7 +28,7 @@ namespace GoContactSyncMod.UnitTests
         const string body = "This is just a test note to test GoContactSyncMod";
         const string groupName = "A TEST GROUP";
 
-        [TestFixtureSetUp]
+        [OneTimeSetUpAttribute]
         public void Init() 
         {            
             //string timestamp = DateTime.Now.Ticks.ToString();            
@@ -107,7 +107,7 @@ namespace GoContactSyncMod.UnitTests
             Console.WriteLine(message);
         }
 
-        [TestFixtureTearDown]        
+        [OneTimeTearDown]        
         public void TearDown()
         {
             sync.LogoffOutlook();

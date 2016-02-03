@@ -130,10 +130,6 @@
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
-  <PropertyGroup>
-    <PreBuildEvent>REM "$(WIX)bin\heat.exe" dir "$(SolutionDir)GoogleContactsSync\bin\Release" -cg GoogleContactsSync.Binaries -gg -scom -sreg -sfrag -srd -dr INSTALLLOCATION  -var var.GoogleContactsSync.TargetDir -v -t "$(ProjectDir)HarvestTransform.xsl" -out "$(ProjectDir)Fragments\BinariesFragment.wxs"
-REM "$(WIX)bin\heat.exe" dir "$(SolutionDir)MicrosoftAPI" -cg MicrosoftAPIFiles -gg -scom -sreg -sfrag -srd -dr INSTALLLOCATION  -var var.MicrosoftAPIDir -v -out "$(ProjectDir)Fragments\MicrosoftAPIFilesFragment.wxs"</PreBuildEvent>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <DefineConstants>MicrosoftAPIDir=$(SolutionDir)MicrosoftAPI\</DefineConstants>
     <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
@@ -143,5 +139,9 @@ REM "$(WIX)bin\heat.exe" dir "$(SolutionDir)MicrosoftAPI" -cg MicrosoftAPIFiles 
     <DefineConstants>MicrosoftAPIDir=$(SolutionDir)MicrosoftAPI\</DefineConstants>
     <OutputPath>$(ProjectDir)Packages\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>"$(WIX)bin\heat.exe" dir "$(SolutionDir)GoogleContactsSync\bin\Release" -cg GoogleContactsSync.Binaries -gg -scom -sreg -sfrag -srd -dr INSTALLLOCATION  -var var.GoogleContactsSync.TargetDir -v -t "$(ProjectDir)HarvestTransform.xsl" -out "$(ProjectDir)Fragments\BinariesFragment.wxs"
+REM "$(WIX)bin\heat.exe" dir "$(SolutionDir)MicrosoftAPI" -cg MicrosoftAPIFiles -gg -scom -sreg -sfrag -srd -dr INSTALLLOCATION  -var var.MicrosoftAPIDir -v -out "$(ProjectDir)Fragments\MicrosoftAPIFilesFragment.wxs"</PreBuildEvent>
   </PropertyGroup>
 </Project>

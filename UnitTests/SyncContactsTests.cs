@@ -30,7 +30,7 @@ namespace GoContactSyncMod.UnitTests
         const string groupName = "A TEST GROUP";
 
        
-        [TestFixtureSetUp]
+        [OneTimeSetUpAttribute]
         public void Init() 
         {            
             //string timestamp = DateTime.Now.Ticks.ToString();            
@@ -114,7 +114,7 @@ namespace GoContactSyncMod.UnitTests
             Console.WriteLine(message);
         }
 
-        [TestFixtureTearDown]        
+        [OneTimeTearDown]        
         public void TearDown()
         {
             sync.LogoffOutlook();
@@ -1300,7 +1300,7 @@ namespace GoContactSyncMod.UnitTests
 
         //}
 
-        [Ignore]
+        [Ignore("TestMassSyncToGoogle")]
         public void TestMassSyncToGoogle()
         {
             // NEED TO DELETE CONTACTS MANUALY
@@ -1353,7 +1353,7 @@ namespace GoContactSyncMod.UnitTests
             // received: Synced 50 contacts to google in 30.137 s (0.60274 s per contact)
         }       
 
-        [Ignore]
+        [Ignore("TestCreatingGoogeAccountThatFailed1")]
         public void TestCreatingGoogeAccountThatFailed1()
         {
             Outlook.ContactItem outlookContact = sync.OutlookContacts.Find(
@@ -1399,7 +1399,7 @@ namespace GoContactSyncMod.UnitTests
         }
 
         //[Test]
-        [Ignore]
+        [Ignore("TestCreatingGoogeAccountThatFailed2")]
         public void TestCreatingGoogeAccountThatFailed2()
         {
             Outlook.ContactItem outlookContact = sync.OutlookContacts.Find(
@@ -1445,7 +1445,7 @@ namespace GoContactSyncMod.UnitTests
         }
 
         //[Test]
-        [Ignore]
+        [Ignore("TestCreatingGoogeAccountThatFailed3")]
         public void TestCreatingGoogeAccountThatFailed3()
         {
             Outlook.ContactItem outlookContact = sync.OutlookContacts.Find(
@@ -1491,7 +1491,7 @@ namespace GoContactSyncMod.UnitTests
         }
 
         //[Test]
-        [Ignore]
+        [Ignore("TestUpdatingGoogeAccountThatFailed")]
         public void TestUpdatingGoogeAccountThatFailed()
         {
             Outlook.ContactItem outlookContact = sync.OutlookContacts.Find(

@@ -30,7 +30,7 @@ namespace GoContactSyncMod.UnitTests
             Console.WriteLine(message);
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUpAttribute]
         public void Init()
         {
             //string timestamp = DateTime.Now.Ticks.ToString();            
