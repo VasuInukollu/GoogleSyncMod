@@ -203,10 +203,10 @@ namespace GoContactSyncMod
                 {//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                     Logger.Log("Loading Outlook folders...", EventType.Information);
 
-                    this.contactFoldersComboBox.Visible = btSyncContacts.Checked;
+                    this.contactFoldersComboBox.Visible = this.btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
                     //this.noteFoldersComboBox.Visible = btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                     this.labelTimezone.Visible = this.labelMonthsPast.Visible = this.labelMonthsFuture.Visible = btSyncAppointments.Checked;
-                    this.appointmentFoldersComboBox.Visible = this.appointmentGoogleFoldersComboBox.Visible = this.futureMonthInterval.Visible = this.pastMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = btSyncAppointments.Checked;
+                    this.appointmentFoldersComboBox.Visible = this.appointmentGoogleFoldersComboBox.Visible = this.futureMonthInterval.Visible = this.pastMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = this.btSyncAppointmentsForceRTF.Visible =  btSyncAppointments.Checked;
                     this.cmbSyncProfile.Visible = true;
 
                     string defaultText = "    --- Select an Outlook folder ---";
@@ -1558,6 +1558,7 @@ namespace GoContactSyncMod
                 btSyncAppointments.Checked = true;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             }
             contactFoldersComboBox.Visible = btSyncContacts.Checked;
+            btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
         }
 
         //private void btSyncNotes_CheckedChanged(object sender, EventArgs e)
@@ -1580,6 +1581,7 @@ namespace GoContactSyncMod
             appointmentFoldersComboBox.Visible = appointmentGoogleFoldersComboBox.Visible = btSyncAppointments.Checked;
             this.labelTimezone.Visible = this.labelMonthsPast.Visible = this.labelMonthsFuture.Visible = this.btSyncAppointments.Checked;
             this.pastMonthInterval.Visible = this.futureMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = btSyncAppointments.Checked;
+            btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
         }
 
         private void cmbSyncProfile_SelectedIndexChanged(object sender, EventArgs e)

@@ -886,7 +886,7 @@ namespace GoContactSyncMod
                 }
                 else if (!nonRTF.Equals(master.Content))
                 {
-                    if (!Synchronizer.SyncAppointmentsForceRTF)
+                    if (!Synchronizer.SyncContactsForceRTF)
                     {
                         slave.Body = master.Content;
                     }

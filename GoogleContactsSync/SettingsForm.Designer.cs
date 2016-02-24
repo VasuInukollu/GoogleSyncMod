@@ -302,7 +302,7 @@ namespace GoContactSyncMod
             this.reportSyncResultCheckBox.AutoSize = true;
             this.reportSyncResultCheckBox.Location = new System.Drawing.Point(14, 65);
             this.reportSyncResultCheckBox.Name = "reportSyncResultCheckBox";
-            this.reportSyncResultCheckBox.Size = new System.Drawing.Size(225, 17);
+            this.reportSyncResultCheckBox.Size = new System.Drawing.Size(226, 17);
             this.reportSyncResultCheckBox.TabIndex = 2;
             this.reportSyncResultCheckBox.Text = "Re&port Sync Result in System Tray";
             this.reportSyncResultCheckBox.UseVisualStyleBackColor = true;
@@ -373,7 +373,8 @@ namespace GoContactSyncMod
             this.btSyncAppointmentsForceRTF.Size = new System.Drawing.Size(144, 17);
             this.btSyncAppointmentsForceRTF.TabIndex = 18;
             this.btSyncAppointmentsForceRTF.Text = "Force RTF Appointm.";
-            this.toolTip.SetToolTip(this.btSyncAppointmentsForceRTF, "This specifies whether appointments are synchronized.");
+            this.toolTip.SetToolTip(this.btSyncAppointmentsForceRTF, "This specifies whether appointment notes are updated with RTF, even if it destroy" +
+        "s the RTF format.");
             this.btSyncAppointmentsForceRTF.UseVisualStyleBackColor = true;
             // 
             // btSyncContactsForceRTF
@@ -386,7 +387,8 @@ namespace GoContactSyncMod
             this.btSyncContactsForceRTF.Size = new System.Drawing.Size(136, 17);
             this.btSyncContactsForceRTF.TabIndex = 17;
             this.btSyncContactsForceRTF.Text = "Force RTF Contacts";
-            this.toolTip.SetToolTip(this.btSyncContactsForceRTF, "This specifies whether contacts are synchronized.");
+            this.toolTip.SetToolTip(this.btSyncContactsForceRTF, "This specifies whether contact notes are updated with RTF, even if it destroys th" +
+        "e RTF format.");
             this.btSyncContactsForceRTF.UseVisualStyleBackColor = true;
             // 
             // futureMonthInterval
@@ -1117,7 +1119,7 @@ namespace GoContactSyncMod
             this.NewVersionLinkLabel.LinkColor = System.Drawing.Color.Blue;
             this.NewVersionLinkLabel.Location = new System.Drawing.Point(269, 603);
             this.NewVersionLinkLabel.Name = "NewVersionLinkLabel";
-            this.NewVersionLinkLabel.Size = new System.Drawing.Size(410, 13);
+            this.NewVersionLinkLabel.Size = new System.Drawing.Size(412, 13);
             this.NewVersionLinkLabel.TabIndex = 1;
             this.NewVersionLinkLabel.TabStop = true;
             this.NewVersionLinkLabel.Text = "Version of GCSM is uptodate, click to open GCSM homepage on sf.net!";
