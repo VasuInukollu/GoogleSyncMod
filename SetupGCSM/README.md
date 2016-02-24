@@ -1,5 +1,17 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+### Version [3.9.14] - 24.02.2016
+###### SVN commits
+**r572 - r579**:
+FIX: handle busy/free/tentative status by transparency, see https://sourceforge.net/p/googlesyncmod/bugs/463/
+FIX: implemented ForceRTF checkbox
+UPDATE: update NuGet packages to latest version
+UPDATE: tooltip (UserName)
+FIX: Added more diagnostics for problems with Outlook installation [bugs:#785] 
+FIX: changed copy to clipboard code to prevent HRESULT: CLIPBRD_E_CANT_OPEN, see [bugs:#749]
+UPDATE: field label User -> E-Mail in UI
+FIX: changed error typo
+
 ### Version [3.9.13] - 01.11.2015
 ###### SVN commits
 **r567 - r571**:

@@ -2,141 +2,141 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="INSTALLLOCATION">
-            <Component Id="cmp84F0D122A2D294305D940146E92203D0" Guid="{DD778458-23DB-4820-B8DF-91621574BA9C}">
+            <Component Id="cmp84F0D122A2D294305D940146E92203D0" Guid="{05453C0B-4B60-4D7D-A349-42CE83AA115C}">
                 <File Id="fil73D53F0DA7EFFAA9AC133E6CEAA78A22" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\BouncyCastle.Crypto.dll" />
             </Component>
-            <Component Id="cmpFDD45D7DBC5E6FBBBAE2237955069644" Guid="{04A88251-336D-42E0-9D84-B606C077D25C}">
+            <Component Id="cmpFDD45D7DBC5E6FBBBAE2237955069644" Guid="{4B0E328E-D572-4966-98B3-5D37B2322D71}">
                 <File Id="filF9C71B99D8AA6C9D071576563B9A8C98" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\BouncyCastle.Crypto.pdb" />
             </Component>
-            <Component Id="cmpED5C8A3AE00B074A820B89DE7C33330D" Guid="{34E763FB-EB58-49DB-B6DB-FE5C8EC84A1A}">
+            <Component Id="cmpED5C8A3AE00B074A820B89DE7C33330D" Guid="{7F4FF4AE-C9D6-41E9-A32B-18CF4656C4FF}">
                 <File Id="fil477678C73DB17A7805DE14031B7B5A86" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\GOContactSync.exe" />
             </Component>
-            <Component Id="cmpDFCC9F96E95CF1BBDFFEA52B8320F30F" Guid="{8D9E717F-BDA7-417A-A8F4-2DDF0139AF5C}">
+            <Component Id="cmpDFCC9F96E95CF1BBDFFEA52B8320F30F" Guid="{FCA4A90A-3102-4002-ACB9-5B3638DD3E6D}">
                 <File Id="fil126099A7340FE448F8F1086D4B99F6BE" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\GOContactSync.exe.config" />
             </Component>
-            <Component Id="cmpF0B42DAEDDFA0E7D8297C421E296129A" Guid="{0C086F55-A3B0-42F9-8989-6946E3813C5E}">
+            <Component Id="cmpF0B42DAEDDFA0E7D8297C421E296129A" Guid="{FD1B2B94-372A-4E65-B1E7-B49581DEA62B}">
                 <File Id="filED5FFFD6FE703D7A155374D81C00AE19" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\GOContactSync.pdb" />
             </Component>
-            <Component Id="cmp137C8851C2DCF427E0EDFE09AF6B4458" Guid="{C91E0082-3FB3-48ED-86A1-A3B2398A1616}">
+            <Component Id="cmp137C8851C2DCF427E0EDFE09AF6B4458" Guid="{419DBC67-ECD9-44FD-A5A3-6C9F2D524FDB}">
                 <File Id="filD5C2B985B981AC6C3251A6D6F69F4DEC" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\GOContactSync.vshost.exe" />
             </Component>
-            <Component Id="cmpA339EE3CDB9A676D1EC22479DF1381EF" Guid="{66877FCB-57EC-478E-893D-A320C5AB9960}">
+            <Component Id="cmpA339EE3CDB9A676D1EC22479DF1381EF" Guid="{1C228493-B766-44B6-AE09-4BABEAD01A82}">
                 <File Id="fil364F2B648C4296E553D64C7AE852A2F5" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\GOContactSync.vshost.exe.config" />
             </Component>
-            <Component Id="cmpA489E3B4CECBBB56D04FD88CB4ED11D0" Guid="{D24BEBB8-FC46-41CF-8DF9-A3793B44A480}">
+            <Component Id="cmpA489E3B4CECBBB56D04FD88CB4ED11D0" Guid="{EFD0592C-B654-4B57-B12B-F249322F2E84}">
                 <File Id="filFE1A7E33DAE74007DDC41A37CF480328" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\GOContactSync.vshost.exe.manifest" />
             </Component>
-            <Component Id="cmpC6285853BBF616B4B3800161AB43F975" Guid="{C24655D8-9565-4353-9975-1D5300EF9F97}">
+            <Component Id="cmpC6285853BBF616B4B3800161AB43F975" Guid="{FC29A0FA-48ED-4200-A222-B5E7EEB3D58D}">
                 <File Id="filFE8A626634E4E8A97FCFABA065E8DB6A" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Auth.dll" />
             </Component>
-            <Component Id="cmpEAC5E914901C216168084652DFF07D10" Guid="{02DC91A8-E3FC-4F58-B4F1-48E7CC481569}">
+            <Component Id="cmpEAC5E914901C216168084652DFF07D10" Guid="{1E535D67-5605-4784-953D-00CB88FD2324}">
                 <File Id="fil7BE75048F853F0359BA5D4E2E1170E2D" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Auth.pdb" />
             </Component>
-            <Component Id="cmp0FD5F9013D03186EC6C855AA1DD1D777" Guid="{0A15BFBC-A520-41E9-B76A-9BF213222CE6}">
+            <Component Id="cmp0FD5F9013D03186EC6C855AA1DD1D777" Guid="{09EB1D06-2CAF-4F09-AFDB-A9DC56AD4705}">
                 <File Id="fil782E6374278C1199C7A6CA1D5493A0DA" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Auth.PlatformServices.dll" />
             </Component>
-            <Component Id="cmp7D209E4A2AF372BC3A721129A78A6D6C" Guid="{A3BC1BFB-9A62-4049-A1D5-DE962DBCCEF2}">
+            <Component Id="cmp7D209E4A2AF372BC3A721129A78A6D6C" Guid="{2EFBC6A9-3B1E-41AE-9897-A125899BA619}">
                 <File Id="filC804C9273E9C89A2237737FA47CAD676" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Auth.PlatformServices.pdb" />
             </Component>
             
             
-            <Component Id="cmp4EDE96F5E60BA7A2F9FA4811C3F8EFF9" Guid="{D7C44648-EB00-4DDF-9D77-DE5A5B515E7E}">
+            <Component Id="cmp4EDE96F5E60BA7A2F9FA4811C3F8EFF9" Guid="{B967CA65-A3BF-4169-9D52-7DD7395B1990}">
                 <File Id="filEB514894AC8ED2281F3D7E2092077387" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Calendar.v3.dll" />
             </Component>
-            <Component Id="cmp822CF73A9462799DC1EDAFA7575DE559" Guid="{8DA5B976-7DA7-4DDB-8574-6868E4F1564D}">
+            <Component Id="cmp822CF73A9462799DC1EDAFA7575DE559" Guid="{51B532BC-743F-47C0-8560-86F93740144F}">
                 <File Id="fil221D6F00BACFF5FFED66F957B25227C6" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Calendar.v3.pdb" />
             </Component>
             
-            <Component Id="cmpC8455FF9A78C881C7A8F6EA86E91F29E" Guid="{9579A789-23E3-455E-BF4F-843C665D6872}">
+            <Component Id="cmpC8455FF9A78C881C7A8F6EA86E91F29E" Guid="{57636887-7ADD-4C8B-A0F1-B14EA72BEE29}">
                 <File Id="fil25E61EB12888CDBC527BB33526286E17" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Core.dll" />
             </Component>
-            <Component Id="cmp47D7157D80D3C5106E967B06B3DD1F3D" Guid="{89F77B02-F3CF-49E6-AA1F-A88E765EFA75}">
+            <Component Id="cmp47D7157D80D3C5106E967B06B3DD1F3D" Guid="{B062999D-86B3-4934-AD7E-92B738677D26}">
                 <File Id="filAF047882DAC55B1A758E0D788CF6AC0E" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.Core.pdb" />
             </Component>
             
-            <Component Id="cmp2D92EF7487DD3923C06818EF87A12862" Guid="{3C9AE703-2299-415D-A31F-1B096A0185EC}">
+            <Component Id="cmp2D92EF7487DD3923C06818EF87A12862" Guid="{6912DBFC-9E6F-40D1-9B60-E2979FE3A537}">
                 <File Id="filBB9CA12923DFE730B1B33BE99BC32DEE" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.dll" />
             </Component>
-            <Component Id="cmpD26D296DDA1946BF27C016EFBA3CFB65" Guid="{8CC050DB-440A-45AE-9550-1DA05950293A}">
+            <Component Id="cmpD26D296DDA1946BF27C016EFBA3CFB65" Guid="{ABAD3B27-8639-4DB7-9929-91BFD3FAEF2C}">
                 <File Id="filC35CD1AA4AF937D1951901567F4789C2" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.pdb" />
             </Component>
-            <Component Id="cmp5D4C8B103645E32F1EBC228BA7ECC0EB" Guid="{90135AE1-AD90-42FF-802A-9A7C424E83E9}">
+            <Component Id="cmp5D4C8B103645E32F1EBC228BA7ECC0EB" Guid="{E4CAC8C0-CCC2-476D-B1B7-7284859D49FF}">
                 <File Id="filDF4930303645CC79F225F11CF5128A75" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.PlatformServices.dll" />
             </Component>
-            <Component Id="cmp537FD39523184DC7A4FB6EDCFC07A2C7" Guid="{DF647F63-8925-47FE-98BA-6164766D2E78}">
+            <Component Id="cmp537FD39523184DC7A4FB6EDCFC07A2C7" Guid="{88BCEE1C-636E-4318-8F6F-E60A792DF64C}">
                 <File Id="fil5364B8E9BAF46B0982D26E7B3963534C" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.Apis.PlatformServices.pdb" />
             </Component>
             
             
-            <Component Id="cmpFE385C1766E7C35F38A2FA76D0303187" Guid="{492FEE45-FD19-4084-8818-CC99889C1800}">
+            <Component Id="cmpFE385C1766E7C35F38A2FA76D0303187" Guid="{88DC7789-4AEF-40DB-BB49-EF91064F086C}">
                 <File Id="filDFE4BEA3D1BF18D2E66DC427FA6647D3" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.GData.AccessControl.dll" />
             </Component>
-            <Component Id="cmp3578439E84A7640AFEBF890BEF51DF9F" Guid="{9D6BBABC-D206-4FE7-9E55-13D0BFA70C49}">
+            <Component Id="cmp3578439E84A7640AFEBF890BEF51DF9F" Guid="{E60AA42D-05DE-4085-ACF4-731E99AD2446}">
                 <File Id="filFFD513F7276ECCEA801AD56D1BDBAAB2" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.GData.Client.dll" />
             </Component>
-            <Component Id="cmp4C88EF534D672489E83C8B5026CA90CA" Guid="{59DC1BE2-7A6F-4C31-9A9A-F5A353A19E86}">
+            <Component Id="cmp4C88EF534D672489E83C8B5026CA90CA" Guid="{E7329E7C-3E50-45F8-BBFF-C4E23756D1FC}">
                 <File Id="fil0AF9DEC08066A918CBB71E588E0C98A4" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.GData.Contacts.dll" />
             </Component>
-            <Component Id="cmp4188C2728F2FD2DFC8A4447B4C7902B7" Guid="{371FFDAA-5271-462F-AE3A-B7DE6BAB32CD}">
+            <Component Id="cmp4188C2728F2FD2DFC8A4447B4C7902B7" Guid="{5F97727E-4C9F-4A6A-A1F0-CFEE3B2D550C}">
                 <File Id="filA1E5BD1C0A48324E1C685B6E73E52945" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.GData.Documents.dll" />
             </Component>
-            <Component Id="cmp0B3CE06EB2D8BD723898ADF2B90DA31D" Guid="{B5BB6D96-7507-4310-9F42-089DF985CF0D}">
+            <Component Id="cmp0B3CE06EB2D8BD723898ADF2B90DA31D" Guid="{24D72B61-9B41-4B6E-9E53-EAA6BC577457}">
                 <File Id="filDE994DD767B62603F583333A71F589FB" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Google.GData.Extensions.dll" />
             </Component>
-            <Component Id="cmpE5C01B5677C30D575CC15B4B558A57E0" Guid="{E207C666-4FAD-4B92-A4BB-B9D916D3A164}">
+            <Component Id="cmpE5C01B5677C30D575CC15B4B558A57E0" Guid="{6E7AE75E-86F2-497F-93D8-377817AFB81E}">
                 <File Id="filD17F9AFAC4DF3D7A44817DFBA8510C1A" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\log4net.dll" />
             </Component>
             
-            <Component Id="cmpF74F5FF80224DCCCF8F44A8FC568A770" Guid="{5F7CB639-997B-470E-B97C-D188BE1D23F9}">
+            <Component Id="cmpF74F5FF80224DCCCF8F44A8FC568A770" Guid="{5B2201E3-84EE-4317-AF2A-DEB1C421391F}">
                 <File Id="filAA413DCE37439E3AE0D8CF523078DF06" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Microsoft.Threading.Tasks.dll" />
             </Component>
-            <Component Id="cmpF56482EFA031899CFF7366CDD605679A" Guid="{8A0265EF-86AD-4A7A-8846-340072C3ACB8}">
+            <Component Id="cmpF56482EFA031899CFF7366CDD605679A" Guid="{B5BEBA5C-BDC9-42FF-B10E-39070F519476}">
                 <File Id="fil36C8DDA68588B2458D07C9E96EC87081" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Microsoft.Threading.Tasks.Extensions.Desktop.dll" />
             </Component>
             
-            <Component Id="cmp820F39F085C1575998824AA2BD0C105B" Guid="{7A4550C9-AAFE-4155-ACB3-26AEF536B56A}">
+            <Component Id="cmp820F39F085C1575998824AA2BD0C105B" Guid="{4F31A93C-01C1-4D5B-844F-16E44A2646DC}">
                 <File Id="fil41F7C44C0FC8619286B0ED0371C65599" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Microsoft.Threading.Tasks.Extensions.dll" />
             </Component>
             
             
-            <Component Id="cmpE48528C4F5932A4EFD89F7331108F45D" Guid="{825F6368-2644-4630-B510-79B0DF4A427E}">
+            <Component Id="cmpE48528C4F5932A4EFD89F7331108F45D" Guid="{BC788657-CDAC-424A-AF89-3F8349E619C9}">
                 <File Id="filF1B84C2C6BCC693224B7A7959445B74F" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Newtonsoft.Json.dll" />
             </Component>
             
-            <Component Id="cmpE0A8165B0AA9BAB548691F12343F9C48" Guid="{99F599EB-2BD4-4C9F-BEB4-5F7D53A0B7CB}">
+            <Component Id="cmpE0A8165B0AA9BAB548691F12343F9C48" Guid="{C4DF39AF-0A24-4BE0-9307-F425F023ABF8}">
                 <File Id="filA113131CA290F3E8B5E7B70A8D1C0E08" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\System.IO.dll" />
             </Component>
             
-            <Component Id="cmpC8A1E3DA32F940CB09D739B5EE62F0C6" Guid="{60F8AB1F-4AF3-4153-A3C7-1CBAE96538FF}">
+            <Component Id="cmpC8A1E3DA32F940CB09D739B5EE62F0C6" Guid="{BA06F0B6-5269-40AA-8D11-457C43210039}">
                 <File Id="filB9F0F71FEA7763148A3031525FE3B078" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\System.Net.Http.dll" />
             </Component>
-            <Component Id="cmp48F8AE9D8690B2FDA88CBD39FDB08A41" Guid="{D232017A-A040-4EEA-9CF2-04C7E0A5A01E}">
+            <Component Id="cmp48F8AE9D8690B2FDA88CBD39FDB08A41" Guid="{0BBB34E8-00D1-4A27-99FD-EF61B1DC7ACF}">
                 <File Id="fil0DAB7F58FD075AFDE8B002F706C65074" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\System.Net.Http.Extensions.dll" />
             </Component>
             
-            <Component Id="cmp03CA1E50A74F188019928E3B0B3ADCD2" Guid="{38D64D76-C2B4-4457-B6E6-D8789603D72F}">
+            <Component Id="cmp03CA1E50A74F188019928E3B0B3ADCD2" Guid="{26AC4945-4980-4A33-9038-23D71382AF3F}">
                 <File Id="fil289A5776438080F3961A19A0A18BED4A" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\System.Net.Http.Primitives.dll" />
             </Component>
             
-            <Component Id="cmpE70042D0CF83AA9A57F0D03E03DCDF98" Guid="{50EC5074-D492-413A-8EFC-46BBD051341B}">
+            <Component Id="cmpE70042D0CF83AA9A57F0D03E03DCDF98" Guid="{54EB1FAF-6661-41E6-B4C4-A9345380C71D}">
                 <File Id="fil6D1104925D7D598F2E757664E2358DEA" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\System.Net.Http.WebRequest.dll" />
             </Component>
             
             
-            <Component Id="cmp186835B1EAF2C7A34732B6D110B86959" Guid="{8A01793F-4FD8-46F8-A595-7FB3EDE812EB}">
+            <Component Id="cmp186835B1EAF2C7A34732B6D110B86959" Guid="{F13AEF27-5059-41CA-BCF6-82F8A552A92A}">
                 <File Id="fil4A6D1225EC8D05AAE6A1D043EFDD9874" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\System.Runtime.dll" />
             </Component>
             
-            <Component Id="cmp22FD8CD875BED817540E0E85640FD0B1" Guid="{8ADA6588-AFC1-433D-8B58-02D896D1C683}">
+            <Component Id="cmp22FD8CD875BED817540E0E85640FD0B1" Guid="{208B3AF3-B7D6-4E67-B0E0-8A5607E4C7C2}">
                 <File Id="filAADC047E625055BC2A586A1DC6BE3218" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\System.Threading.Tasks.dll" />
             </Component>
             
-            <Component Id="cmpDF29F676AC20EFA3CAA7F080A5FC30C3" Guid="{408C43EA-40AC-44BF-B7BC-419A268E0AF4}">
+            <Component Id="cmpDF29F676AC20EFA3CAA7F080A5FC30C3" Guid="{492A8E9B-A9D2-451D-9647-D9C2BE8AD799}">
                 <File Id="fil788B95D6BFB3C8716622A81716F135E0" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Zlib.Portable.dll" />
             </Component>
             
             <Directory Id="dir4DC39E28E88A7F1F26918FEF6A2132A1" Name="Resources">
-                <Component Id="cmp258FF675D9262936281EFF416C28331D" Guid="{3F3A5CE8-5C95-483A-862B-9260A21C2485}">
+                <Component Id="cmp258FF675D9262936281EFF416C28331D" Guid="{5C22EE4C-0745-4ACA-8577-BAE7F89CB1E5}">
                     <File Id="filBC680A44C4F0C0C9C7E427E99D3D95E4" KeyPath="yes" Source="$(var.GoogleContactsSync.TargetDir)\Resources\contacts-sync.ico" />
                 </Component>
             </Directory>
