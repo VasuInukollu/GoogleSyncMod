@@ -53,6 +53,8 @@ namespace GoContactSyncMod
             this.nextSyncLabel = new System.Windows.Forms.Label();
             this.syncTimer = new System.Windows.Forms.Timer(this.components);
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btSyncAppointmentsForceRTF = new System.Windows.Forms.CheckBox();
+            this.btSyncContactsForceRTF = new System.Windows.Forms.CheckBox();
             this.futureMonthInterval = new System.Windows.Forms.NumericUpDown();
             this.pastMonthInterval = new System.Windows.Forms.NumericUpDown();
             this.appointmentGoogleFoldersComboBox = new System.Windows.Forms.ComboBox();
@@ -335,6 +337,8 @@ namespace GoContactSyncMod
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.btSyncAppointmentsForceRTF);
+            this.groupBox2.Controls.Add(this.btSyncContactsForceRTF);
             this.groupBox2.Controls.Add(this.futureMonthInterval);
             this.groupBox2.Controls.Add(this.pastMonthInterval);
             this.groupBox2.Controls.Add(this.appointmentGoogleFoldersComboBox);
@@ -358,6 +362,32 @@ namespace GoContactSyncMod
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Sync Options";
+            // 
+            // btSyncAppointmentsForceRTF
+            // 
+            this.btSyncAppointmentsForceRTF.AutoSize = true;
+            this.btSyncAppointmentsForceRTF.Checked = true;
+            this.btSyncAppointmentsForceRTF.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.btSyncAppointmentsForceRTF.Location = new System.Drawing.Point(10, 146);
+            this.btSyncAppointmentsForceRTF.Name = "btSyncAppointmentsForceRTF";
+            this.btSyncAppointmentsForceRTF.Size = new System.Drawing.Size(144, 17);
+            this.btSyncAppointmentsForceRTF.TabIndex = 18;
+            this.btSyncAppointmentsForceRTF.Text = "Force RTF Appointm.";
+            this.toolTip.SetToolTip(this.btSyncAppointmentsForceRTF, "This specifies whether appointments are synchronized.");
+            this.btSyncAppointmentsForceRTF.UseVisualStyleBackColor = true;
+            // 
+            // btSyncContactsForceRTF
+            // 
+            this.btSyncContactsForceRTF.AutoSize = true;
+            this.btSyncContactsForceRTF.Checked = true;
+            this.btSyncContactsForceRTF.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.btSyncContactsForceRTF.Location = new System.Drawing.Point(10, 92);
+            this.btSyncContactsForceRTF.Name = "btSyncContactsForceRTF";
+            this.btSyncContactsForceRTF.Size = new System.Drawing.Size(136, 17);
+            this.btSyncContactsForceRTF.TabIndex = 17;
+            this.btSyncContactsForceRTF.Text = "Force RTF Contacts";
+            this.toolTip.SetToolTip(this.btSyncContactsForceRTF, "This specifies whether contacts are synchronized.");
+            this.btSyncContactsForceRTF.UseVisualStyleBackColor = true;
             // 
             // futureMonthInterval
             // 
@@ -1205,6 +1235,8 @@ namespace GoContactSyncMod
         private System.Windows.Forms.NumericUpDown futureMonthInterval;
         private System.Windows.Forms.NumericUpDown pastMonthInterval;
         private System.Windows.Forms.LinkLabel NewVersionLinkLabel;
+        private System.Windows.Forms.CheckBox btSyncAppointmentsForceRTF;
+        private System.Windows.Forms.CheckBox btSyncContactsForceRTF;
 
     }
 }

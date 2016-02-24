@@ -131,6 +131,9 @@ namespace GoContactSyncMod
         //    }
         //}
 
+
+
+
         /// <summary>
         /// If true deletes contacts if synced before, but one is missing. Otherwise contacts will bever be automatically deleted
         /// </summary>
@@ -145,12 +148,13 @@ namespace GoContactSyncMod
         /// If true sync also contacts
         /// </summary>
         public bool SyncContacts { get; set; }
+        public static bool SyncContactsForceRTF { get; set; }
 
         /// <summary>
         /// If true sync also appointments (calendar)
         /// </summary>
         public bool SyncAppointments { get; set; }
-
+        public static bool SyncAppointmentsForceRTF { get; set; }
         /// <summary>
         /// if true, use Outlook's FileAs for Google Title/FullName. If false, use Outlook's Fullname
         /// </summary>

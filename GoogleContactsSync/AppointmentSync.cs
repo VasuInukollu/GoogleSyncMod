@@ -206,16 +206,27 @@ namespace GoContactSyncMod
 
             try
             {
-                string rtf;
+                string nonRTF;
                 if (slave.Body == null)
-                    rtf = string.Empty;
+                    nonRTF = string.Empty;
                 else
-                    rtf = Utilities.ConvertToText(slave.RTFBody as byte[]);
+                    nonRTF = Utilities.ConvertToText(slave.RTFBody as byte[]);
 
-                if (string.IsNullOrEmpty(rtf) || rtf.Equals(slave.Body) && !rtf.Equals(master.Description))  //only update, if RTF text is same as plain text and is different between master and slave
+                if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body) && !nonRTF.Equals(master.Description))
+                {  //only update, if RTF text is same as plain text and is different between master and slave
                     slave.Body = master.Description;
-                else if (!rtf.Equals(master.Description))
-                    Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
+                }
+                else if (!nonRTF.Equals(master.Description))
+                {
+                    if (!Synchronizer.SyncAppointmentsForceRTF)
+                    {
+                        slave.Body = master.Description;
+                    }
+                    else
+                    {
+                        Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
+                    }
+                }
             }
             catch (Exception e)
             {

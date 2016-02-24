@@ -59,8 +59,10 @@ namespace GoContactSyncMod
         public const string RegistrySyncAppointmentsMonthsInFuture = "SyncAppointmentsMonthsInFuture";
         public const string RegistrySyncAppointmentsTimezone = "SyncAppointmentsTimezone";
         public const string RegistrySyncAppointments = "SyncAppointments";
+        public const string RegistrySyncAppointmentsForceRTF = "SyncAppointmentsForceRTF";
         public const string RegistrySyncNotes = "SyncNotes";
         public const string RegistrySyncContacts = "SyncContacts";
+        public const string RegistrySyncContactsForceRTF = "SyncContactsForceRTF";
         public const string RegistryUseFileAs = "UseFileAs";
         public const string RegistryLastSync = "LastSync";
         public const string RegistrySyncContactsFolder = "SyncContactsFolder";
@@ -458,6 +460,9 @@ namespace GoContactSyncMod
             ReadRegistryIntoCheckBox(btSyncContacts, regKeyAppRoot.GetValue(RegistrySyncContacts));
             ReadRegistryIntoCheckBox(chkUseFileAs, regKeyAppRoot.GetValue(RegistryUseFileAs));
 
+            ReadRegistryIntoCheckBox(btSyncContactsForceRTF, regKeyAppRoot.GetValue(RegistrySyncContactsForceRTF));
+            ReadRegistryIntoCheckBox(btSyncAppointmentsForceRTF, regKeyAppRoot.GetValue(RegistrySyncAppointmentsForceRTF));
+
             if (regKeyAppRoot.GetValue(RegistryLastSync) != null)
             {
                 try
@@ -593,8 +598,10 @@ namespace GoContactSyncMod
                 regKeyAppRoot.SetValue(RegistrySyncAppointmentsMonthsInFuture, futureMonthInterval.Value.ToString());
                 regKeyAppRoot.SetValue(RegistrySyncAppointmentsTimezone, appointmentTimezonesComboBox.Text);
                 regKeyAppRoot.SetValue(RegistrySyncAppointments, btSyncAppointments.Checked);
+                regKeyAppRoot.SetValue(RegistrySyncAppointmentsForceRTF, btSyncAppointmentsForceRTF.Checked);
                 // regKeyAppRoot.SetValue(RegistrySyncNotes, btSyncNotes.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                 regKeyAppRoot.SetValue(RegistrySyncContacts, btSyncContacts.Checked);
+                regKeyAppRoot.SetValue(RegistrySyncContactsForceRTF, btSyncContactsForceRTF.Checked);
                 regKeyAppRoot.SetValue(RegistryUseFileAs, chkUseFileAs.Checked);
                 regKeyAppRoot.SetValue(RegistryLastSync, lastSync.Ticks);
 
@@ -797,6 +804,8 @@ namespace GoContactSyncMod
                     sync.SyncNotes = false; // btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                     sync.SyncContacts = btSyncContacts.Checked;
                     sync.SyncAppointments = btSyncAppointments.Checked;
+                    Synchronizer.SyncAppointmentsForceRTF = btSyncAppointmentsForceRTF.Checked;
+                    Synchronizer.SyncContactsForceRTF = btSyncContactsForceRTF.Checked;
 
                     if (!sync.SyncContacts && !sync.SyncNotes && !sync.SyncAppointments)
                     {
