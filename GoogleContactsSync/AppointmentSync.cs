@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Google.Apis.Calendar;
 using Google.Apis.Calendar.v3.Data;
@@ -57,10 +58,21 @@ namespace GoContactSyncMod
             
             slave.Description = master.Body;            
 
-            //ToDo: Also Track Available Status, but this is not existing in Google Data API
-            slave.Status = "confirmed";
-            if (master.BusyStatus.Equals(Outlook.OlBusyStatus.olTentative))
-                slave.Status = "tentative";            
+            switch (master.BusyStatus)
+            {
+                case Outlook.OlBusyStatus.olBusy:
+                    slave.Transparency = "opaque";
+                    slave.Status = "confirmed";
+                    break;
+                case Outlook.OlBusyStatus.olTentative:
+                    slave.Transparency = "transparent";
+                    slave.Status = "tentative";
+                    break;
+                default:
+                    slave.Status = "confirmed";
+                    slave.Transparency = "transparent";
+                    break;
+            }
 
             //ToDo:slave.Categories = master.Categories;
             //slave.Duration = master.Duration;
@@ -206,27 +218,16 @@ namespace GoContactSyncMod
 
             try
             {
-                string nonRTF;
+                string rtf;
                 if (slave.Body == null)
-                    nonRTF = string.Empty;
+                    rtf = string.Empty;
                 else
-                    nonRTF = Utilities.ConvertToText(slave.RTFBody as byte[]);
+                    rtf = Utilities.ConvertToText(slave.RTFBody as byte[]);
 
-                if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body) && !nonRTF.Equals(master.Description))
-                {  //only update, if RTF text is same as plain text and is different between master and slave
+                if (string.IsNullOrEmpty(rtf) || rtf.Equals(slave.Body) && !rtf.Equals(master.Description))  //only update, if RTF text is same as plain text and is different between master and slave
                     slave.Body = master.Description;
-                }
-                else if (!nonRTF.Equals(master.Description))
-                {
-                    if (!Synchronizer.SyncAppointmentsForceRTF)
-                    {
-                        slave.Body = master.Description;
-                    }
-                    else
-                    {
-                        Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
-                    }
-                }
+                else if (!rtf.Equals(master.Description))
+                    Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
             }
             catch (Exception e)
             {
@@ -275,15 +276,28 @@ namespace GoContactSyncMod
             //if (!IsOrganizer(GetOrganizer(master)) || !IsOrganizer(GetOrganizer(slave), slave))
             //    slave.MeetingStatus = Outlook.OlMeetingStatus.olMeetingReceived;
 
-            //if (master.Status.Equals("confirmed"))
-            //    slave.BusyStatus = Outlook.OlBusyStatus.olBusy;
-            //else
-            if (master.Status.Equals("tentative")) //ToDo: Doesn'T work, because Google items are always returned confirmed or cancelled, even if tentative, it is not returned ==> Google bug
-                slave.BusyStatus = Outlook.OlBusyStatus.olTentative;
-            else if (master.Status.Equals("cancelled"))
-                slave.BusyStatus = Outlook.OlBusyStatus.olFree;       
+	        try
+	        {
+		        if (master.Status.Equals("confirmed")
+		            && (master.Transparency == null
+		                || master.Transparency.Equals("opaque")))
+			        slave.BusyStatus = Outlook.OlBusyStatus.olBusy;
+		        else if ((master.Status.Equals("confirmed")
+		                  && master.Transparency.Equals("transparent"))
+		                 || master.Status.Equals("cancelled"))
+			        slave.BusyStatus = Outlook.OlBusyStatus.olFree;
+		        else if (master.Status.Equals("tentative"))
+			        slave.BusyStatus = Outlook.OlBusyStatus.olTentative;
+		        else
+			        slave.BusyStatus = Outlook.OlBusyStatus.olBusy;
+	        }
+	        catch (Exception e)
+	        {
+		        MessageBox.Show(e.StackTrace);
+		        throw e;
+	        }
 
-            #region Recipients
+	        #region Recipients
             //ToDo: Commented out for now, not sync participants, because otherwise Google raises quota exceptions
             //for (int i = slave.Recipients.Count; i > 0; i--)
             //    slave.Recipients.Remove(i);
