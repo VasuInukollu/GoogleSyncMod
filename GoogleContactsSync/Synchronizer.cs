@@ -171,11 +171,11 @@ namespace GoContactSyncMod
                 //Contacts-Scope
                 scopes.Add("https://www.google.com/m8/feeds");
                 //Notes-Scope
-                scopes.Add("https://docs.google.com/feeds/");
-                //scopes.Add("https://docs.googleusercontent.com/");
-                //scopes.Add("https://spreadsheets.google.com/feeds/");
+                //Obsolete, because no notes sync anymore: scopes.Add("https://docs.google.com/feeds/");
+                //Didn'T work: scopes.Add("https://docs.googleusercontent.com/");
+                //Didn'T work: scopes.Add("https://spreadsheets.google.com/feeds/");
                 //Calendar-Scope
-                //scopes.Add("https://www.googleapis.com/auth/calendar");
+                //Didn't work: scopes.Add("https://www.googleapis.com/auth/calendar");
                 scopes.Add(CalendarService.Scope.Calendar);
 
                 //take user credentials
@@ -221,6 +221,7 @@ namespace GoContactSyncMod
                         ContactsRequest = new ContactsRequest(settings);
                     }
 
+                    //Obsolete, because no notes sync anymore:
                     if (SyncNotes)
                     {
                         //DocumentsRequest = new DocumentsRequest(rs);
