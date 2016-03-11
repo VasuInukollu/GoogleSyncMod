@@ -68,6 +68,12 @@ namespace GoContactSyncMod
                     slave.Transparency = "transparent";
                     slave.Status = "tentative";
                     break;
+                case Outlook.OlBusyStatus.olOutOfOffice:
+                    slave.Transparency = "opaque";
+                    slave.Status = "tentative";
+                    break;
+                //ToDo: case Outlook.OlBusyStatus.olWorkingElsewhere:
+                case Outlook.OlBusyStatus.olFree:                
                 default:
                     slave.Status = "confirmed";
                     slave.Transparency = "transparent";
@@ -218,16 +224,27 @@ namespace GoContactSyncMod
 
             try
             {
-                string rtf;
+                string nonRTF;
                 if (slave.Body == null)
-                    rtf = string.Empty;
+                    nonRTF = string.Empty;
                 else
-                    rtf = Utilities.ConvertToText(slave.RTFBody as byte[]);
+                    nonRTF = Utilities.ConvertToText(slave.RTFBody as byte[]);
 
-                if (string.IsNullOrEmpty(rtf) || rtf.Equals(slave.Body) && !rtf.Equals(master.Description))  //only update, if RTF text is same as plain text and is different between master and slave
+                if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body) && !nonRTF.Equals(master.Description))
+                {  //only update, if RTF text is same as plain text and is different between master and slave
                     slave.Body = master.Description;
-                else if (!rtf.Equals(master.Description))
-                    Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
+                }
+                else if (!nonRTF.Equals(master.Description))
+                {
+                    if (!Synchronizer.SyncAppointmentsForceRTF)
+                    {
+                        slave.Body = master.Description;
+                    }
+                    else
+                    {
+                        Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -278,18 +295,16 @@ namespace GoContactSyncMod
 
 	        try
 	        {
-		        if (master.Status.Equals("confirmed")
-		            && (master.Transparency == null
-		                || master.Transparency.Equals("opaque")))
+		        if (master.Status.Equals("confirmed") && (master.Transparency == null || master.Transparency.Equals("opaque")))
 			        slave.BusyStatus = Outlook.OlBusyStatus.olBusy;
-		        else if ((master.Status.Equals("confirmed")
-		                  && master.Transparency.Equals("transparent"))
-		                 || master.Status.Equals("cancelled"))
+		        else if ((master.Status.Equals("confirmed") && master.Transparency.Equals("transparent")) || master.Status.Equals("cancelled"))
 			        slave.BusyStatus = Outlook.OlBusyStatus.olFree;
-		        else if (master.Status.Equals("tentative"))
-			        slave.BusyStatus = Outlook.OlBusyStatus.olTentative;
-		        else
-			        slave.BusyStatus = Outlook.OlBusyStatus.olBusy;
+		        else if (master.Status.Equals("tentative") && (master.Transparency == null || master.Transparency.Equals("opaque"))) 
+			        slave.BusyStatus = Outlook.OlBusyStatus.olOutOfOffice;
+                else if (master.Status.Equals("tentative"))
+                    slave.BusyStatus = Outlook.OlBusyStatus.olTentative;
+                else
+			        slave.BusyStatus = Outlook.OlBusyStatus.olWorkingElsewhere;
 	        }
 	        catch (Exception e)
 	        {
