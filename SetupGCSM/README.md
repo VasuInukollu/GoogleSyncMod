@@ -1,5 +1,11 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+### Version [3.9.15] - 11.03.2016
+###### SVN commits
+**r582 - r583**:
+FIX: merged back AppointmentSync to use ForceRTF
+UPDATE: Removed GoogleDocuments 2nd level authentication, because no notes sync possible currently (no need to provide GCSM access to GoogleDocuments)
+
 ### Version [3.9.14] - 24.02.2016
 ###### SVN commits
 **r572 - r579**:
