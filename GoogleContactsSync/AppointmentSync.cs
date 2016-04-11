@@ -672,9 +672,9 @@ namespace GoContactSyncMod
                                 if (pos.Trim() == "-1")
                                     instance = 5;
                                 else
-                                    throw new Exception("Only 'BYSETPOS=-1' is allowed by Outlook, but it was: " + part);
+                                   throw new NotSupportedException("Only 'BYSETPOS=-1' is allowed by Outlook, but it was: " + part);                                    
 
-                                break;
+                              break;
                             }
                         }
 
@@ -812,7 +812,8 @@ namespace GoContactSyncMod
             }
             catch (Exception ex)
             {
-                ErrorHandler.Handle(ex);
+              //ErrorHandler.Handle(ex);
+              Logger.Log("Error updating event's BYSETPOS: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, EventType.Error);
             }
 
 
