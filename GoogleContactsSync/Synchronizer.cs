@@ -1,6 +1,7 @@
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Requests;
 using Google.Apis.Util.Store;
 using Google.Contacts;
 using Google.Documents;
@@ -16,6 +17,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
@@ -39,6 +41,8 @@ namespace GoContactSyncMod
         public DeleteResolution DeleteGoogleResolution { get; set; }
         public DeleteResolution DeleteOutlookResolution { get; set; }
 
+        public delegate void NotificationHandler(string message);
+        public static event NotificationHandler NotificationReceived;
 
         public delegate void DuplicatesFoundHandler(string title, string message);
         public delegate void ErrorNotificationHandler(string title, Exception ex, EventType eventType);
@@ -48,6 +52,7 @@ namespace GoContactSyncMod
         public ContactsRequest ContactsRequest { get; private set; }
 
         private OAuth2Authenticator authenticator;
+
         public DocumentsRequest DocumentsRequest { get; private set; }
         public EventsResource EventRequest { get; private set; }        
 
@@ -70,6 +75,7 @@ namespace GoContactSyncMod
         public Collection<ContactMatch> GoogleContactDuplicates { get; set; }
         public Collection<Contact> GoogleContacts { get; private set; }
         public Collection<Document> GoogleNotes { get; private set; }
+        private CalendarService CalendarRequest;
         public Collection<Google.Apis.Calendar.v3.Data.Event> GoogleAppointments { get; private set; }
         public Collection<Google.Apis.Calendar.v3.Data.Event> AllGoogleAppointments { get; private set; }
         public IList<CalendarListEntry> calendarList { get; private set; }
@@ -237,7 +243,8 @@ namespace GoContactSyncMod
                     if (SyncAppointments)
                     {
                         //ContactsRequest = new Google.Contacts.ContactsRequest()
-                        var CalendarRequest = new CalendarService(initializer);
+                        
+                        CalendarRequest = GoogleServices.CreateCalendarService(initializer);
 
                         //CalendarRequest.setUserCredentials(username, password);
 
@@ -792,6 +799,309 @@ namespace GoContactSyncMod
             Logger.Log("Loading Google appointments...", EventType.Information);
             LoadGoogleAppointments(null, MonthsInPast, MonthsInFuture, null, null);
             Logger.Log("Google Appointments Found: " + GoogleAppointments.Count, EventType.Debug);
+        }
+
+        /// <summary>
+        /// Resets Google appointment matches.
+        /// </summary>
+        /// <param name="deleteGoogleAppointments">Should Google appointments be updated or deleted.</param>        
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        internal async Task ResetGoogleAppointmentMatches(bool deleteGoogleAppointments, CancellationToken cancellationToken)
+        {
+            const int num_retries = 5;
+            Logger.Log("Processing Google appointments.", EventType.Information);
+
+            AllGoogleAppointments = null;
+            GoogleAppointments = null;
+
+            // First run batch updates, but since individual requests are not retried in case of any error rerun 
+            // updates in single mode
+            if (await BatchResetGoogleAppointmentMatches(deleteGoogleAppointments, cancellationToken))
+            {
+                // in case of error retry single updates five times
+                for (var i = 1; i < num_retries; i++)
+                {
+                    if (!await SingleResetGoogleAppointmentMatches(deleteGoogleAppointments, cancellationToken))
+                        break;
+                }        
+            }
+
+            Logger.Log("Finished all Google changes.", EventType.Information);
+
+        }
+
+        
+        /// <summary>
+        /// Resets Google appointment matches via single updates.
+        /// </summary>
+        /// <param name="deleteGoogleAppointments">Should Google appointments be updated or deleted.</param>        
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>If error occured.</returns>
+        internal async Task<bool> SingleResetGoogleAppointmentMatches(bool deleteGoogleAppointments, CancellationToken cancellationToken)
+        {
+            const string message = "Error resetting Google appointments.";
+            try
+            {
+                var query = EventRequest.List(SyncAppointmentsGoogleFolder);
+                string pageToken = null;
+
+                if (MonthsInPast != 0)
+                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
+                if (MonthsInFuture != 0)
+                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+
+                Logger.Log("Processing single updates.", EventType.Information);
+
+                Events feed;
+                bool gone_error = false;
+                bool modified_error = false;
+               
+                do
+                {
+                    query.PageToken = pageToken;
+                    
+                    //TODO (obelix30) - convert to Polly after retargeting to 4.5
+                    try
+                    {
+                        feed = await query.ExecuteAsync(cancellationToken);
+                    }
+                    catch (Google.GoogleApiException ex)
+                    {
+                        if (GoogleServices.IsTransientError(ex.HttpStatusCode, ex.Error))
+                        {
+                            await TaskEx.Delay(TimeSpan.FromMinutes(10), cancellationToken);
+                            feed = await query.ExecuteAsync(cancellationToken);
+                        }
+                        else
+                        {
+                            throw new GDataRequestException(message, ex);
+                        }
+                    }
+
+                    foreach (var a in feed.Items)
+                    {
+                        if (a.Id != null)
+                        {
+                            try
+                            {
+                                if (deleteGoogleAppointments)
+                                {
+                                    if (a.Status != "cancelled")
+                                    {
+                                        await EventRequest.Delete(SyncAppointmentsGoogleFolder, a.Id).ExecuteAsync(cancellationToken);
+                                    }
+                                }
+                                else if (a.ExtendedProperties != null && a.ExtendedProperties.Shared != null && a.ExtendedProperties.Shared.ContainsKey("gos:oid:" + SyncProfile + ""))
+                                {
+                                    AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, a);
+                                    if (a.Status != "cancelled")
+                                    {
+                                        await EventRequest.Update(a, SyncAppointmentsGoogleFolder, a.Id).ExecuteAsync(cancellationToken);
+                                    }
+                                }
+                            }
+                            catch (Google.GoogleApiException ex)
+                            {
+                                if (ex.HttpStatusCode == System.Net.HttpStatusCode.Gone)
+                                {
+                                    gone_error = true;
+                                }
+                                else if (ex.HttpStatusCode == System.Net.HttpStatusCode.PreconditionFailed)
+                                {
+                                    modified_error = true;
+                                }
+                                else
+                                {
+                                    throw new GDataRequestException("Exception", ex);
+                                }
+                            }
+                        }
+                    }
+                    pageToken = feed.NextPageToken;
+                }
+                while (pageToken != null);
+    
+                if (modified_error)
+                {
+                    Logger.Log("Some Google appointments modified before update.", EventType.Debug);
+                }
+                if (gone_error)
+                {
+                    Logger.Log("Some Google appointments gone before deletion.", EventType.Debug);
+                }
+                return (gone_error || modified_error);
+            }
+            catch (System.Net.WebException ex)
+            {
+                throw new GDataRequestException(message, ex);
+            }
+            catch (System.NullReferenceException ex)
+            {
+                throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
+            }
+        }
+
+       
+        /// <summary>
+        /// Resets Google appointment matches via batch updates.
+        /// </summary>
+        /// <param name="deleteGoogleAppointments">Should Google appointments be updated or deleted.</param>        
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>If error occured.</returns>
+        internal async Task<bool> BatchResetGoogleAppointmentMatches(bool deleteGoogleAppointments, CancellationToken cancellationToken)
+        {
+            const string message = "Error updating Google appointments.";
+           
+            try
+            {
+                var query = EventRequest.List(SyncAppointmentsGoogleFolder);
+                string pageToken = null;
+
+                if (MonthsInPast != 0)
+                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
+                if (MonthsInFuture != 0)
+                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+
+                Logger.Log("Processing batch updates.", EventType.Information);
+
+                Events feed;
+                var br = new BatchRequest(CalendarRequest);
+                
+                var events = new Dictionary<string, Google.Apis.Calendar.v3.Data.Event>();
+                bool gone_error = false;
+                bool modified_error = false;
+                bool rate_error = false;
+                bool current_batch_rate_error = false;
+                
+
+                int batches = 1;
+                do
+                {
+                    query.PageToken = pageToken;
+                   
+                    //TODO (obelix30) - check why sometimes exception happen like below,  we have custom backoff attached
+                    //                    Google.GoogleApiException occurred
+                    //User Rate Limit Exceeded[403]
+                    //Errors[
+                    //    Message[User Rate Limit Exceeded] Location[- ] Reason[userRateLimitExceeded] Domain[usageLimits]
+
+                    //TODO (obelix30) - convert to Polly after retargeting to 4.5
+                    try
+                    {
+                        feed = await query.ExecuteAsync(cancellationToken);
+                    }
+                    catch (Google.GoogleApiException ex)
+                    {
+                        if (GoogleServices.IsTransientError(ex.HttpStatusCode, ex.Error))
+                        {
+                            await TaskEx.Delay(TimeSpan.FromMinutes(10), cancellationToken);
+                            feed = await query.ExecuteAsync(cancellationToken);
+                        }
+                        else
+                        {
+                            throw new GDataRequestException(message, ex);
+                        }
+                    }
+
+                    foreach (Google.Apis.Calendar.v3.Data.Event a in feed.Items)
+                    {
+                        if (a.Id != null && !events.ContainsKey(a.Id))
+                        {
+                            IClientServiceRequest r = null;
+                            if (a.Status != "cancelled")
+                            {
+                                if (deleteGoogleAppointments)
+                                {
+                                    events.Add(a.Id, a);
+                                    r = EventRequest.Delete(SyncAppointmentsGoogleFolder, a.Id);
+
+                                }
+                                else if (a.ExtendedProperties != null && a.ExtendedProperties.Shared != null && a.ExtendedProperties.Shared.ContainsKey("gos:oid:" + SyncProfile + ""))
+                                {
+                                    events.Add(a.Id, a);
+                                    AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, a);
+                                    r = EventRequest.Update(a, SyncAppointmentsGoogleFolder, a.Id);
+                                }
+                            }
+
+                            if (r != null)
+                            {
+                                br.Queue<Google.Apis.Calendar.v3.Data.Event>(r, (content, error, ii, msg) =>
+                                {
+                                    if (error != null && msg != null)
+                                    {
+                                        if (msg.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
+                                        {
+                                            modified_error = true;
+                                        }
+                                        else if (msg.StatusCode == System.Net.HttpStatusCode.Gone)
+                                        {  
+                                            gone_error = true;
+                                        }
+                                        else if (GoogleServices.IsTransientError(msg.StatusCode, error))
+                                        {
+                                            rate_error = true;
+                                            current_batch_rate_error = true;
+                                        }
+                                        else
+                                        {
+                                            Logger.Log("Batch error: " + error.ToString(), EventType.Information);
+                                        }
+                                    }
+                                });
+                                if (br.Count >= GoogleServices.BatchRequestSize)
+                                {
+                                    if (current_batch_rate_error)
+                                    {
+                                        current_batch_rate_error = false;
+                                        await TaskEx.Delay(GoogleServices.BatchRequestBackoffDelay);
+                                        Logger.Log("Back-Off waited " + GoogleServices.BatchRequestBackoffDelay + "ms before next retry...", EventType.Debug);
+                                       
+                                    }
+                                    await br.ExecuteAsync(cancellationToken);
+                                    // TODO(obelix30): https://github.com/google/google-api-dotnet-client/issues/725
+                                    br = new BatchRequest(CalendarRequest);
+
+                                    Logger.Log("Batch of Google changes finished (" + batches + ")", EventType.Information);
+                                    batches++;
+                                }
+                            }                    
+                        }
+                    }
+                    pageToken = feed.NextPageToken;
+                }
+                while (pageToken != null);
+
+                if (br.Count > 0)
+                {
+                    await br.ExecuteAsync(cancellationToken);
+                    Logger.Log("Batch of Google changes finished (" + batches + ")", EventType.Information);
+                }
+                if (modified_error)
+                {
+                    Logger.Log("Some Google appointment modified before update.", EventType.Debug);
+                }
+                if (gone_error)
+                {
+                    Logger.Log("Some Google appointment gone before deletion.", EventType.Debug);
+                }
+                if (rate_error)
+                {
+                    Logger.Log("Rate errors received.", EventType.Debug);
+                }
+
+                return (gone_error || modified_error || rate_error);
+
+            }
+            catch (System.Net.WebException ex)
+            {
+                throw new GDataRequestException(message, ex);
+            }
+            catch (System.NullReferenceException ex)
+            {
+                throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
+            }
         }
 
         internal Google.Apis.Calendar.v3.Data.Event LoadGoogleAppointments(string id, ushort restrictMonthsInPast, ushort restrictMonthsInFuture, DateTime? restrictStartTime, DateTime? restrictEndTime)
@@ -3078,7 +3388,7 @@ namespace GoContactSyncMod
         /// Resets associations of Outlook appointments with Google appointments via user props
         /// and vice versa
         /// </summary>
-        public void ResetAppointmentMatches(bool deleteOutlookAppointments, bool deleteGoogleAppointments)
+        public void ResetOutlookAppointmentMatches(bool deleteOutlookAppointments)
         {
             Debug.Assert(OutlookAppointments != null, "Outlook Appointments object is null - this should not happen. Please inform Developers.");
 
@@ -3087,7 +3397,7 @@ namespace GoContactSyncMod
 
             lock (_syncRoot)
             {
-
+                
                 Logger.Log("Resetting Outlook appointment matches...", EventType.Information);
                 //1 based array
                 for (int i = OutlookAppointments.Count; i >= 1; i--)
@@ -3126,46 +3436,7 @@ namespace GoContactSyncMod
                         }
                     }
                 }
-
-                Logger.Log("Resetting Google appointment matches...", EventType.Information);
-
-                for (int i = 0; i < GoogleAppointments.Count; i++)
-                {
-                    Google.Apis.Calendar.v3.Data.Event googleAppointment = null;
-
-                    try
-                    {
-                        googleAppointment = GoogleAppointments[i];
-                        if (googleAppointment == null)
-                        {
-                            Logger.Log("Empty Google appointment found (maybe distribution list). Skipping", EventType.Warning);
-                            continue;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        //this is needed because some appointments throw exceptions
-                        Logger.Log("Accessing Google appointment threw an exception. Skipping: " + ex.Message, EventType.Warning);
-                        continue;
-                    }
-
-                    if (deleteGoogleAppointments && googleAppointment.Status != "cancelled")
-                    {
-                        EventRequest.Delete(SyncAppointmentsGoogleFolder, googleAppointment.Id).Execute();
-                    }
-                    else
-                    {
-                        try
-                        {
-                            ResetMatch(googleAppointment);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log("The match of Google appointment " + googleAppointment.Summary + " couldn't be reset: " + ex.Message, EventType.Warning);
-                        }
-                    }
-                }
-
+                
             }
             //}
             //finally

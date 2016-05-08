@@ -11,7 +11,7 @@ using System.Collections;
 using System.Globalization;
 using Google.Apis.Util.Store;
 using Google.Apis.Calendar.v3.Data;
-
+using System.Threading.Tasks;
 
 namespace GoContactSyncMod
 {
@@ -45,6 +45,7 @@ namespace GoContactSyncMod
         private DateTime lastSync;
         private bool requestClose = false;
         private bool boolShowBalloonTip = true;
+        private CancellationTokenSource cancellationTokenSource;
 
         public const string AppRootKey = @"Software\GoContactSyncMOD";
         public const string RegistrySyncOption = "SyncOption";
@@ -142,6 +143,7 @@ namespace GoContactSyncMod
 
         private SettingsForm()
         {
+            cancellationTokenSource = new CancellationTokenSource();
             InitializeComponent();
             Text = Text + " - " + Application.ProductVersion;
             Logger.LogUpdated += new Logger.LogUpdatedHandler(Logger_LogUpdated);
@@ -721,7 +723,7 @@ namespace GoContactSyncMod
         }
 
         [STAThread]
-        private void Sync_ThreadStarter()
+        private async void Sync_ThreadStarter()
         {
             //==>Instead of lock, use Interlocked to exit the code, if already another thread is calling the same
             bool won = false;
@@ -750,7 +752,8 @@ namespace GoContactSyncMod
                     bool syncGoogleAppointments = !string.IsNullOrEmpty(this.syncAppointmentsGoogleFolder) && !this.syncAppointmentsGoogleFolder.Equals(oldSyncAppointmentsGoogleFolder) && btSyncAppointments.Checked;
                     if (syncContacts || /*syncNotes ||*/ syncAppointments && !syncGoogleAppointments || !syncAppointments && syncGoogleAppointments)
                     {
-                        if (!ResetMatches(syncContacts, syncNotes, syncAppointments))
+                        bool r = await ResetMatches(syncContacts, syncNotes, syncAppointments);
+                        if (!r)
                             throw new Exception("Reset required but cancelled by user");
                     }
 
@@ -782,6 +785,7 @@ namespace GoContactSyncMod
                         sync = new Synchronizer();
                         sync.DuplicatesFound += new Synchronizer.DuplicatesFoundHandler(OnDuplicatesFound);
                         sync.ErrorEncountered += new Synchronizer.ErrorNotificationHandler(OnErrorEncountered);
+                        Synchronizer.NotificationReceived += new Synchronizer.NotificationHandler(OnNotificationReceived);
                     }
 
                     Logger.ClearLog();
@@ -1140,6 +1144,8 @@ namespace GoContactSyncMod
         {
             try
             {
+                cancellationTokenSource.Cancel();
+
                 if (sync != null)
                     sync.LogoffOutlook();
 
@@ -1235,7 +1241,7 @@ namespace GoContactSyncMod
             }
         }
 
-        private void resetMatchesLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private async void resetMatchesLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
 
             // force deactivation to show up
@@ -1243,7 +1249,7 @@ namespace GoContactSyncMod
             try
             {
                 this.cancelButton.Enabled = false; //Cancel is only working for sync currently, not for reset
-                ResetMatches(btSyncContacts.Checked, false /*btSyncNotes.Checked*/, btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                await ResetMatches(btSyncContacts.Checked, false /*btSyncNotes.Checked*/, btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             }
             catch (Exception ex)
             {
@@ -1266,7 +1272,7 @@ namespace GoContactSyncMod
             }
         }
 
-        private bool ResetMatches(bool syncContacts, bool syncNotes, bool syncAppointments)
+        private async Task<bool> ResetMatches(bool syncContacts, bool syncNotes, bool syncAppointments)
         {
             TimerSwitch(false);
 
@@ -1318,8 +1324,18 @@ namespace GoContactSyncMod
                     default: return false;
                 }
 
-                sync.LoadAppointments();
-                sync.ResetAppointmentMatches(deleteOutlookAppointments, deleteGoogleAppointments);
+                Logger.Log("Resetting Google appointment matches...", EventType.Information);
+                try
+                {
+                    await sync.ResetGoogleAppointmentMatches(deleteGoogleAppointments, cancellationTokenSource.Token);
+                    sync.LoadAppointments();
+                    sync.ResetOutlookAppointmentMatches(deleteOutlookAppointments);
+                }
+                catch (System.Threading.Tasks.TaskCanceledException)
+                {
+                    Logger.Log("Task cancelled by user.", EventType.Information);
+                    sync.LoadAppointments();
+                }
             }
 
             if (sync.SyncContacts)
@@ -1741,6 +1757,7 @@ namespace GoContactSyncMod
 
         private void CancelButton_Click(object sender, EventArgs e)
         {
+            cancellationTokenSource.Cancel();
             KillSyncThread();
         }
 
