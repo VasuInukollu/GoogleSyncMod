@@ -42,7 +42,7 @@ namespace GoContactSyncMod
             #region Match first all outlookAppointments by sync id
             for (int i = 1; i <= sync.OutlookAppointments.Count; i++)
             {
-                Outlook.AppointmentItem ola;               
+                Outlook.AppointmentItem ola = null;               
 
                 try
                 {
@@ -86,7 +86,10 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     //this is needed because some appointments throw exceptions
-                    Logger.Log("Accessing Outlook appointment threw and exception. Skipping: " + ex.Message, EventType.Warning);
+                    if (ola != null)
+                        Logger.Log("Accessing Outlook appointment: " + ola.Subject + " threw and exception. Skipping: " + ex.Message, EventType.Warning);
+                    else
+                        Logger.Log("Accessing Outlook appointment threw and exception. Skipping: " + ex.Message, EventType.Warning);
                     sync.SkippedCount++;
                     sync.SkippedCountNotMatches++;
                     continue;
