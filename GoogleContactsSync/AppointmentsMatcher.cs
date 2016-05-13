@@ -86,7 +86,7 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     //this is needed because some appointments throw exceptions
-                    if (ola != null)
+                    if (ola != null && !string.IsNullOrEmpty(ola.Subject))
                         Logger.Log("Accessing Outlook appointment: " + ola.Subject + " threw and exception. Skipping: " + ex.Message, EventType.Warning);
                     else
                         Logger.Log("Accessing Outlook appointment threw and exception. Skipping: " + ex.Message, EventType.Warning);
