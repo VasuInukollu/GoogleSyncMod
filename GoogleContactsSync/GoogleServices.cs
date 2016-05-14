@@ -99,7 +99,7 @@ namespace GoContactSyncMod
                     if (delay > _maxTimeSpan || delay < TimeSpan.Zero)
                         return false;
                    
-                    await TaskEx.Delay(delay, args.CancellationToken);
+                    await Task.Delay(delay, args.CancellationToken);
                     Logger.Log("Back-Off waited "+ delay.TotalMilliseconds + "ms before next retry...", EventType.Debug);
 
                     return true;

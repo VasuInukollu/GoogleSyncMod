@@ -870,7 +870,7 @@ namespace GoContactSyncMod
                     {
                         if (GoogleServices.IsTransientError(ex.HttpStatusCode, ex.Error))
                         {
-                            await TaskEx.Delay(TimeSpan.FromMinutes(10), cancellationToken);
+                            await Task.Delay(TimeSpan.FromMinutes(10), cancellationToken);
                             feed = await query.ExecuteAsync(cancellationToken);
                         }
                         else
@@ -995,7 +995,7 @@ namespace GoContactSyncMod
                     {
                         if (GoogleServices.IsTransientError(ex.HttpStatusCode, ex.Error))
                         {
-                            await TaskEx.Delay(TimeSpan.FromMinutes(10), cancellationToken);
+                            await Task.Delay(TimeSpan.FromMinutes(10), cancellationToken);
                             feed = await query.ExecuteAsync(cancellationToken);
                         }
                         else
@@ -1055,7 +1055,7 @@ namespace GoContactSyncMod
                                     if (current_batch_rate_error)
                                     {
                                         current_batch_rate_error = false;
-                                        await TaskEx.Delay(GoogleServices.BatchRequestBackoffDelay);
+                                        await Task.Delay(GoogleServices.BatchRequestBackoffDelay);
                                         Logger.Log("Back-Off waited " + GoogleServices.BatchRequestBackoffDelay + "ms before next retry...", EventType.Debug);
                                        
                                     }
