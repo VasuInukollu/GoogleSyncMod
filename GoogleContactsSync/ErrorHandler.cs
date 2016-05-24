@@ -36,6 +36,23 @@ namespace GoContactSyncMod
             Thread.CurrentThread.CurrentUICulture=new CultureInfo("en-US");
 
             Logger.Log(ex.Message, EventType.Error);
+            if (ex.InnerException != null)
+            {
+                Logger.Log("Inner Exception Type: " + ex.InnerException.GetType().ToString(), EventType.Debug);
+                Logger.Log("Inner Exception: " + ex.InnerException.Message, EventType.Debug);
+                Logger.Log("Inner Source: " + ex.InnerException.Source, EventType.Debug);
+                if (ex.InnerException.StackTrace != null)
+                {
+                    Logger.Log("Inner Stack Trace: " + ex.InnerException.StackTrace, EventType.Debug);
+                }
+            }
+            Logger.Log("Exception Type: " + ex.GetType().ToString(), EventType.Debug);
+            Logger.Log("Exception: " + ex.Message, EventType.Debug);
+            Logger.Log("Source: " + ex.Source, EventType.Debug);
+            if (ex.StackTrace != null)
+            {
+                Logger.Log("Stack Trace: " + ex.StackTrace, EventType.Debug);
+            }
             //AppendSyncConsoleText(Logger.GetText());
             Logger.Log("Sync failed.", EventType.Error);
 
