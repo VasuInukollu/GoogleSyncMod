@@ -131,7 +131,7 @@ namespace GoContactSyncMod
             catch (Exception ex)
             {
                 Logger.Log("Could not read version number from sf.net...", EventType.Warning);
-                Logger.Log(ex.ToString(), EventType.Debug);
+                Logger.Log(ex, EventType.Debug);
                 return false;
             }
         }
