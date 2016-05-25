@@ -109,9 +109,30 @@ namespace GoContactSyncMod
             //Populate LogMessage to all subscribed Logger-Outputs, but only if not Debug message, Debug messages are only logged to logfile
             if (LogUpdated != null && eventType > EventType.Debug)
                 LogUpdated(GetLogLine(new_logEntry));
-            
 
-                
+
+
+        }
+
+        public static void Log(Exception ex, EventType eventType)
+        {
+            if (ex.InnerException != null)
+            {
+                Log("Inner Exception Type: " + ex.InnerException.GetType().ToString(), eventType);
+                Log("Inner Exception: " + ex.InnerException.Message, eventType);
+                Log("Inner Source: " + ex.InnerException.Source, eventType);
+                if (ex.InnerException.StackTrace != null)
+                {
+                    Log("Inner Stack Trace: " + ex.InnerException.StackTrace, eventType);
+                }
+            }
+            Log("Exception Type: " + ex.GetType().ToString(), eventType);
+            Log("Exception: " + ex.Message, eventType);
+            Log("Source: " + ex.Source, eventType);
+            if (ex.StackTrace != null)
+            {
+                Log("Stack Trace: " + ex.StackTrace, eventType);
+            }
         }
 
         /*
