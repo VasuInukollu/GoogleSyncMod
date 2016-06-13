@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 
 namespace GoContactSyncMod
 {
@@ -116,6 +118,10 @@ namespace GoContactSyncMod
 
         public static void Log(Exception ex, EventType eventType)
         {
+            CultureInfo oldCI = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+
             if (ex.InnerException != null)
             {
                 Log("Inner Exception Type: " + ex.InnerException.GetType().ToString(), eventType);
@@ -133,6 +139,9 @@ namespace GoContactSyncMod
             {
                 Log("Stack Trace: " + ex.StackTrace, eventType);
             }
+
+            Thread.CurrentThread.CurrentCulture = oldCI;
+            Thread.CurrentThread.CurrentUICulture = oldCI;
         }
 
         /*
