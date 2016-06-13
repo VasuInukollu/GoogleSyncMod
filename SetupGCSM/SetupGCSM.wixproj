@@ -13,7 +13,8 @@
     <Name>SetupGCSM</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>2dc1e227</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>$(ProjectDir)Packages\</OutputPath>
@@ -60,7 +61,6 @@
     <Content Include="HarvestTransform.xsl" />
     <Content Include="Includes\Variables.wxi" />
     <Content Include="Lang\GPLv3.rtf" />
-    <Content Include="packages.config" />
     <Content Include="README.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -127,9 +127,7 @@
       <ErrorText>Dieses Projekt verweist auf mindestens ein NuGet-Paket, das auf diesem Computer fehlt. Aktivieren Sie die Wiederherstellung von NuGet-Paketen, um die fehlende Datei herunterzuladen. Weitere Informationen finden Sie unter "http://go.microsoft.com/fwlink/?LinkID=322105". Die fehlende Datei ist "{0}".</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
-  <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <DefineConstants>MicrosoftAPIDir=$(SolutionDir)MicrosoftAPI\</DefineConstants>
     <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
