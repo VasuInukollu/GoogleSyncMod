@@ -3,8 +3,8 @@
   <String Id="LANG">1033</String>
   <String Id="ProductName">GO Contact Sync Mod</String>
   <String Id="LicenseRtf" Overridable="yes">$(var.ProjectDir)Lang\GPLv3.rtf</String>
-  <String Id="AppNotSupported">This application is is not supported on your current OS. Minimal OS supported is Windows XP SP3</String>
-  <String Id="DotNet40FrameworkNeeded">.NET Framework 4.0 is required. Please install the .NET Framework then run this installer again.</String>
+  <String Id="AppNotSupported">This application is is not supported on your current OS. Minimal OS supported is Windows Vista SP2</String>
+  <String Id="DotNet45FrameworkNeeded">.NET Framework 4.5 is required. Please install the .NET Framework then run this installer again.</String>
   <String Id="MustCloseGoogleContactSyncMod">Must close Google Contact Sync Mod!</String>
   <String Id="GoogleContactSyncModNewerVersionInstalled">A newer version of !(loc.ProductName) is already installed.</String>
   <String Id="RunAfterInstall">Launch !(loc.ProductName) after install</String>
