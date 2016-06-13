@@ -15,7 +15,7 @@ namespace GoContactSyncMod
     {
         public new static async Task<UserCredential> AuthorizeAsync(ClientSecrets clientSecrets,
             IEnumerable<string> scopes, string user, CancellationToken taskCancellationToken,
-            IDataStore dataStore = null)
+            IDataStore dataStore = null, ICodeReceiver codeReceiver = null)
         {
             var initializer = new GoogleAuthorizationCodeFlow.Initializer
             {
