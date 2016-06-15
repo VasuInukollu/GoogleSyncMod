@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Management;
-using System.Management.Instrumentation;
 using System.Net;
-using System.Threading.Tasks;
 using System.Reflection;
 using System.Diagnostics;
-using System.Threading;
-using System.Globalization;
+
 
 namespace GoContactSyncMod
 {
@@ -101,6 +96,11 @@ namespace GoContactSyncMod
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://sourceforge.net/projects/googlesyncmod/files/latest/download");
                 request.AllowAutoRedirect = true;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    Logger.Log("Could not read version number from sf.net (HTTP: " + response.StatusCode + ")", EventType.Information);
+                    return false;
+                }
                 request.Abort();
 
                 //extracting version number from url
@@ -109,7 +109,14 @@ namespace GoContactSyncMod
                 string webVersion = response.ResponseUri.AbsolutePath;
 
                 //get version number string
-                int first = webVersion.IndexOf(firstPattern) + firstPattern.Length;
+                int first = webVersion.IndexOf(firstPattern);
+                if (first == -1)
+                { 
+                    Logger.Log("Could not read version number from sf.net (" + webVersion + ")", EventType.Information);
+                    return false;
+                }
+                 
+                first += firstPattern.Length;
                 int second = webVersion.IndexOf("/", first);
                 Version webVersionNumber = new Version(webVersion.Substring(first, second - first));
 
@@ -130,7 +137,7 @@ namespace GoContactSyncMod
             }
             catch (Exception ex)
             {
-                Logger.Log("Could not read version number from sf.net...", EventType.Warning);
+                Logger.Log("Could not read version number from sf.net...", EventType.Information);
                 Logger.Log(ex, EventType.Debug);
                 return false;
             }
