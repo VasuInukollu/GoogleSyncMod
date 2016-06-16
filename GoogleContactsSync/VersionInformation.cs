@@ -134,7 +134,6 @@ namespace GoContactSyncMod
                 request.UserAgent = USERAGENT;
                 request.CookieContainer = cookies;
                 request.AllowAutoRedirect = true;
-                //request.MaximumAutomaticRedirections = 10;
                 response = (HttpWebResponse)request.GetResponse();
                 
                 //extracting version number from url
@@ -156,14 +155,14 @@ namespace GoContactSyncMod
                     return true;
                 }
                 else
-                {            //older or same version found
+                {   //older or same version found
                     Logger.Log("Version of GCSM is uptodate.", EventType.Information);
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log("Could not read version number from sf.net...", EventType.Warning);
+                Logger.Log("Could not read version number from sf.net...", EventType.Information);
                 Logger.Log(ex, EventType.Debug);
                 return false;
             }

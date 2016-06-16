@@ -6,14 +6,12 @@
 
 **r586 - r606**:
 
-```
 - CHANGE: Retargetted to .NET 4.5,  as a result Windows XP is not supported anymore, minimum requirement is Windows Vista SP2.
 - UPDATE: Update NuGet packages to latest version (new version of Google client libraries require .NET 4.5)
 - FIX: ResetMatches rewritten to use BatchRequest functionality [bugs: #673, #738, #796, #799, #806, #836]
 - FIX: Warning in exception handler to indicate appointment which triggered error (feature request: #148)
 - FIX: Log instead of Error Handler to avoid multiple Windows
 - FIX: Added more info about raised exceptions
-```
 
 ## Version [3.9.15] - 11.03.2016
 
