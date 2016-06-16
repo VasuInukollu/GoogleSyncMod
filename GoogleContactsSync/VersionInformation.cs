@@ -1,15 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Runtime.InteropServices;
 using System.Management;
+using System.Management.Instrumentation;
 using System.Net;
+using System.Threading.Tasks;
 using System.Reflection;
 using System.Diagnostics;
-
+using System.Threading;
+using System.Globalization;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Net.Http;
+using HtmlAgilityPack;
 
 namespace GoContactSyncMod
 {
     static class VersionInformation
     {
+        private const string DOWNLOADURL = "https://sourceforge.net/projects/googlesyncmod/files/latest/download";
+        private const string USERAGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0";
+
         public enum OutlookMainVersion
         {
             Outlook2002,
@@ -86,41 +98,55 @@ namespace GoContactSyncMod
         /// <summary>
         /// getting the newest availible version on sourceforge.net of GCSM
         /// </summary>
-        public static bool isNewVersionAvailable()
+        public static async Task<bool> isNewVersionAvailable()
         {
 
             Logger.Log("Reading version number from sf.net...", EventType.Information);
             try
             {
-                //check sf.net site for version number
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://sourceforge.net/projects/googlesyncmod/files/latest/download");
-                request.AllowAutoRedirect = true;
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                if (response.StatusCode != HttpStatusCode.OK)
-                {
-                    Logger.Log("Could not read version number from sf.net (HTTP: " + response.StatusCode + ")", EventType.Information);
-                    return false;
-                }
-                request.Abort();
+                //parse download site for html redirect tag
+                var cookies = new CookieContainer();
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(DOWNLOADURL);
+                request.UserAgent = USERAGENT;
+                request.CookieContainer = cookies;
+                request.AllowAutoRedirect = false;
+                var response = await request.GetResponseAsync();
+                Stream dataStream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(dataStream, ASCIIEncoding.ASCII);
+                string strResponse = await reader.ReadToEndAsync();
+                response.Close();
 
+                //parse first html document for mirror download code
+                HtmlDocument htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(strResponse);
+
+                //var httpMetaRefresh = htmlDoc.DocumentNode.SelectNodes("//meta[@http-equiv='refresh']");
+                //search for meta tag
+                var xpath = "//meta[@http-equiv='refresh' and contains(@content, 'url')]";
+                var refresh = htmlDoc.DocumentNode.SelectSingleNode(xpath);
+                //get download url from contant
+                var content = refresh.Attributes["content"].Value;
+                //extract url
+                var secondDownloadUrl = Regex.Match(content, @"\s*url\s*=\s*([^ ]+)").Groups[1].Value.Trim();
+              
+                //check sf.net site for next redirect 
+                request = (HttpWebRequest)WebRequest.Create(secondDownloadUrl);
+                request.UserAgent = USERAGENT;
+                request.CookieContainer = cookies;
+                request.AllowAutoRedirect = true;
+                //request.MaximumAutomaticRedirections = 10;
+                response = (HttpWebResponse)request.GetResponse();
+                
                 //extracting version number from url
                 const string firstPattern = "Releases/";
                 // ex. /project/googlesyncmod/Releases/3.9.5/SetupGCSM-3.9.5.msi
                 string webVersion = response.ResponseUri.AbsolutePath;
+                response.Close();
 
                 //get version number string
-                int first = webVersion.IndexOf(firstPattern);
-                if (first == -1)
-                { 
-                    Logger.Log("Could not read version number from sf.net (" + webVersion + ")", EventType.Information);
-                    return false;
-                }
-                 
-                first += firstPattern.Length;
+                int first = webVersion.IndexOf(firstPattern) + firstPattern.Length;
                 int second = webVersion.IndexOf("/", first);
                 Version webVersionNumber = new Version(webVersion.Substring(first, second - first));
-
-                response.Close();
 
                 //compare both versions
                 var result = webVersionNumber.CompareTo(getGCSMVersion());
@@ -137,7 +163,7 @@ namespace GoContactSyncMod
             }
             catch (Exception ex)
             {
-                Logger.Log("Could not read version number from sf.net...", EventType.Information);
+                Logger.Log("Could not read version number from sf.net...", EventType.Warning);
                 Logger.Log(ex, EventType.Debug);
                 return false;
             }

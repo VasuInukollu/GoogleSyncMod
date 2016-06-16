@@ -1398,7 +1398,7 @@ namespace GoContactSyncMod
             }
         }
 
-        private void CheckVersion()
+        private async void CheckVersion()
         {
             if (!NewVersionLinkLabel.Visible)
             {//Only check once, if new version is available
@@ -1408,7 +1408,7 @@ namespace GoContactSyncMod
                     Cursor = Cursors.WaitCursor;
                     SuspendLayout();
                     //check for new version
-                    if (NewVersionLinkLabel.LinkColor != Color.Red && VersionInformation.isNewVersionAvailable())
+                    if (NewVersionLinkLabel.LinkColor != Color.Red && await VersionInformation.isNewVersionAvailable())
                     {
                         NewVersionLinkLabel.Visible = true;
                         NewVersionLinkLabel.LinkColor = Color.Red;
