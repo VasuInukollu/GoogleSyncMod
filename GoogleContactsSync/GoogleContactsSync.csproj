@@ -120,6 +120,9 @@
     <StartupObject>GoContactSyncMod.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup />
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
@@ -350,12 +353,10 @@
       <SubType>Designer</SubType>
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </EmbeddedResource>
-    <BaseApplicationManifest Include="Properties\app.manifest">
-      <SubType>Designer</SubType>
-    </BaseApplicationManifest>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="app.manifest" />
     <None Include="COPYING.rtf" />
     <Compile Include="Synchronizer.cs" />
     <Compile Include="Utilities.cs" />
