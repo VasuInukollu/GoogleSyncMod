@@ -14,6 +14,10 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Net.Http;
 using HtmlAgilityPack;
+using System.Xml;
+using System.Xml.Linq;
+using System.Linq;
+
 
 namespace GoContactSyncMod
 {
@@ -98,7 +102,7 @@ namespace GoContactSyncMod
         /// <summary>
         /// getting the newest availible version on sourceforge.net of GCSM
         /// </summary>
-        public static async Task<bool> isNewVersionAvailable()
+        public static async Task<bool> isNewVersionAvailable2()
         {
 
             Logger.Log("Reading version number from sf.net...", EventType.Information);
@@ -158,6 +162,41 @@ namespace GoContactSyncMod
                 {   //older or same version found
                     Logger.Log("Version of GCSM is uptodate.", EventType.Information);
                     return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Could not read version number from sf.net...", EventType.Information);
+                Logger.Log(ex, EventType.Debug);
+                return false;
+            }
+        }
+    
+        public static async Task<bool> isNewVersionAvailable()
+        {
+            Logger.Log("Reading version number from sf.net...", EventType.Information);
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync("https://sourceforge.net/projects/googlesyncmod/files/updates_v1.xml", HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    var stream = await response.Content.ReadAsStreamAsync();
+                    var doc = XDocument.Load(stream);
+                    
+                    var webVersionNumber = new Version(doc.Element("Version").Value);
+                    //compare both versions
+                    var result = webVersionNumber.CompareTo(getGCSMVersion());
+                    if (result > 0)
+                    {   //newer version found
+                        Logger.Log("New version of GCSM detected on sf.net!", EventType.Information);
+                        return true;
+                    }
+                    else
+                    {   //older or same version found
+                        Logger.Log("Version of GCSM is uptodate.", EventType.Information);
+                        return false;
+                    }
                 }
             }
             catch (Exception ex)

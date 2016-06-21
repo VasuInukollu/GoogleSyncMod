@@ -224,6 +224,7 @@
     <Reference Include="System.Xml">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
