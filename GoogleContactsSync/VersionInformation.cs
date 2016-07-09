@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Management;
-using System.Management.Instrumentation;
-using System.Net;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Diagnostics;
-using System.Threading;
-using System.Globalization;
-using System.IO;
-using System.Text.RegularExpressions;
 using System.Net.Http;
-using HtmlAgilityPack;
-using System.Xml;
+//using HtmlAgilityPack;
 using System.Xml.Linq;
-using System.Linq;
 
 
 namespace GoContactSyncMod
@@ -102,7 +92,7 @@ namespace GoContactSyncMod
         /// <summary>
         /// getting the newest availible version on sourceforge.net of GCSM
         /// </summary>
-        public static async Task<bool> isNewVersionAvailable2()
+     /*   public static async Task<bool> isNewVersionAvailable2()
         {
 
             Logger.Log("Reading version number from sf.net...", EventType.Information);
@@ -171,7 +161,7 @@ namespace GoContactSyncMod
                 return false;
             }
         }
-    
+   */ 
         public static async Task<bool> isNewVersionAvailable()
         {
             Logger.Log("Reading version number from sf.net...", EventType.Information);
