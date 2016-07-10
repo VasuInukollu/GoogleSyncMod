@@ -259,8 +259,7 @@ namespace GoContactSyncMod
             for (int i = 0; i < googleAppointmentExceptions.Count; i++)
             {
                 var googleAppointment = googleAppointmentExceptions[i];
-                if (NotificationReceived != null)
-                    NotificationReceived(String.Format("Adding Google appointment exception {0} of {1} ...", i + 1, googleAppointmentExceptions.Count, googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment)));
+                NotificationReceived?.Invoke(String.Format("Adding Google appointment exception {0} of {1} : {2} ...", i + 1, googleAppointmentExceptions.Count, googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment)));
 
                 //Search for original recurrent event in matches
                 //AtomId atomId = new AtomId(googleAppointment.Id.AbsoluteUri.Substring(0, googleAppointment.Id.AbsoluteUri.LastIndexOf("/") + 1) + googleAppointment.RecurringEventId);
@@ -337,8 +336,10 @@ namespace GoContactSyncMod
                             else if (sync.DeleteOutlookResolution != DeleteResolution.DeleteOutlookAlways &&
                                      sync.DeleteOutlookResolution != DeleteResolution.KeepOutlookAlways)
                             {
-                                var r = new ConflictResolver();
-                                sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookAppointment);
+                                using (var r = new ConflictResolver())
+                                {
+                                    sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookAppointment);
+                                }
                             }
                             switch (sync.DeleteOutlookResolution)
                             {
@@ -401,8 +402,10 @@ namespace GoContactSyncMod
                     else if (sync.DeleteGoogleResolution != DeleteResolution.DeleteGoogleAlways &&
                              sync.DeleteGoogleResolution != DeleteResolution.KeepGoogleAlways)
                     {
-                        var r = new ConflictResolver();
-                        sync.DeleteGoogleResolution = r.ResolveDelete(match.GoogleAppointment);
+                        using (var r = new ConflictResolver())
+                        {
+                            sync.DeleteGoogleResolution = r.ResolveDelete(match.GoogleAppointment);
+                        }
                     }
                     switch (sync.DeleteGoogleResolution)
                     {
@@ -514,8 +517,10 @@ namespace GoContactSyncMod
                                     sync.ConflictResolution != ConflictResolution.OutlookWinsAlways &&
                                     sync.ConflictResolution != ConflictResolution.SkipAlways)
                                 {
-                                    var r = new ConflictResolver();
-                                    sync.ConflictResolution = r.Resolve(match.OutlookAppointment, match.GoogleAppointment, sync, false);
+                                    using (var r = new ConflictResolver())
+                                    {
+                                        sync.ConflictResolution = r.Resolve(match.OutlookAppointment, match.GoogleAppointment, sync, false);
+                                    }
                                 }
                                 switch (sync.ConflictResolution)
                                 {
@@ -601,8 +606,10 @@ namespace GoContactSyncMod
                                 sync.ConflictResolution != ConflictResolution.OutlookWinsAlways &&
                                     sync.ConflictResolution != ConflictResolution.SkipAlways)
                             {
-                                var r = new ConflictResolver();
-                                sync.ConflictResolution = r.Resolve(match.OutlookAppointment, match.GoogleAppointment, sync, true);
+                                using (var r = new ConflictResolver())
+                                {
+                                    sync.ConflictResolution = r.Resolve(match.OutlookAppointment, match.GoogleAppointment, sync, true);
+                                }
                             }
                             switch (sync.ConflictResolution)
                             {

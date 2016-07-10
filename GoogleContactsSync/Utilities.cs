@@ -22,9 +22,11 @@ namespace GoContactSyncMod
         public static byte[] BitmapToBytes(Bitmap bitmap)
         {
             //bitmap
-            MemoryStream stream = new MemoryStream();
-            bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
-            return stream.ToArray();
+            using (MemoryStream stream = new MemoryStream())
+            {
+                bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+                return stream.ToArray();
+            }
         }
 
         public static bool HasPhoto(Contact googleContact)
@@ -45,20 +47,21 @@ namespace GoContactSyncMod
 
             try
             {
-                WebClient client = new WebClient();
-                //client.Headers.Add(HttpRequestHeader.Authorization, "GoogleLogin auth=" + sync.ContactsRequest.Service.QueryClientLoginToken());
-                client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + sync.ContactsRequest.Settings.OAuth2Parameters.AccessToken);
-                client.Headers.Add(HttpRequestHeader.ContentType, "image/*");
-                Bitmap pic = new Bitmap(image);
-                Stream s = client.OpenWrite(googleContact.ContactEntry.PhotoUri.AbsoluteUri, "PUT");
-                byte[] bytes = BitmapToBytes(pic);
-
-                s.Write(bytes, 0, bytes.Length);
-                s.Flush();
-                //s.Close();
-                s.Dispose();
-                client.Dispose();
-                pic.Dispose();
+                using (var client = new WebClient())
+                {
+                    //client.Headers.Add(HttpRequestHeader.Authorization, "GoogleLogin auth=" + sync.ContactsRequest.Service.QueryClientLoginToken());
+                    client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + sync.ContactsRequest.Settings.OAuth2Parameters.AccessToken);
+                    client.Headers.Add(HttpRequestHeader.ContentType, "image/*");
+                    using (var pic = new Bitmap(image))
+                    {
+                        using (var s = client.OpenWrite(googleContact.ContactEntry.PhotoUri.AbsoluteUri, "PUT"))
+                        {
+                            byte[] bytes = BitmapToBytes(pic);
+                            s.Write(bytes, 0, bytes.Length);
+                            s.Flush();
+                        }
+                    }
+                }
             }
             catch
             {
@@ -73,18 +76,17 @@ namespace GoContactSyncMod
 
             try
             {
-                WebClient client = new WebClient();
-                //client.Headers.Add(HttpRequestHeader.Authorization, "GoogleLogin auth=" + sync.ContactsRequest.Service.QueryClientLoginToken());
-                client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + sync.ContactsRequest.Settings.OAuth2Parameters.AccessToken);
-                Stream stream = client.OpenRead(googleContact.PhotoUri.AbsoluteUri);                
-                BinaryReader reader = new BinaryReader(stream);
-                Image image = Image.FromStream(stream);
-                reader.Close();
-                //stream.Close();
-                //stream.Dispose();
-                client.Dispose();
+                using (WebClient client = new WebClient())
+                {
+                    //client.Headers.Add(HttpRequestHeader.Authorization, "GoogleLogin auth=" + sync.ContactsRequest.Service.QueryClientLoginToken());
+                    client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + sync.ContactsRequest.Settings.OAuth2Parameters.AccessToken);
+                    Stream stream = client.OpenRead(googleContact.PhotoUri.AbsoluteUri);
+                    BinaryReader reader = new BinaryReader(stream);
+                    Image image = Image.FromStream(stream);
+                    reader.Close();
 
-                return image;
+                    return image;
+                }
             }
             catch (Exception)
             {
@@ -134,9 +136,12 @@ namespace GoContactSyncMod
                         //If you add another picture, still the old picture is saved to tempPhotoPath
                         a.SaveAsFile(tempPhotoPath); 
 
-                        using (Image img = Image.FromFile(tempPhotoPath))
+                        using (var img = Image.FromFile(tempPhotoPath))
                         {
-                            return new Bitmap(img);
+                            using (var bmp = new Bitmap(img))
+                            {
+                                return bmp;
+                            }
                         }
                     }
                 }
@@ -187,9 +192,11 @@ namespace GoContactSyncMod
         }
         public static Image CropImage(Image original, Rectangle cropArea)
         {
-            Bitmap bmpImage = new Bitmap(original);
-            Bitmap bmpCrop = bmpImage.Clone(cropArea, bmpImage.PixelFormat);
-            return (Image)(bmpCrop);
+            using (Bitmap bmpImage = new Bitmap(original))
+            {
+                Bitmap bmpCrop = bmpImage.Clone(cropArea, bmpImage.PixelFormat);
+                return (Image)(bmpCrop);
+            }
         }
 
         public static void DeleteTempPhoto()
@@ -300,7 +307,7 @@ namespace GoContactSyncMod
             // append
             if (outlookContact.Categories == null)
                 outlookContact.Categories = "";
-            if (outlookContact.Categories != "")
+            if (!string.IsNullOrEmpty(outlookContact.Categories))
                 outlookContact.Categories += ", " + group;
             else
                 outlookContact.Categories += group;

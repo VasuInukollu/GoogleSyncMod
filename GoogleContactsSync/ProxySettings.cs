@@ -34,7 +34,7 @@ namespace GoContactSyncMod
 #endif
         }
 
-        private void setBgColor(TextBox box, bool isValid)
+        private static void setBgColor(TextBox box, bool isValid)
         {
             if (box.Enabled)
             {

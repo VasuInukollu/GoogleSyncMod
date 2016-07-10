@@ -473,23 +473,25 @@ namespace GoContactSyncMod
                 else if (entry.Emails.Count == 0 && !mobileExists && string.IsNullOrEmpty(entry.Title) && (entry.Organizations.Count == 0 || string.IsNullOrEmpty(entry.Organizations[0].Name)))
                 {
                     // no telephone and email
-                    
+
                     //ToDo: For now I use the ResolveDelete function, because it is almost the same, maybe we introduce a separate function for this ans also include DeleteGoogleAlways checkbox
-                    var r = new ConflictResolver();
-                    DeleteResolution res = r.ResolveDelete(entry);
-                    if (res == DeleteResolution.DeleteGoogle || res == DeleteResolution.DeleteGoogleAlways)
+                    using (var r = new ConflictResolver())
                     {
-                        ContactPropertiesUtils.SetGoogleOutlookContactId(sync.SyncProfile, entry, "-1"); //just set a dummy Id to delete this entry later on
-                        sync.SaveContact(new ContactMatch(null, entry));
-                    }
-                    else
-                    {
-                        sync.SkippedCount++;
-                        sync.SkippedCountNotMatches++;
+                        DeleteResolution res = r.ResolveDelete(entry);
 
-                        Logger.Log("Skipped GoogleContact because no unique property found (Email1 or mobile or name or company):" + ContactMatch.GetSummary(entry), EventType.Warning);
-                    }
+                        if (res == DeleteResolution.DeleteGoogle || res == DeleteResolution.DeleteGoogleAlways)
+                        {
+                            ContactPropertiesUtils.SetGoogleOutlookContactId(sync.SyncProfile, entry, "-1"); //just set a dummy Id to delete this entry later on
+                            sync.SaveContact(new ContactMatch(null, entry));
+                        }
+                        else
+                        {
+                            sync.SkippedCount++;
+                            sync.SkippedCountNotMatches++;
 
+                            Logger.Log("Skipped GoogleContact because no unique property found (Email1 or mobile or name or company):" + ContactMatch.GetSummary(entry), EventType.Warning);
+                        }
+                    }
                 }
                 else
                 {
@@ -577,8 +579,10 @@ namespace GoContactSyncMod
                             else if (sync.DeleteOutlookResolution != DeleteResolution.DeleteOutlookAlways &&
                                      sync.DeleteOutlookResolution != DeleteResolution.KeepOutlookAlways)
                             {
-                                var r = new ConflictResolver();
-                                sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookContact);
+                                using (var r = new ConflictResolver())
+                                {
+                                    sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookContact);
+                                }
                             }
                             switch (sync.DeleteOutlookResolution)
                             {
@@ -624,8 +628,10 @@ namespace GoContactSyncMod
                         else if (sync.DeleteGoogleResolution != DeleteResolution.DeleteGoogleAlways &&
                                  sync.DeleteGoogleResolution != DeleteResolution.KeepGoogleAlways)
                         {
-                            var r = new ConflictResolver();
-                            sync.DeleteGoogleResolution = r.ResolveDelete(match.GoogleContact);
+                            using (var r = new ConflictResolver())
+                            {
+                                sync.DeleteGoogleResolution = r.ResolveDelete(match.GoogleContact);
+                            }
                         }
                         switch (sync.DeleteGoogleResolution)
                         {                           
@@ -703,8 +709,10 @@ namespace GoContactSyncMod
                                         sync.ConflictResolution != ConflictResolution.OutlookWinsAlways &&
                                         sync.ConflictResolution != ConflictResolution.SkipAlways)
                                     {
-                                        var r = new ConflictResolver();
-                                        sync.ConflictResolution = r.Resolve(match, false);
+                                        using (var r = new ConflictResolver())
+                                        {
+                                            sync.ConflictResolution = r.Resolve(match, false);
+                                        }
                                     }
                                     switch (sync.ConflictResolution)
                                     {
@@ -790,8 +798,10 @@ namespace GoContactSyncMod
                                     sync.ConflictResolution != ConflictResolution.OutlookWinsAlways &&
                                     sync.ConflictResolution != ConflictResolution.SkipAlways)
                                 {
-                                    var r = new ConflictResolver();
-                                    sync.ConflictResolution = r.Resolve(match, true);
+                                    using (var r = new ConflictResolver())
+                                    {
+                                        sync.ConflictResolution = r.Resolve(match, true);
+                                    }
                                 }
                                 switch (sync.ConflictResolution)
                                 {

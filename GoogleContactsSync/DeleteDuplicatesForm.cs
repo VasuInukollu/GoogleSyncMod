@@ -22,9 +22,11 @@ namespace GoContactSyncMod
 
             foreach (Outlook.ContactItem outlookContact in duplicates)
             {
-                ContactPreview preview = new ContactPreview(outlookContact);
-                preview.Parent = flowLayoutPanel;
-                previews.Add(preview);
+                using (ContactPreview preview = new ContactPreview(outlookContact))
+                {
+                    preview.Parent = flowLayoutPanel;
+                    previews.Add(preview);
+                }
             }
         }
 

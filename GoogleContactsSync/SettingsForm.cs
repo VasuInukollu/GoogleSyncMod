@@ -81,7 +81,7 @@ namespace GoContactSyncMod
         private string Timezone = "";
 
         //private string _syncProfile;
-        private string SyncProfile
+        private static string SyncProfile
         {
             get
             {
@@ -496,7 +496,7 @@ namespace GoContactSyncMod
             this.autoSyncCheckBox.CheckedChanged += new System.EventHandler(this.autoSyncCheckBox_CheckedChanged);
         }
 
-        private void ReadRegistryIntoCheckBox(CheckBox checkbox, object registryEntry)
+        private static void ReadRegistryIntoCheckBox(CheckBox checkbox, object registryEntry)
         {
             if (registryEntry != null)
             {
@@ -513,7 +513,7 @@ namespace GoContactSyncMod
 
         }
 
-        private void ReadRegistryIntoNumber(NumericUpDown numericUpDown, object registryEntry)
+        private static void ReadRegistryIntoNumber(NumericUpDown numericUpDown, object registryEntry)
         {
             if (registryEntry != null)
             {
@@ -672,7 +672,7 @@ namespace GoContactSyncMod
             }
         }
 
-        private void setBgColor(Control box, bool isValid)
+        private static void setBgColor(Control box, bool isValid)
         {
             if (!isValid)
                 box.BackColor = Color.LightPink;
@@ -785,7 +785,6 @@ namespace GoContactSyncMod
                         sync = new Synchronizer();
                         sync.DuplicatesFound += new Synchronizer.DuplicatesFoundHandler(OnDuplicatesFound);
                         sync.ErrorEncountered += new Synchronizer.ErrorNotificationHandler(OnErrorEncountered);
-                        Synchronizer.NotificationReceived += new Synchronizer.NotificationHandler(OnNotificationReceived);
                     }
 
                     Logger.ClearLog();
@@ -1456,8 +1455,10 @@ namespace GoContactSyncMod
         }
         private void toolStripMenuItem5_Click(object sender, EventArgs e)
         {
-            AboutBox about = new AboutBox();
-            about.Show();
+            using (AboutBox about = new AboutBox())
+            {
+                about.Show();
+            }
         }
         private void toolStripMenuItem4_Click(object sender, EventArgs e)
         {
@@ -1560,7 +1561,7 @@ namespace GoContactSyncMod
             ShowHelp();
         }
 
-        private void ShowHelp()
+        private static void ShowHelp()
         {
             // go to the page showing the help and howto instructions
             Process.Start("http://googlesyncmod.sourceforge.net/");
@@ -1606,17 +1607,18 @@ namespace GoContactSyncMod
 
             if ((0 == comboBox.SelectedIndex) || (comboBox.SelectedIndex == (comboBox.Items.Count - 1)))
             {
-                ConfigurationManagerForm _configs = new ConfigurationManagerForm();
-
-                if (0 == comboBox.SelectedIndex && _configs != null)
+                using (ConfigurationManagerForm _configs = new ConfigurationManagerForm())
                 {
-                    SyncProfile = _configs.AddProfile();
-                    ClearSettings();
+
+                    if (0 == comboBox.SelectedIndex && _configs != null)
+                    {
+                        SyncProfile = _configs.AddProfile();
+                        ClearSettings();
+                    }
+
+                    if (comboBox.SelectedIndex == (comboBox.Items.Count - 1) && _configs != null)
+                        _configs.ShowDialog(this);
                 }
-
-                if (comboBox.SelectedIndex == (comboBox.Items.Count - 1) && _configs != null)
-                    _configs.ShowDialog(this);
-
                 fillSyncProfileItems();
 
                 comboBox.Text = SyncProfile;
@@ -1637,15 +1639,16 @@ namespace GoContactSyncMod
         private void contacFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string message = "Select the Outlook Contacts folder you want to sync";
-            if ((sender as ComboBox).SelectedIndex >= 0 && (sender as ComboBox).SelectedIndex < (sender as ComboBox).Items.Count && (sender as ComboBox).SelectedItem is OutlookFolder)
+            var comboBox = sender as ComboBox;
+            if (comboBox.SelectedIndex >= 0 && comboBox.SelectedIndex < comboBox.Items.Count && comboBox.SelectedItem is OutlookFolder)
             {
-                syncContactsFolder = (sender as ComboBox).SelectedValue.ToString();
-                toolTip.SetToolTip((sender as ComboBox), message + ":\r\n" + ((OutlookFolder)(sender as ComboBox).SelectedItem).DisplayName);
+                syncContactsFolder = comboBox.SelectedValue.ToString();
+                toolTip.SetToolTip(comboBox, message + ":\r\n" + ((OutlookFolder)comboBox.SelectedItem).DisplayName);
             }
             else
             {
                 syncContactsFolder = "";
-                toolTip.SetToolTip((sender as ComboBox), message);
+                toolTip.SetToolTip(comboBox, message);
             }
             ValidateSyncButton();
 
@@ -1655,15 +1658,16 @@ namespace GoContactSyncMod
         private void noteFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string message = "Select the Outlook Notes folder you want to sync";
-            if ((sender as ComboBox).SelectedIndex >= 0 && (sender as ComboBox).SelectedIndex < (sender as ComboBox).Items.Count && (sender as ComboBox).SelectedItem is OutlookFolder)
+            var comboBox = sender as ComboBox;
+            if (comboBox.SelectedIndex >= 0 && comboBox.SelectedIndex < comboBox.Items.Count && comboBox.SelectedItem is OutlookFolder)
             {
-                syncNotesFolder = (sender as ComboBox).SelectedValue.ToString();
-                toolTip.SetToolTip((sender as ComboBox), message + ":\r\n" + ((OutlookFolder)(sender as ComboBox).SelectedItem).DisplayName);
+                syncNotesFolder = comboBox.SelectedValue.ToString();
+                toolTip.SetToolTip(comboBox, message + ":\r\n" + ((OutlookFolder)comboBox.SelectedItem).DisplayName);
             }
             else
             {
                 syncNotesFolder = "";
-                toolTip.SetToolTip((sender as ComboBox), message);
+                toolTip.SetToolTip(comboBox, message);
             }
 
             ValidateSyncButton();
@@ -1674,15 +1678,16 @@ namespace GoContactSyncMod
         private void appointmentFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string message = "Select the Outlook Appointments folder you want to sync";
-            if ((sender as ComboBox).SelectedIndex >= 0 && (sender as ComboBox).SelectedIndex < (sender as ComboBox).Items.Count && (sender as ComboBox).SelectedItem is OutlookFolder)
+            var comboBox = sender as ComboBox;
+            if (comboBox.SelectedIndex >= 0 && comboBox.SelectedIndex < comboBox.Items.Count && comboBox.SelectedItem is OutlookFolder)
             {
-                syncAppointmentsFolder = (sender as ComboBox).SelectedValue.ToString();
-                toolTip.SetToolTip((sender as ComboBox), message + ":\r\n" + ((OutlookFolder)(sender as ComboBox).SelectedItem).DisplayName);
+                syncAppointmentsFolder = comboBox.SelectedValue.ToString();
+                toolTip.SetToolTip(comboBox, message + ":\r\n" + ((OutlookFolder)comboBox.SelectedItem).DisplayName);
             }
             else
             {
                 syncAppointmentsFolder = "";
-                toolTip.SetToolTip((sender as ComboBox), message);
+                toolTip.SetToolTip(comboBox, message);
             }
 
             ValidateSyncButton();
@@ -1693,15 +1698,16 @@ namespace GoContactSyncMod
         private void appointmentGoogleFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string message = "Select the Google Calendar you want to sync";
-            if ((sender as ComboBox).SelectedIndex >= 0 && (sender as ComboBox).SelectedIndex < (sender as ComboBox).Items.Count && (sender as ComboBox).SelectedItem is GoogleCalendar)
+            var comboBox = sender as ComboBox;
+            if (comboBox.SelectedIndex >= 0 && comboBox.SelectedIndex < comboBox.Items.Count && comboBox.SelectedItem is GoogleCalendar)
             {
-                syncAppointmentsGoogleFolder = (sender as ComboBox).SelectedValue.ToString();
-                toolTip.SetToolTip((sender as ComboBox), message + ":\r\n" + ((GoogleCalendar)(sender as ComboBox).SelectedItem).DisplayName);
+                syncAppointmentsGoogleFolder = comboBox.SelectedValue.ToString();
+                toolTip.SetToolTip(comboBox, message + ":\r\n" + ((GoogleCalendar)comboBox.SelectedItem).DisplayName);
             }
             else
             {
                 syncAppointmentsGoogleFolder = "";
-                toolTip.SetToolTip((sender as ComboBox), message);
+                toolTip.SetToolTip(comboBox, message);
             }
 
             ValidateSyncButton();

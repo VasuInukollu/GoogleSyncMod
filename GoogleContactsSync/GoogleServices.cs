@@ -19,11 +19,12 @@ namespace GoContactSyncMod
         public static CalendarService CreateCalendarService(BaseClientService.Initializer initializer)
         {
             initializer.DefaultExponentialBackOffPolicy = ExponentialBackOffPolicy.None;
-            var service = new CalendarService(initializer);
-            var backOffHandler = new GoogleServices.BackoffHandler(service, new ExponentialBackOff());
-            service.HttpClient.MessageHandler.AddUnsuccessfulResponseHandler (backOffHandler);
-
-            return service;
+            using (var service = new CalendarService(initializer))
+            {
+                var backOffHandler = new GoogleServices.BackoffHandler(service, new ExponentialBackOff());
+                service.HttpClient.MessageHandler.AddUnsuccessfulResponseHandler(backOffHandler);
+                return service;
+            }
         }
 
         /// <summary>

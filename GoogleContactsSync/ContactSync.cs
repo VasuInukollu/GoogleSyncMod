@@ -117,7 +117,7 @@ namespace GoContactSyncMod
 
         private static void AddEmail(Contact destination, string email, string label, string relationship)
         {
-            if (email != null && !email.Trim().Equals(string.Empty))
+            if (!string.IsNullOrWhiteSpace(email))
             {
                 EMail primaryEmail = new EMail(email);
                 primaryEmail.Primary = destination.Emails.Count == 0;

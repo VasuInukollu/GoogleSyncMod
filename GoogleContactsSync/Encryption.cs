@@ -13,47 +13,54 @@ namespace GoContactSyncMod
         {
             ASCIIEncoding enc = new ASCIIEncoding();
 
-            SHA256 shaM = new SHA256Managed();
-
-            return shaM.ComputeHash(enc.GetBytes(email));
+            using (SHA256 shaM = new SHA256Managed())
+            {
+                return shaM.ComputeHash(enc.GetBytes(email));
+            }
         }
 
         private static byte[] GetIV(string email)
         {
             ASCIIEncoding enc = new ASCIIEncoding();
 
-            MD5 md5 = MD5.Create();
-
-            return md5.ComputeHash(enc.GetBytes(email));
+            using (MD5 md5 = MD5.Create())
+            {
+                return md5.ComputeHash(enc.GetBytes(email));
+            }
         }
 
         public static string DecryptPassword(string email, string encryptedPassword)
         {
             try
             {
-                RijndaelManaged rijndael = new RijndaelManaged();
+                using (RijndaelManaged rijndael = new RijndaelManaged())
+                {
+                    //RijndaelManaged rijndael = new RijndaelManaged();
 
-                rijndael.IV = GetIV(email);
-                rijndael.Key = GetKey(email);
+                    rijndael.IV = GetIV(email);
+                    rijndael.Key = GetKey(email);
 
-                ICryptoTransform decryptor = rijndael.CreateDecryptor(rijndael.Key, rijndael.IV);
+                    ICryptoTransform decryptor = rijndael.CreateDecryptor(rijndael.Key, rijndael.IV);
 
-                //Now decrypt the previously encrypted password using the decryptor obtained in the above step.
-                byte[] encrypted = HexEncoding.GetBytes(encryptedPassword);
-                MemoryStream msDecrypt = new MemoryStream(encrypted);
-                CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
+                    //Now decrypt the previously encrypted password using the decryptor obtained in the above step.
+                    byte[] encrypted = HexEncoding.GetBytes(encryptedPassword);
+                    using (MemoryStream msDecrypt = new MemoryStream(encrypted))
+                    {
+                        CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
 
-                //byte[] fromEncrypt = new byte[encrypted.Length];
-                byte[] fromEncrypt = ReadFully(csDecrypt);//(
+                        //byte[] fromEncrypt = new byte[encrypted.Length];
+                        byte[] fromEncrypt = ReadFully(csDecrypt);//(
 
-                //Read the data out of the crypto stream.
-                //csDecrypt.Read(fromEncrypt, 0, fromEncrypt.Length);
-                //csDecrypt.Close();
-                //msDecrypt.Close();
+                        //Read the data out of the crypto stream.
+                        //csDecrypt.Read(fromEncrypt, 0, fromEncrypt.Length);
+                        //csDecrypt.Close();
+                        //msDecrypt.Close();
 
-                //Convert the byte array back into a string.
-                string result = new ASCIIEncoding().GetString(fromEncrypt);
-                return result;
+                        //Convert the byte array back into a string.
+                        string result = new ASCIIEncoding().GetString(fromEncrypt);
+                        return result;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -62,31 +69,35 @@ namespace GoContactSyncMod
         }
         public static string EncryptPassword(string email, string password)
         {
-            RijndaelManaged rijndael = new RijndaelManaged();
+            using (RijndaelManaged rijndael = new RijndaelManaged())
+            {
 
-            rijndael.IV = GetIV(email);
-            rijndael.Key = GetKey(email);
+                rijndael.IV = GetIV(email);
+                rijndael.Key = GetKey(email);
 
-            ICryptoTransform encryptor = rijndael.CreateEncryptor(rijndael.Key, rijndael.IV);
+                ICryptoTransform encryptor = rijndael.CreateEncryptor(rijndael.Key, rijndael.IV);
 
-            byte[] toEncrypt = new ASCIIEncoding().GetBytes(password);
+                byte[] toEncrypt = new ASCIIEncoding().GetBytes(password);
 
-            //Encrypt the data.
-            MemoryStream msEncrypt = new MemoryStream();
-            CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write);
+                //Encrypt the data.
+                using (MemoryStream msEncrypt = new MemoryStream())
+                {
+                    CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write);
 
-            //byte[] encrypted = ReadFully(csEncrypt);
-            /*byte[] codes = new byte[msEncrypt.Capacity];
-            csEncrypt.Read(codes, 0, codes.Length);
-            csEncrypt.Close();
-            msEncrypt.Close();*/
+                    //byte[] encrypted = ReadFully(csEncrypt);
+                    /*byte[] codes = new byte[msEncrypt.Capacity];
+                    csEncrypt.Read(codes, 0, codes.Length);
+                    csEncrypt.Close();
+                    msEncrypt.Close();*/
 
-            //Write all data to the crypto stream and flush it.
-            csEncrypt.Write(toEncrypt, 0, toEncrypt.Length);
-            csEncrypt.FlushFinalBlock();
+                    //Write all data to the crypto stream and flush it.
+                    csEncrypt.Write(toEncrypt, 0, toEncrypt.Length);
+                    csEncrypt.FlushFinalBlock();
 
-            //Convert the byte array back into a string.
-            return HexEncoding.ToString(msEncrypt.ToArray());
+                    //Convert the byte array back into a string.
+                    return HexEncoding.ToString(msEncrypt.ToArray());
+                }
+            }
         }
         public static byte[] ReadFully(Stream stream)
         {
