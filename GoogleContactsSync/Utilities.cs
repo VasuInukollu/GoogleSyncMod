@@ -389,13 +389,11 @@ namespace GoContactSyncMod
         private string _folderID;
         private bool _isDefaultFolder;
 
-
         public OutlookFolder(string folderName, string folderID, bool isDefaultFolder)
         {
-
-            this._folderName = folderName;
-            this._folderID   = folderID;
-            this._isDefaultFolder = isDefaultFolder;
+            _folderName = folderName;
+            _folderID   = folderID;
+            _isDefaultFolder = isDefaultFolder;
         }
 
         public string FolderName
@@ -408,7 +406,6 @@ namespace GoContactSyncMod
 
         public string FolderID
         {
-
             get
             {
                 return _folderID;
@@ -417,7 +414,6 @@ namespace GoContactSyncMod
 
         public bool IsDefaultFolder
         {
-
             get
             {
                 return _isDefaultFolder;
@@ -434,12 +430,95 @@ namespace GoContactSyncMod
 
         public int CompareTo(object obj)
         {
-            if (obj is OutlookFolder)
+            if (obj == null) return 1;
+            OutlookFolder other = obj as OutlookFolder;
+            if (other == null)
             {
-                return this._folderName.CompareTo((obj as OutlookFolder)._folderName);
+               throw new ArgumentException(string.Format("Cannot compare {0} with {1}", GetType().ToString(), obj.GetType().ToString()));
             }
-            else
-                throw new ArgumentException("Object is not a OutlookFolder");
+            return CompareTo(this, other);
+        }
+
+        public static bool operator <(OutlookFolder left, OutlookFolder right)
+        {
+            if (ReferenceEquals(left, null))
+            {
+                if (ReferenceEquals(right, null))
+                    return false;
+                else
+                    return true;
+            }
+            else if (ReferenceEquals(right, null))
+                return false;
+
+            return CompareTo(left, right) < 0;
+        }
+
+        public static bool operator >(OutlookFolder left, OutlookFolder right)
+        {
+            if (ReferenceEquals(left, null))
+            {
+                if (ReferenceEquals(right, null))
+                    return false;
+                else
+                    return false;
+            }
+            else if (ReferenceEquals(right, null))
+                return true;
+
+            return CompareTo(left, right) > 0;
+        }
+
+        public static bool operator ==(OutlookFolder left, OutlookFolder right)
+        {
+            if (ReferenceEquals(left, null))
+            {
+                if (ReferenceEquals(right, null))
+                    return true;
+                else
+                    return false;
+            }
+            else if (ReferenceEquals(right, null))
+                return false;
+
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(OutlookFolder left, OutlookFolder right)
+        {
+            return !(left == right);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(obj, null) || (obj.GetType() != GetType())) return false;
+
+            return Equals(this, obj as OutlookFolder);
+        }
+
+        internal static bool Equals(OutlookFolder left, OutlookFolder right)
+        {
+            return (right._folderName == left._folderName) &&
+                  (right._folderID == left._folderID) &&
+                  (right._isDefaultFolder == left._isDefaultFolder);
+        }
+
+        internal static int CompareTo(OutlookFolder left, OutlookFolder right)
+        {
+            int _folderNameComparison = left._folderName.CompareTo(right._folderName);
+            if (_folderNameComparison != 0)
+                return _folderNameComparison;
+
+            int _folderIDComparison = left._folderID.CompareTo(right._folderID);
+            if (_folderIDComparison != 0)
+                return _folderIDComparison;
+
+            return left._isDefaultFolder.CompareTo(right._isDefaultFolder);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashUtils.CombineHashCodes(_folderName.GetHashCode(), _folderID.GetHashCode(), _isDefaultFolder.GetHashCode());
         }
 
         public override string ToString()
@@ -447,8 +526,7 @@ namespace GoContactSyncMod
             if (this is OutlookFolder)
                 return FolderID;
             else
-                return base.ToString();
-            
+                return base.ToString(); 
         }
     }
 
@@ -461,10 +539,9 @@ namespace GoContactSyncMod
 
         public GoogleCalendar(string folderName, string folderID, bool isDefaultFolder)
         {
-
-            this._folderName = folderName;
-            this._folderID = folderID;
-            this._isDefaultFolder = isDefaultFolder;
+            _folderName = folderName;
+            _folderID = folderID;
+            _isDefaultFolder = isDefaultFolder;
         }
 
         public string FolderName
@@ -477,7 +554,6 @@ namespace GoContactSyncMod
 
         public string FolderID
         {
-
             get
             {
                 return _folderID;
@@ -486,7 +562,6 @@ namespace GoContactSyncMod
 
         public bool IsDefaultFolder
         {
-
             get
             {
                 return _isDefaultFolder;
@@ -503,12 +578,95 @@ namespace GoContactSyncMod
 
         public int CompareTo(object obj)
         {
-            if (obj is GoogleCalendar)
+            if (obj == null) return 1;
+            GoogleCalendar other = obj as GoogleCalendar;
+            if (other == null)
             {
-                return this._folderName.CompareTo((obj as GoogleCalendar)._folderName);
+                throw new ArgumentException(string.Format("Cannot compare {0} with {1}", GetType().ToString(), obj.GetType().ToString()));
             }
-            else
-                throw new ArgumentException("Object is not a GoogleCalendar");
+            return CompareTo(this, other);
+        }
+
+        public static bool operator <(GoogleCalendar left, GoogleCalendar right)
+        {
+            if (ReferenceEquals(left, null))
+            {
+                if (ReferenceEquals(right, null))
+                    return false;
+                else
+                    return true;
+            }
+            else if (ReferenceEquals(right, null))
+                return false;
+
+            return CompareTo(left, right) < 0;
+        }
+
+        public static bool operator >(GoogleCalendar left, GoogleCalendar right)
+        {
+            if (ReferenceEquals(left, null))
+            {
+                if (ReferenceEquals(right, null))
+                    return false;
+                else
+                    return false;
+            }
+            else if (ReferenceEquals(right, null))
+                return true;
+
+            return CompareTo(left, right) > 0;
+        }
+
+        public static bool operator ==(GoogleCalendar left, GoogleCalendar right)
+        {
+            if (ReferenceEquals(left, null))
+            {
+                if (ReferenceEquals(right, null))
+                    return true;
+                else
+                    return false;
+            }
+            else if (ReferenceEquals(right, null))
+                return false;
+
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(GoogleCalendar left, GoogleCalendar right)
+        {
+            return !(left == right);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(obj, null) || (obj.GetType() != GetType())) return false;
+
+            return Equals(this, obj as OutlookFolder);
+        }
+
+        internal static bool Equals(GoogleCalendar left, GoogleCalendar right)
+        {
+            return (right._folderName == left._folderName) &&
+                  (right._folderID == left._folderID) &&
+                  (right._isDefaultFolder == left._isDefaultFolder);
+        }
+
+        internal static int CompareTo(GoogleCalendar left, GoogleCalendar right)
+        {
+            int _folderNameComparison = left._folderName.CompareTo(right._folderName);
+            if (_folderNameComparison != 0)
+                return _folderNameComparison;
+
+            int _folderIDComparison = left._folderID.CompareTo(right._folderID);
+            if (_folderIDComparison != 0)
+                return _folderIDComparison;
+
+            return left._isDefaultFolder.CompareTo(right._isDefaultFolder);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashUtils.CombineHashCodes(_folderName.GetHashCode(), _folderID.GetHashCode(), _isDefaultFolder.GetHashCode());
         }
 
         public override string ToString()
@@ -517,7 +675,20 @@ namespace GoContactSyncMod
                 return FolderID;
             else
                 return base.ToString();
-
         }
+    }
+}
+
+//Taken from Tuple
+public class HashUtils
+{
+    public static int CombineHashCodes(int h1, int h2)
+    {
+        return (((h1 << 5) + h1) ^ h2);
+    }
+
+    public static int CombineHashCodes(int h1, int h2, int h3)
+    {
+        return CombineHashCodes(CombineHashCodes(h1, h2), h3);
     }
 }
