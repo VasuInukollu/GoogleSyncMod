@@ -22,7 +22,7 @@ namespace GoContactSyncMod
 
         #region Assembly Attribute Accessors
 
-        public static string AssemblyTitle
+        public string AssemblyTitle
         {
             get
             {
@@ -30,7 +30,7 @@ namespace GoContactSyncMod
                 if (attributes.Length > 0)
                 {
                     AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)attributes[0];
-                    if (!string.IsNullOrEmpty(titleAttribute.Title))
+                    if (titleAttribute.Title != "")
                     {
                         return titleAttribute.Title;
                     }
@@ -39,7 +39,7 @@ namespace GoContactSyncMod
             }
         }
 
-        public static string AssemblyVersion
+        public string AssemblyVersion
         {
             get
             {
@@ -47,7 +47,7 @@ namespace GoContactSyncMod
             }
         }
 
-        public static string AssemblyDescription
+        public string AssemblyDescription
         {
             get
             {
@@ -60,7 +60,7 @@ namespace GoContactSyncMod
             }
         }
 
-        public static string AssemblyProduct
+        public string AssemblyProduct
         {
             get
             {
@@ -73,7 +73,7 @@ namespace GoContactSyncMod
             }
         }
 
-        public static string AssemblyCopyright
+        public string AssemblyCopyright
         {
             get
             {
@@ -86,7 +86,7 @@ namespace GoContactSyncMod
             }
         }
 
-        public static string AssemblyCompany
+        public string AssemblyCompany
         {
             get
             {

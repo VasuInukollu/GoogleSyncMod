@@ -19,21 +19,20 @@ namespace GoContactSyncMod
         public string AddProfile()
         {
             string vReturn = "";
-            using (AddEditProfileForm AddEditProfile = new AddEditProfileForm("New profile", null))
+            AddEditProfileForm AddEditProfile = new AddEditProfileForm("New profile", null);
+            if (AddEditProfile.ShowDialog(SettingsForm.Instance) == DialogResult.OK)
             {
-                if (AddEditProfile.ShowDialog(SettingsForm.Instance) == DialogResult.OK)
+                if (null != Registry.CurrentUser.OpenSubKey(SettingsForm.AppRootKey + '\\' + AddEditProfile.ProfileName))
                 {
-                    if (null != Registry.CurrentUser.OpenSubKey(SettingsForm.AppRootKey + '\\' + AddEditProfile.ProfileName))
-                    {
-                        MessageBox.Show("Profile " + AddEditProfile.ProfileName + " exists, try again. ", "New profile");
-                    }
-                    else
-                    {
-                        Registry.CurrentUser.CreateSubKey(SettingsForm.AppRootKey + '\\' + AddEditProfile.ProfileName);
-                        vReturn = AddEditProfile.ProfileName;
-                    }
+                    MessageBox.Show("Profile " + AddEditProfile.ProfileName + " exists, try again. ", "New profile");
+                }
+                else
+                {
+                    Registry.CurrentUser.CreateSubKey(SettingsForm.AppRootKey + '\\' + AddEditProfile.ProfileName);
+                    vReturn = AddEditProfile.ProfileName;
                 }
             }
+
             return vReturn;
         }
 
@@ -50,7 +49,7 @@ namespace GoContactSyncMod
         }
 
         //copy all the values
-        private static void CopyKey(RegistryKey parent, string keyNameSource, string keyNameDestination)
+        private void CopyKey(RegistryKey parent, string keyNameSource, string keyNameDestination)
         {
             RegistryKey destination = parent.CreateSubKey(keyNameDestination);
             RegistryKey source = parent.OpenSubKey(keyNameSource);
@@ -78,19 +77,17 @@ namespace GoContactSyncMod
         {
             if (1 == lbProfiles.CheckedItems.Count)
             {
-                using (AddEditProfileForm AddEditProfile = new AddEditProfileForm("Edit profile", lbProfiles.CheckedItems[0].ToString()))
+                AddEditProfileForm AddEditProfile = new AddEditProfileForm("Edit profile",lbProfiles.CheckedItems[0].ToString());
+                if (AddEditProfile.ShowDialog(SettingsForm.Instance) == DialogResult.OK)
                 {
-                    if (AddEditProfile.ShowDialog(SettingsForm.Instance) == DialogResult.OK)
+                    if (null != Registry.CurrentUser.OpenSubKey(SettingsForm.AppRootKey + '\\' + AddEditProfile.ProfileName))
                     {
-                        if (null != Registry.CurrentUser.OpenSubKey(SettingsForm.AppRootKey + '\\' + AddEditProfile.ProfileName))
-                        {
-                            MessageBox.Show("Profile " + AddEditProfile.ProfileName + " exists, try again. ", "Edit profile");
-                        }
-                        else
-                        {
-                            CopyKey(Registry.CurrentUser.CreateSubKey(SettingsForm.AppRootKey), lbProfiles.CheckedItems[0].ToString(), AddEditProfile.ProfileName);
-                            Registry.CurrentUser.DeleteSubKeyTree(SettingsForm.AppRootKey + '\\' + lbProfiles.CheckedItems[0].ToString());
-                        }
+                        MessageBox.Show("Profile " + AddEditProfile.ProfileName + " exists, try again. ", "Edit profile");
+                    }
+                    else 
+                    {
+                        CopyKey(Registry.CurrentUser.CreateSubKey(SettingsForm.AppRootKey), lbProfiles.CheckedItems[0].ToString(), AddEditProfile.ProfileName);
+                        Registry.CurrentUser.DeleteSubKeyTree(SettingsForm.AppRootKey + '\\' + lbProfiles.CheckedItems[0].ToString());
                     }
                 }
             }

@@ -325,11 +325,9 @@ namespace GoContactSyncMod
             StreamWriter writer = null;
             try
             {
-                using (FileStream filestream = new FileStream(fileName, FileMode.OpenOrCreate))
-                {
-                    writer = new StreamWriter(filestream);
-                    writer.Write(body);
-                }
+                FileStream filestream = new FileStream(fileName, FileMode.OpenOrCreate);
+                writer = new StreamWriter(filestream);
+                writer.Write(body);
             }
             catch (Exception e)
             {

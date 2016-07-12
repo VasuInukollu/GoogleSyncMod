@@ -512,15 +512,14 @@ namespace GoContactSyncMod
 
                 if (!string.IsNullOrEmpty(byDay))
                 {
-                    if (masterRecurrence.Instance != 0)
-                    {
-                        if (masterRecurrence.Instance >= 1 && masterRecurrence.Instance <= 4)
-                            byDay = masterRecurrence.Instance + byDay;
-                        else if (masterRecurrence.Instance == 5)
-                            slaveRecurrence += ";" + BYSETPOS + "=-1";
-                        else
-                            throw new NotSupportedException("Outlook Appointment Instances 1-4 and 5 (last) are allowed but was: " + masterRecurrence.Instance);
-                    }
+                    if (masterRecurrence.Instance == 0)
+                        ;//DoNothing
+                    else if (masterRecurrence.Instance >= 1 && masterRecurrence.Instance <= 4)
+                        byDay = masterRecurrence.Instance + byDay;
+                    else if (masterRecurrence.Instance == 5)
+                        slaveRecurrence += ";" + BYSETPOS + "=-1";
+                    else
+                        throw new NotSupportedException("Outlook Appointment Instances 1-4 and 5 (last) are allowed but was: " + masterRecurrence.Instance);
                     slaveRecurrence += ";" + BYDAY + "=" + byDay;
                 }
 

@@ -20,9 +20,9 @@ namespace GoContactSyncMod
             InitializeComponent();
         }
 
-        public async void setErrorText(Exception ex)
+        public void setErrorText(Exception ex)
         {
-            if (await VersionInformation.isNewVersionAvailable())
+            if (VersionInformation.isNewVersionAvailable())
             {
                 richTextBoxError.AppendText(Environment.NewLine);
                 richTextBoxError.AppendText("NEW VERSION AVAILABLE - ");

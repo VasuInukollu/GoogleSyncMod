@@ -42,6 +42,7 @@ namespace GoContactSyncMod
         public DeleteResolution DeleteOutlookResolution { get; set; }
 
         public delegate void NotificationHandler(string message);
+        public static event NotificationHandler NotificationReceived;
 
         public delegate void DuplicatesFoundHandler(string title, string message);
         public delegate void ErrorNotificationHandler(string title, Exception ex, EventType eventType);
@@ -1562,34 +1563,32 @@ namespace GoContactSyncMod
                         try
                         {
                             Contact googleContact;
-                            using (ConflictResolver r = new ConflictResolver())
+                            ConflictResolver r = new ConflictResolver();
+                            switch (r.ResolveDuplicate(olci, match.AllGoogleContactMatches, out googleContact))
                             {
-                                switch (r.ResolveDuplicate(olci, match.AllGoogleContactMatches, out googleContact))
-                                {
-                                    case ConflictResolution.Skip:
-                                    case ConflictResolution.SkipAlways: //Keep both entries and sync it to both sides
-                                        match.AllGoogleContactMatches.Remove(googleContact);
-                                        match.AllOutlookContactMatches.Remove(olci);
-                                        Contacts.Add(new ContactMatch(null, googleContact));
-                                        Contacts.Add(new ContactMatch(olci, null));
-                                        break;
-                                    case ConflictResolution.OutlookWins:
-                                    case ConflictResolution.OutlookWinsAlways: //Keep Outlook and overwrite Google
-                                        match.AllGoogleContactMatches.Remove(googleContact);
-                                        match.AllOutlookContactMatches.Remove(olci);
-                                        UpdateContact(outlookContactItem, googleContact);
-                                        SaveContact(new ContactMatch(olci, googleContact));
-                                        break;
-                                    case ConflictResolution.GoogleWins:
-                                    case ConflictResolution.GoogleWinsAlways: //Keep Google and overwrite Outlook
-                                        match.AllGoogleContactMatches.Remove(googleContact);
-                                        match.AllOutlookContactMatches.Remove(olci);
-                                        UpdateContact(googleContact, outlookContactItem);
-                                        SaveContact(new ContactMatch(olci, googleContact));
-                                        break;
-                                    default:
-                                        throw new ApplicationException("Cancelled");
-                                }
+                                case ConflictResolution.Skip:
+                                case ConflictResolution.SkipAlways: //Keep both entries and sync it to both sides
+                                    match.AllGoogleContactMatches.Remove(googleContact);
+                                    match.AllOutlookContactMatches.Remove(olci);
+                                    Contacts.Add(new ContactMatch(null, googleContact));
+                                    Contacts.Add(new ContactMatch(olci, null));
+                                    break;
+                                case ConflictResolution.OutlookWins:
+                                case ConflictResolution.OutlookWinsAlways: //Keep Outlook and overwrite Google
+                                    match.AllGoogleContactMatches.Remove(googleContact);
+                                    match.AllOutlookContactMatches.Remove(olci);
+                                    UpdateContact(outlookContactItem, googleContact);
+                                    SaveContact(new ContactMatch(olci, googleContact));
+                                    break;
+                                case ConflictResolution.GoogleWins:
+                                case ConflictResolution.GoogleWinsAlways: //Keep Google and overwrite Outlook
+                                    match.AllGoogleContactMatches.Remove(googleContact);
+                                    match.AllOutlookContactMatches.Remove(olci);
+                                    UpdateContact(googleContact, outlookContactItem);
+                                    SaveContact(new ContactMatch(olci, googleContact));
+                                    break;
+                                default:
+                                    throw new ApplicationException("Cancelled");
                             }
                         }
                         finally
@@ -2125,10 +2124,8 @@ namespace GoContactSyncMod
                             ConflictResolution != ConflictResolution.GoogleWinsAlways &&
                             ConflictResolution != ConflictResolution.SkipAlways)
                         {
-                            using (var r = new ConflictResolver())
-                            {
-                                ConflictResolution = r.Resolve("Cannot update appointment from Outlook to Google because different Organizer found on Google, invitation maybe NOT sent by Outlook: \"" + master.Subject + " - " + master.Start + "\". Do you want to update it back from Google to Outlook?", slave, master, this);
-                            }
+                            var r = new ConflictResolver();
+                            ConflictResolution = r.Resolve("Cannot update appointment from Outlook to Google because different Organizer found on Google, invitation maybe NOT sent by Outlook: \"" + master.Subject + " - " + master.Start + "\". Do you want to update it back from Google to Outlook?", slave, master, this);
                         }
                         switch (ConflictResolution)
                         {
@@ -2272,10 +2269,8 @@ namespace GoContactSyncMod
                             ConflictResolution != ConflictResolution.OutlookWinsAlways &&
                             ConflictResolution != ConflictResolution.SkipAlways)
                         {
-                            using (var r = new ConflictResolver())
-                            {
-                                ConflictResolution = r.Resolve("Cannot update appointment from Google to Outlook because multiple participants found, invitation maybe NOT sent by Google: \"" + master.Summary + " - " + Synchronizer.GetTime(master) + "\". Do you want to update it back from Outlook to Google?", slave, master, this);
-                            }
+                            var r = new ConflictResolver();
+                            ConflictResolution = r.Resolve("Cannot update appointment from Google to Outlook because multiple participants found, invitation maybe NOT sent by Google: \"" + master.Summary + " - " + Synchronizer.GetTime(master) + "\". Do you want to update it back from Outlook to Google?", slave, master, this);
                         }
                         switch (ConflictResolution)
                         {
@@ -2588,26 +2583,22 @@ namespace GoContactSyncMod
 
         private string GetXml(Contact contact)
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                contact.ContactEntry.SaveToXml(ms);
-                StreamReader sr = new StreamReader(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                string xml = sr.ReadToEnd();
-                return xml;
-            }
+            MemoryStream ms = new MemoryStream();
+            contact.ContactEntry.SaveToXml(ms);
+            StreamReader sr = new StreamReader(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            string xml = sr.ReadToEnd();
+            return xml;
         }
 
         private static string GetXml(Document note)
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                note.DocumentEntry.SaveToXml(ms);
-                StreamReader sr = new StreamReader(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                string xml = sr.ReadToEnd();
-                return xml;
-            }
+            MemoryStream ms = new MemoryStream();
+            note.DocumentEntry.SaveToXml(ms);
+            StreamReader sr = new StreamReader(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            string xml = sr.ReadToEnd();
+            return xml;
         }
 
         //private static string GetXml(Google.Apis.Calendar.v3.Data.Event appointment)
@@ -2843,47 +2834,45 @@ namespace GoContactSyncMod
             if (hasOutlookPhoto)
             {
                 // add outlook photo to google
-                using (var outlookPhoto = Utilities.GetOutlookPhoto(outlookContactitem))
+                Image outlookPhoto = Utilities.GetOutlookPhoto(outlookContactitem);
+
+                if (outlookPhoto != null)
                 {
-                    if (outlookPhoto != null)
+                    //Try up to 5 times to overcome Google issue
+                    for (int retry = 0; retry < 5; retry++)
                     {
-                        //Try up to 5 times to overcome Google issue
-                        for (int retry = 0; retry < 5; retry++)
+                        try
                         {
-                            try
+
+                            using (MemoryStream stream = new MemoryStream(Utilities.BitmapToBytes(new Bitmap(outlookPhoto))))
                             {
-                                using (var bmp = new Bitmap(outlookPhoto))
-                                {
-                                    using (var stream = new MemoryStream(Utilities.BitmapToBytes(bmp)))
-                                    {
-                                        // Save image to stream.
-                                        //outlookPhoto.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+                                // Save image to stream.
+                                //outlookPhoto.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
 
-                                        //Don'T crop, because maybe someone wants to keep his photo like it is on Outlook
-                                        //outlookPhoto = Utilities.CropImageGoogleFormat(outlookPhoto);                        
-                                        ContactsRequest.SetPhoto(match.GoogleContact, stream);
+                                //Don'T crop, because maybe someone wants to keep his photo like it is on Outlook
+                                //outlookPhoto = Utilities.CropImageGoogleFormat(outlookPhoto);                        
+                                ContactsRequest.SetPhoto(match.GoogleContact, stream);
 
-                                        //Just save the Outlook Contact to have the same lastUpdate date as Google
-                                        ContactPropertiesUtils.SetOutlookGoogleContactId(this, outlookContactitem, match.GoogleContact);
-                                        outlookContactitem.Save();
-                                        outlookPhoto.Dispose();
+                                //Just save the Outlook Contact to have the same lastUpdate date as Google
+                                ContactPropertiesUtils.SetOutlookGoogleContactId(this, outlookContactitem, match.GoogleContact);
+                                outlookContactitem.Save();
+                                outlookPhoto.Dispose();
 
-                                    }
-                                }
-                                break; //Exit because photo save succeeded
                             }
-                            catch (GDataRequestException ex)
-                            { //If Google found a picture for a new Google account, it sets it automatically and throws an error, if updating it with the Outlook photo. 
-                              //Therefore save it again and try again to save the photo
-                                if (retry == 4)
-                                    ErrorHandler.Handle(new Exception("Photo of contact " + match.GoogleContact.Title + "couldn't be saved after 5 tries, maybe Google found its own photo and doesn't allow updating it", ex));
-                                else
-                                {
-                                    System.Threading.Thread.Sleep(1000);
-                                    //LoadGoogleContact again to get latest ETag
-                                    //match.GoogleContact = LoadGoogleContacts(match.GoogleContact.AtomEntry.Id);
-                                    match.GoogleContact = SaveGoogleContact(match.GoogleContact);
-                                }
+
+                            break; //Exit because photo save succeeded
+                        }
+                        catch (GDataRequestException ex)
+                        { //If Google found a picture for a new Google account, it sets it automatically and throws an error, if updating it with the Outlook photo. 
+                            //Therefore save it again and try again to save the photo
+                            if (retry == 4)
+                                ErrorHandler.Handle(new Exception("Photo of contact " + match.GoogleContact.Title + "couldn't be saved after 5 tries, maybe Google found its own photo and doesn't allow updating it", ex));
+                            else
+                            {
+                                System.Threading.Thread.Sleep(1000);
+                                //LoadGoogleContact again to get latest ETag
+                                //match.GoogleContact = LoadGoogleContacts(match.GoogleContact.AtomEntry.Id);
+                                match.GoogleContact = SaveGoogleContact(match.GoogleContact);
                             }
                         }
                     }
@@ -2961,14 +2950,14 @@ namespace GoContactSyncMod
                 // add google photo to outlook
                 //ToDo: add google photo to outlook with new Google API
                 //Stream stream = _googleService.GetPhoto(match.GoogleContact);
-                using (var googlePhoto = Utilities.GetGooglePhoto(this, googleContact))
+                Image googlePhoto = Utilities.GetGooglePhoto(this, googleContact);
+                if (googlePhoto != null)    // Google may have an invalid photo
                 {
-                    if (googlePhoto != null)    // Google may have an invalid photo
-                    {
-                        Utilities.SetOutlookPhoto(outlookContact, googlePhoto);
-                        ContactPropertiesUtils.SetOutlookGoogleContactId(this, outlookContact, googleContact);
-                        outlookContact.Save();
-                    }
+                    Utilities.SetOutlookPhoto(outlookContact, googlePhoto);
+                    ContactPropertiesUtils.SetOutlookGoogleContactId(this, outlookContact, googleContact);
+                    outlookContact.Save();
+
+                    googlePhoto.Dispose();
                 }
             }
             else if (hasOutlookPhoto)
@@ -3170,7 +3159,7 @@ namespace GoContactSyncMod
                 g = GetGoogleGroupByName(myContactsGroup);
                 if (g == null)
                 {
-                    throw new Exception(string.Format("Google {0} doesn't exist", myContactsGroup));
+                    throw new Exception(string.Format("Google System Group: My Contacts doesn't exist", myContactsGroup));
                 }
                 Utilities.AddGoogleGroup(slave, g);
             }

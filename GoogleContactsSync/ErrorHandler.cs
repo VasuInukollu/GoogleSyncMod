@@ -58,11 +58,9 @@ namespace GoContactSyncMod
                 Logger.Log("Error showing Balloon: " + exc.Message, EventType.Error);
             }
             //create and show error information
-            using (ErrorDialog errorDialog = new ErrorDialog())
-            {
-                errorDialog.setErrorText(ex);
-                errorDialog.Show();
-            }
+            ErrorDialog errorDialog = new ErrorDialog();
+            errorDialog.setErrorText(ex);
+            errorDialog.Show();
 
             //set user culture
             Thread.CurrentThread.CurrentCulture = oldCI;

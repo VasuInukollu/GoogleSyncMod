@@ -9,7 +9,7 @@ using Google.Apis.Calendar.v3.Data;
 
 namespace GoContactSyncMod
 {
-    class ConflictResolver : IConflictResolver, IDisposable
+    class ConflictResolver : IConflictResolver
     {
         private ConflictResolverForm _form;
 
@@ -421,11 +421,6 @@ namespace GoContactSyncMod
             _form.skip.Enabled = false;
 
             return ResolveDeletedOutlook();
-        }
-
-        public void Dispose()
-        {
-            ((IDisposable)_form).Dispose();
         }
 
         #endregion

@@ -457,10 +457,8 @@ namespace GoContactSyncMod
                             else if (sync.DeleteOutlookResolution != DeleteResolution.DeleteOutlookAlways &&
                                      sync.DeleteOutlookResolution != DeleteResolution.KeepOutlookAlways)
                             {
-                                using (var r = new ConflictResolver())
-                                {
-                                    sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookNote);
-                                }
+                                var r = new ConflictResolver();
+                                sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookNote);
                             }
                             switch (sync.DeleteOutlookResolution)
                             {
@@ -508,10 +506,8 @@ namespace GoContactSyncMod
                         else if (sync.DeleteGoogleResolution != DeleteResolution.DeleteGoogleAlways &&
                                  sync.DeleteGoogleResolution != DeleteResolution.KeepGoogleAlways)
                         {
-                            using (var r = new ConflictResolver())
-                            {
-                                sync.DeleteGoogleResolution = r.ResolveDelete(match.GoogleNote, sync);
-                            }
+                            var r = new ConflictResolver();
+                            sync.DeleteGoogleResolution = r.ResolveDelete(match.GoogleNote, sync);
                         }
                         switch (sync.DeleteGoogleResolution)
                         {
@@ -588,10 +584,8 @@ namespace GoContactSyncMod
                                         sync.ConflictResolution != ConflictResolution.OutlookWinsAlways &&
                                         sync.ConflictResolution != ConflictResolution.SkipAlways)
                                     {
-                                        using (var r = new ConflictResolver())
-                                        {
-                                            sync.ConflictResolution = r.Resolve(outlookNoteItem, match.GoogleNote, sync, false);
-                                        }
+                                        var r = new ConflictResolver();
+                                        sync.ConflictResolution = r.Resolve(outlookNoteItem, match.GoogleNote, sync, false);
                                     }
                                     switch (sync.ConflictResolution)
                                     {
@@ -677,10 +671,8 @@ namespace GoContactSyncMod
                                     sync.ConflictResolution != ConflictResolution.OutlookWinsAlways &&
                                         sync.ConflictResolution != ConflictResolution.SkipAlways)
                                 {
-                                    using (var r = new ConflictResolver())
-                                    {
-                                        sync.ConflictResolution = r.Resolve(outlookNoteItem, match.GoogleNote, sync, true);
-                                    }
+                                    var r = new ConflictResolver();
+                                    sync.ConflictResolution = r.Resolve(outlookNoteItem, match.GoogleNote, sync, true);
                                 }
                                 switch (sync.ConflictResolution)
                                 {
