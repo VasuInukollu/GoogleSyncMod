@@ -13,8 +13,8 @@ namespace GoContactSyncMod
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            cancellationTokenSource.Dispose();
-            sync.Dispose();
+            cancellationTokenSource?.Dispose();
+            sync?.Dispose();
             if (disposing && (components != null))
             {
                 components.Dispose();
