@@ -309,7 +309,7 @@ namespace GoContactSyncMod
 	        catch (Exception e)
 	        {
 		        MessageBox.Show(e.StackTrace);
-		        throw e;
+		        throw;
 	        }
 
 	        #region Recipients

@@ -662,12 +662,16 @@ namespace GoContactSyncMod
             try
             {
                 DateTime birthday;
-                DateTime.TryParse(master.ContactEntry.Birthday, out birthday);
-
-                if (birthday != DateTime.MinValue)
+                if (DateTime.TryParse(master.ContactEntry.Birthday, out birthday))
                 {
-                    if (!birthday.Date.Equals(slave.Birthday.Date)) //Only update if not already equal to avoid recreating the calendar item again and again
-                        slave.Birthday = birthday.Date;
+
+                    if (birthday != DateTime.MinValue)
+                    {
+                        if (!birthday.Date.Equals(slave.Birthday.Date)) //Only update if not already equal to avoid recreating the calendar item again and again
+                            slave.Birthday = birthday.Date;
+                    }
+                    else
+                        slave.Birthday = outlookDateNone;
                 }
                 else
                     slave.Birthday = outlookDateNone;

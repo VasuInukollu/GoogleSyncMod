@@ -23,7 +23,7 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace GoContactSyncMod
 {
-    internal class Synchronizer
+    internal class Synchronizer : IDisposable
     {
         public const int OutlookUserPropertyMaxLength = 32;
         public const string OutlookUserPropertyTemplate = "g/con/{0}/";
@@ -2640,8 +2640,9 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     string responseString = "";
-                    if (ex is GDataRequestException)
-                        responseString = EscapeXml(((GDataRequestException)ex).ResponseString);
+                    GDataRequestException e = ex as GDataRequestException;
+                    if (e != null)
+                        responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleContact);
                     string newEx = String.Format("Error saving NEW Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
@@ -2673,8 +2674,9 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     string responseString = "";
-                    if (ex is GDataRequestException)
-                        responseString = EscapeXml(((GDataRequestException)ex).ResponseString);
+                    GDataRequestException e = ex as GDataRequestException;
+                    if (e != null)
+                        responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleContact);
                     string newEx = String.Format("Error saving EXISTING Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
@@ -2766,8 +2768,9 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     string responseString = "";
-                    if (ex is GDataRequestException)
-                        responseString = EscapeXml(((GDataRequestException)ex).ResponseString);
+                    GDataRequestException e = ex as GDataRequestException;
+                    if (e != null)
+                        responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleNote);
                     string newEx = String.Format("Error saving NEW Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
@@ -2787,8 +2790,9 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     string responseString = "";
-                    if (ex is GDataRequestException)
-                        responseString = EscapeXml(((GDataRequestException)ex).ResponseString);
+                    GDataRequestException e = ex as GDataRequestException;
+                    if (e != null)
+                        responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleNote);
                     string newEx = String.Format("Error saving EXISTING Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
@@ -3850,6 +3854,11 @@ namespace GoContactSyncMod
                 if (appointmentsFolder != null) Marshal.ReleaseComObject(appointmentsFolder);
             }
             return outlookAppointment;
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable)CalendarRequest).Dispose();
         }
     }
 

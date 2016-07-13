@@ -14,6 +14,7 @@ namespace GoContactSyncMod
         protected override void Dispose(bool disposing)
         {
             cancellationTokenSource.Dispose();
+            sync.Dispose();
             if (disposing && (components != null))
             {
                 components.Dispose();

@@ -67,21 +67,43 @@ namespace GoContactSyncMod
 
     public class CPField
     {
-        public string name;
-        public string value;
-        public PointF p;
+        private string Name;
+        private string Value;
+        private PointF P;
 
-        public CPField(string _name, string _value, PointF _p)
+        public string name
         {
-            name = _name;
-            value = _value;
-            p = _p;
+            get { return Name; }
+            set { Name = value; }
+        }
+
+        public string value
+        {
+            get { return Value; }
+            set { Value = value; }
+        }
+
+        public PointF p
+        {
+            get { return P; }
+            set { P = value; }
+        }
+
+
+        public CPField(string nameVal, string valueVal, PointF pVal)
+        {
+            Name = nameVal;
+            Value = valueVal;
+            P = pVal;
         }
 
         public void Draw(PaintEventArgs e, Font font)
         {
-            string str = name + ": " + value;
-            e.Graphics.DrawString(str, font, Brushes.Black, p);
+            string str = Name + ": " + Value;
+            if (e != null)
+                e.Graphics.DrawString(str, font, Brushes.Black, P);
+            else
+                throw new ArgumentNullException("PaintEventArgs is null");
         }
     }
 }

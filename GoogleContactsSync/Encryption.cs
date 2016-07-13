@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography;
+using System.Runtime.Serialization;
 
 namespace GoContactSyncMod
 {
@@ -114,12 +115,13 @@ namespace GoContactSyncMod
             }
         }
     }
-
-    internal class PasswordEncryptionException : Exception
+    [Serializable]
+    public class PasswordEncryptionException : Exception
     {
         public PasswordEncryptionException() : base() { }
         public PasswordEncryptionException(string message) : base(message) { }
         public PasswordEncryptionException(string message, Exception innerException) : base(message, innerException) { }
+        protected PasswordEncryptionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 
     /// <summary>

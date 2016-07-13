@@ -829,9 +829,9 @@ namespace GoContactSyncMod
                 else
                     throw new ArgumentNullException("ContactMatch has all peers null.");
             }
-            catch (ArgumentNullException e)
+            catch (ArgumentNullException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

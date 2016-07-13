@@ -81,9 +81,9 @@ namespace GoContactSyncMod
             }
         }
 
-        public string getErrorText()
+        public string ErrorText
         {
-            return richTextBoxError.Text;
+            get { return richTextBoxError.Text; }
         }
 
         private void AppendTextWithColor(string text, Color color)

@@ -134,15 +134,10 @@ namespace GoContactSyncMod
 
                         //TODO: Check why always the first added picture is returned
                         //If you add another picture, still the old picture is saved to tempPhotoPath
-                        a.SaveAsFile(tempPhotoPath); 
+                        a.SaveAsFile(tempPhotoPath);
 
-                        using (var img = Image.FromFile(tempPhotoPath))
-                        {
-                            using (var bmp = new Bitmap(img))
-                            {
-                                return bmp;
-                            }
-                        }
+                        return Image.FromFile(tempPhotoPath);
+                        
                     }
                 }
                 return null;
@@ -284,7 +279,7 @@ namespace GoContactSyncMod
             if (outlookContactCategories == null)
                 return new string[] { };
 
-            char[] listseparator = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ListSeparator.ToCharArray(); 
+            char[] listseparator = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ListSeparator.ToCharArray();
             if (!outlookContactCategories.Contains(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ListSeparator))
             {// ListSeparator doesn't work always, because ListSeparator returns "," instead of ";"
                 listseparator = ",".ToCharArray();
@@ -383,7 +378,7 @@ namespace GoContactSyncMod
         }
     }
 
-    public class OutlookFolder : IComparable 
+    public class OutlookFolder : IComparable
     {
         private string _folderName;
         private string _folderID;
@@ -392,7 +387,7 @@ namespace GoContactSyncMod
         public OutlookFolder(string folderName, string folderID, bool isDefaultFolder)
         {
             _folderName = folderName;
-            _folderID   = folderID;
+            _folderID = folderID;
             _isDefaultFolder = isDefaultFolder;
         }
 
@@ -424,7 +419,7 @@ namespace GoContactSyncMod
         {
             get
             {
-                return _folderName + (_isDefaultFolder?" (Default)":String.Empty);
+                return _folderName + (_isDefaultFolder ? " (Default)" : String.Empty);
             }
         }
 
@@ -434,7 +429,7 @@ namespace GoContactSyncMod
             OutlookFolder other = obj as OutlookFolder;
             if (other == null)
             {
-               throw new ArgumentException(string.Format("Cannot compare {0} with {1}", GetType().ToString(), obj.GetType().ToString()));
+                throw new ArgumentException(string.Format("Cannot compare {0} with {1}", GetType().ToString(), obj.GetType().ToString()));
             }
             return CompareTo(this, other);
         }
@@ -526,7 +521,7 @@ namespace GoContactSyncMod
             if (this is OutlookFolder)
                 return FolderID;
             else
-                return base.ToString(); 
+                return base.ToString();
         }
     }
 
@@ -677,18 +672,18 @@ namespace GoContactSyncMod
                 return base.ToString();
         }
     }
-}
 
-//Taken from Tuple
-public class HashUtils
-{
-    public static int CombineHashCodes(int h1, int h2)
+    //Taken from Tuple
+    public static class HashUtils
     {
-        return (((h1 << 5) + h1) ^ h2);
-    }
+        public static int CombineHashCodes(int h1, int h2)
+        {
+            return (((h1 << 5) + h1) ^ h2);
+        }
 
-    public static int CombineHashCodes(int h1, int h2, int h3)
-    {
-        return CombineHashCodes(CombineHashCodes(h1, h2), h3);
+        public static int CombineHashCodes(int h1, int h2, int h3)
+        {
+            return CombineHashCodes(CombineHashCodes(h1, h2), h3);
+        }
     }
 }

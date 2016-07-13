@@ -544,24 +544,26 @@ namespace GoContactSyncMod
                 regKeyAppRoot = Registry.CurrentUser.CreateSubKey(@"Software\Webgear\GOContactSync" + (_profile != null ? ('\\' + _profile) : ""));
             }
 
-            object regKeyValue = regKeyAppRoot.GetValue(RegistrySyncContactsFolder);
-            if (regKeyValue != null && !string.IsNullOrEmpty(regKeyValue as string))
-                contactFoldersComboBox.SelectedValue = regKeyValue as string;
+            string regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncContactsFolder) as string;
+            if (!string.IsNullOrEmpty(regKeyValueStr))
+                contactFoldersComboBox.SelectedValue = regKeyValueStr;
             //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             //regKeyValue = regKeyAppRoot.GetValue(RegistrySyncNotesFolder);
             //if (regKeyValue != null && !string.IsNullOrEmpty(regKeyValue as string))
             //    noteFoldersComboBox.SelectedValue = regKeyValue as string;
-            regKeyValue = regKeyAppRoot.GetValue(RegistrySyncAppointmentsFolder);
-            if (regKeyValue != null && !string.IsNullOrEmpty(regKeyValue as string))
-                appointmentFoldersComboBox.SelectedValue = regKeyValue as string;
-            regKeyValue = regKeyAppRoot.GetValue(RegistrySyncAppointmentsGoogleFolder);
-            if (regKeyValue != null && !string.IsNullOrEmpty(regKeyValue as string))
+            
+            regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncAppointmentsFolder) as string;
+            if (!string.IsNullOrEmpty(regKeyValueStr))
+                appointmentFoldersComboBox.SelectedValue = regKeyValueStr;
+
+            regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncAppointmentsGoogleFolder) as string;
+            if (!string.IsNullOrEmpty(regKeyValueStr))
             {
                 if (appointmentGoogleFoldersComboBox.DataSource == null)
                 {
                     appointmentFoldersComboBox.BeginUpdate();
                     ArrayList list = new ArrayList();
-                    list.Add(new GoogleCalendar(regKeyValue as string, regKeyValue as string, false));
+                    list.Add(new GoogleCalendar(regKeyValueStr, regKeyValueStr, false));
                     appointmentGoogleFoldersComboBox.DataSource = list;
                     appointmentGoogleFoldersComboBox.DisplayMember = "DisplayName";
                     appointmentGoogleFoldersComboBox.ValueMember = "FolderID";
@@ -569,7 +571,7 @@ namespace GoContactSyncMod
                     appointmentFoldersComboBox.EndUpdate();
                 }
 
-                appointmentGoogleFoldersComboBox.SelectedValue = (regKeyValue as string);
+                appointmentGoogleFoldersComboBox.SelectedValue = (regKeyValueStr);
             }
         }
 

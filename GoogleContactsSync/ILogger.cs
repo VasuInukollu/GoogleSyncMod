@@ -31,13 +31,15 @@ namespace GoContactSyncMod
 		public static List<LogEntry> messages = new List<LogEntry>();
 		public delegate void LogUpdatedHandler(string Message);
         public static event LogUpdatedHandler LogUpdated;
-        private static StreamWriter logwriter;
+        private static StreamWriter logwriter = InitializeLogWriter();
 
         public static readonly string Folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\GoContactSyncMOD\\";
         public static readonly string AuthFolder = Folder + "\\Auth\\";
 
-        static Logger()
+        static StreamWriter InitializeLogWriter()
         {
+            StreamWriter writer = null;
+
             if (!Directory.Exists(Folder))
             {
                 Directory.CreateDirectory(Folder);
@@ -46,23 +48,27 @@ namespace GoContactSyncMod
             try
             {
                 string logFileName = Folder + "log.txt";
-                
+
                 //If log file is bigger than 1 MB, move it to backup file and create new file
                 FileInfo logFile = new FileInfo(logFileName);
                 if (logFile.Exists && logFile.Length >= 1000000)
                     File.Move(logFileName, logFileName + "_" + DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"));
 
-                logwriter = new StreamWriter(logFileName, true);
+                writer = new StreamWriter(logFileName, true);
 
-                logwriter.WriteLine("[Start Rolling]");
-                logwriter.Flush();
+                writer.WriteLine("[Start Rolling]");
+                writer.Flush();
+
+                return writer;
             }
             catch (Exception ex)
             {
+                if (writer != null) writer.Dispose();
                 ErrorHandler.Handle(ex);
+                return null;
             }
         }
-    
+
         public static void Close()
         {
             try

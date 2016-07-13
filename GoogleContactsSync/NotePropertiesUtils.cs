@@ -322,14 +322,17 @@ namespace GoContactSyncMod
         {
             string fileName = NotePropertiesUtils.GetFileName(Id, syncProfile);
 
-            StreamWriter writer = null;
+            FileStream filestream = null;
             try
             {
-                using (FileStream filestream = new FileStream(fileName, FileMode.OpenOrCreate))
+                filestream = new FileStream(fileName, FileMode.OpenOrCreate);
+                
+                using (var writer = new StreamWriter(filestream))
                 {
-                    writer = new StreamWriter(filestream);
+                    filestream = null;
                     writer.Write(body);
                 }
+                
             }
             catch (Exception e)
             {
@@ -337,8 +340,8 @@ namespace GoContactSyncMod
             }
             finally
             {
-                if (writer != null)
-                    writer.Close();
+                if (filestream != null)
+                    filestream.Dispose();
             }
 
             return fileName;
