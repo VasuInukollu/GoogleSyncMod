@@ -66,17 +66,25 @@ namespace GoContactSyncMod
         /// </summary>
         public static string GetWindowsVersion()
         {
-            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", 
-                    "SELECT * FROM Win32_OperatingSystem"))
+            try
             {
-                foreach (ManagementObject managementObject in searcher.Get())
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2",
+                        "SELECT Caption, OSArchitecture, Version FROM Win32_OperatingSystem"))
                 {
-                    string versionString = managementObject["Caption"].ToString() + " (" +
-                                           managementObject["OSArchitecture"].ToString() + "; " +
-                                           managementObject["Version"].ToString() + ")";
-                    return versionString;
+                    foreach (ManagementObject managementObject in searcher.Get())
+                    {
+                        string versionString = managementObject["Caption"].ToString() + " (" +
+                                               managementObject["OSArchitecture"].ToString() + "; " +
+                                               managementObject["Version"].ToString() + ")";
+                        return versionString;
+                    }
                 }
             }
+            catch (System.Management.ManagementException ex)
+            {
+                Logger.Log(ex, EventType.Debug);
+            }
+            
             return "Unknown Windows Version";
         }
 
