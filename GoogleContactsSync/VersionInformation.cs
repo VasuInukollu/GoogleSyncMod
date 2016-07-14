@@ -80,7 +80,7 @@ namespace GoContactSyncMod
                     }
                 }
             }
-            catch (System.Management.ManagementException ex)
+            catch (Exception ex)
             {
                 Logger.Log(ex, EventType.Debug);
             }
