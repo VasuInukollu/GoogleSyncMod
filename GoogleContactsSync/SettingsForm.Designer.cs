@@ -1,6 +1,8 @@
+using System;
+
 namespace GoContactSyncMod
 {
-    partial class SettingsForm
+    partial class SettingsForm : IDisposable
     {
         /// <summary>
         /// Required designer variable.
@@ -13,8 +15,15 @@ namespace GoContactSyncMod
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            cancellationTokenSource?.Dispose();
-            sync?.Dispose();
+            if (cancellationTokenSource != null)
+            {
+                cancellationTokenSource.Dispose();
+            }
+
+            if (sync != null)
+            {
+                sync.Dispose();
+            }
             if (disposing && (components != null))
             {
                 components.Dispose();
