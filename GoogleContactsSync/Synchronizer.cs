@@ -1353,14 +1353,6 @@ namespace GoContactSyncMod
                             //check to which Outlook appoinment Google event is linked
                             if (AppointmentPropertiesUtils.GetOutlookId(ola) == oid)
                             {
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
-                                if (!string.IsNullOrEmpty(ola.Subject))
-                                {
-                                    Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
-                                }
-                            }
-                            else
-                            {
                                 int j = appointments[gid];
                                 ola = OutlookAppointments[j] as Outlook.AppointmentItem;
                                 AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
@@ -1368,7 +1360,15 @@ namespace GoContactSyncMod
                                 {
                                     Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
                                 }
-                                appointments[gid] = i; 
+                                appointments[gid] = i;
+                            }
+                            else
+                            {
+                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
+                                if (!string.IsNullOrEmpty(ola.Subject))
+                                {
+                                    Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
+                                }
                             }
                         }
                         else
