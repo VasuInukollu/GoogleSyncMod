@@ -1325,12 +1325,76 @@ namespace GoContactSyncMod
             LoadGoogleNotes();
         }
 
+        /// <summary>
+        /// Remove duplicates from Outlook: two different Outlook appointments pointing to the same Google appointment.
+        /// Such situation typically happens when copy/paste'ing synchronized appointment in Outlook
+        /// </summary>
+        private void RemoveOutlookDuplicatedAppointments()
+        {
+            var appointments = new Dictionary<string, int>();
+
+            //scan all appointments
+            for (int i = 1; i <= OutlookAppointments.Count; i++)
+            {
+                Outlook.AppointmentItem ola = null;
+
+                try
+                {
+                    ola = OutlookAppointments[i] as Outlook.AppointmentItem;
+                    string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, ola);
+                    //check if Outlook appointment is linked to Google event
+                    if (!string.IsNullOrEmpty(gid))
+                    {
+                        //check if there is already another Outlook appointment linked to the same Google event 
+                        if (appointments.ContainsKey (gid))
+                        {
+                            var e = GetGoogleAppointmentById(gid);
+                            string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
+                            //check to which Outlook appoinment Google event is linked
+                            if (AppointmentPropertiesUtils.GetOutlookId(ola) == oid)
+                            {
+                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
+                                if (!string.IsNullOrEmpty(ola.Subject))
+                                {
+                                    Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
+                                }
+                            }
+                            else
+                            {
+                                int j = appointments[gid];
+                                ola = OutlookAppointments[j] as Outlook.AppointmentItem;
+                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
+                                if (!string.IsNullOrEmpty(ola.Subject))
+                                {
+                                    Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
+                                }
+                                appointments[gid] = i; 
+                            }
+                        }
+                        else
+                        {
+                            appointments.Add(gid, i);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //this is needed because some appointments throw exceptions
+                    if (ola != null && !string.IsNullOrEmpty(ola.Subject))
+                        Logger.Log("Accessing Outlook appointment: " + ola.Subject + " threw and exception. Skipping: " + ex.Message, EventType.Warning);
+                    else
+                        Logger.Log("Accessing Outlook appointment threw and exception. Skipping: " + ex.Message, EventType.Warning);
+                    continue;
+                }
+            }
+        }
+
         public void LoadAppointments()
         {
             LoadOutlookAppointments();
             LoadGoogleAppointments();
+            RemoveOutlookDuplicatedAppointments();
         }
-
 
         /// <summary>
         /// Load the contacts from Google and Outlook and match them
