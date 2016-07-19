@@ -22,7 +22,7 @@ namespace GoContactSyncMod
 
         public async void setErrorText(Exception ex)
         {
-            if (await VersionInformation.isNewVersionAvailable())
+            if (await VersionInformation.isNewVersionAvailable(CancellationToken.None))
             {
                 richTextBoxError.AppendText(Environment.NewLine);
                 richTextBoxError.AppendText("NEW VERSION AVAILABLE - ");

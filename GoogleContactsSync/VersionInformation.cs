@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Net.Http;
 //using HtmlAgilityPack;
 using System.Xml.Linq;
-
+using System.Threading;
 
 namespace GoContactSyncMod
 {
@@ -170,14 +170,14 @@ namespace GoContactSyncMod
             }
         }
    */ 
-        public static async Task<bool> isNewVersionAvailable()
+        public static async Task<bool> isNewVersionAvailable(CancellationToken cancellationToken)
         {
             Logger.Log("Reading version number from sf.net...", EventType.Information);
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    var response = await client.GetAsync("https://sourceforge.net/projects/googlesyncmod/files/updates_v1.xml", HttpCompletionOption.ResponseHeadersRead);
+                    var response = await client.GetAsync("https://sourceforge.net/projects/googlesyncmod/files/updates_v1.xml", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                     response.EnsureSuccessStatusCode();
                     var stream = await response.Content.ReadAsStreamAsync();
                     var doc = XDocument.Load(stream);

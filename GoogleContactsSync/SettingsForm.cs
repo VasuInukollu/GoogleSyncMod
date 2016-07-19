@@ -1409,7 +1409,7 @@ namespace GoContactSyncMod
                     Cursor = Cursors.WaitCursor;
                     SuspendLayout();
                     //check for new version
-                    if (NewVersionLinkLabel.LinkColor != Color.Red && await VersionInformation.isNewVersionAvailable())
+                    if (NewVersionLinkLabel.LinkColor != Color.Red && await VersionInformation.isNewVersionAvailable(cancellationTokenSource.Token))
                     {
                         NewVersionLinkLabel.Visible = true;
                         NewVersionLinkLabel.LinkColor = Color.Red;
