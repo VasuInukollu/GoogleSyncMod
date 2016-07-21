@@ -370,7 +370,12 @@ namespace GoContactSyncMod
                 if (string.IsNullOrEmpty(destination.HomeAddress))
                     destination.HomeAddress = address.FormattedAddress;
 
-				if (address.Primary)
+                //By default Outlook is not setting Country in formatted string in case Windows is configured for the same country 
+                //(Control Panel\Regional Settings).  So append country, but to be on safe side only if Google address has it
+                if (address.FormattedAddress.EndsWith("\n" + address.Country) && !destination.HomeAddress.EndsWith("\r\n" + address.Country))
+                    destination.HomeAddress = destination.HomeAddress + "\r\n" + address.Country;
+
+                if (address.Primary)
 					destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olHome;
 			}
 			else if (address.Rel == ContactsRelationships.IsWork)
@@ -388,7 +393,12 @@ namespace GoContactSyncMod
                 if (string.IsNullOrEmpty(destination.BusinessAddress))
                     destination.BusinessAddress = address.FormattedAddress;
 
-				if (address.Primary)
+                //By default Outlook is not setting Country in formatted string in case Windows is configured for the same country 
+                //(Control Panel\Regional Settings).  So append country, but to be on safe side only if Google address has it
+                if (address.FormattedAddress.EndsWith("\n" + address.Country) && !destination.BusinessAddress.EndsWith("\r\n" + address.Country))
+                    destination.BusinessAddress = destination.BusinessAddress + "\r\n" + address.Country;
+
+                if (address.Primary)
 					destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olBusiness;
 			}
 			else if (address.Rel == ContactsRelationships.IsOther)
@@ -406,7 +416,12 @@ namespace GoContactSyncMod
                 if (string.IsNullOrEmpty(destination.OtherAddress))
                     destination.OtherAddress = address.FormattedAddress;
 
-				if (address.Primary)
+                //By default Outlook is not setting Country in formatted string in case Windows is configured for the same country 
+                //(Control Panel\Regional Settings).  So append country, but to be on safe side only if Google address has it
+                if (address.FormattedAddress.EndsWith("\n" + address.Country) && !destination.OtherAddress.EndsWith("\r\n" + address.Country))
+                    destination.OtherAddress = destination.OtherAddress + "\r\n" + address.Country;
+
+                if (address.Primary)
 					destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olOther;
 			}
 		}
