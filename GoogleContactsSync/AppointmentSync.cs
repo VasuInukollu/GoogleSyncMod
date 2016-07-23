@@ -209,6 +209,14 @@ namespace GoContactSyncMod
                 }
                 reminder.Method = "popup";
                 slave.Reminders.Overrides.Add(reminder);
+            }
+            else if (slave.Reminders != null)
+            {
+                if (slave.Reminders.Overrides != null)
+                {
+                    slave.Reminders.Overrides.Clear();
+                }
+                slave.Reminders.UseDefault = false;
             }           
         }
 
