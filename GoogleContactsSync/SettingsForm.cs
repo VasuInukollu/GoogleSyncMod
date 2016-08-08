@@ -112,6 +112,7 @@ namespace GoContactSyncMod
         delegate void SwitchHandler(bool value);
         delegate void IconHandler();
         delegate DialogResult DialogHandler(string text);
+        delegate void OnTimeZoneChangesCallback(string timeZone);
 
         public DialogResult ShowDialog(string text)
         {
@@ -787,6 +788,7 @@ namespace GoContactSyncMod
                         sync = new Synchronizer();
                         sync.DuplicatesFound += new Synchronizer.DuplicatesFoundHandler(OnDuplicatesFound);
                         sync.ErrorEncountered += new Synchronizer.ErrorNotificationHandler(OnErrorEncountered);
+                        sync.TimeZoneChanges += new Synchronizer.TimeZoneNotificationHandler(OnTimeZoneChanges);
                     }
 
                     Logger.ClearLog();
@@ -972,6 +974,21 @@ namespace GoContactSyncMod
             notifyIcon.BalloonTipText = message;
             notifyIcon.BalloonTipIcon = ToolTipIcon.Error;
             notifyIcon.ShowBalloonTip(5000);*/
+        }
+
+        void OnTimeZoneChanges(string timeZone)
+        {
+            if (appointmentTimezonesComboBox.InvokeRequired)
+            {
+                OnTimeZoneChangesCallback d = new OnTimeZoneChangesCallback(OnTimeZoneChanges);
+                this.Invoke(d, new object[] { timeZone });
+            }
+            else
+            {
+                appointmentTimezonesComboBox.Text = timeZone;
+            }
+            Timezone = timeZone;
+            Synchronizer.Timezone = timeZone;
         }
 
         void OnDuplicatesFound(string title, string message)

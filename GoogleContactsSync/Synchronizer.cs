@@ -45,8 +45,11 @@ namespace GoContactSyncMod
 
         public delegate void DuplicatesFoundHandler(string title, string message);
         public delegate void ErrorNotificationHandler(string title, Exception ex, EventType eventType);
+        public delegate void TimeZoneNotificationHandler(string timeZone);
+
         public event DuplicatesFoundHandler DuplicatesFound;
         public event ErrorNotificationHandler ErrorEncountered;
+        public event TimeZoneNotificationHandler TimeZoneChanges;
 
         public ContactsRequest ContactsRequest { get; private set; }
 
@@ -109,6 +112,7 @@ namespace GoContactSyncMod
         public static string SyncNotesFolder { get; set; }
         public static string SyncAppointmentsFolder { get; set; }
         public static string SyncAppointmentsGoogleFolder { get; set; }
+        public static string SyncAppointmentsGoogleTimeZone { get; set; }
 
         public static ushort MonthsInPast { get; set; }
         public static ushort MonthsInFuture { get; set; }
@@ -256,6 +260,7 @@ namespace GoContactSyncMod
                                 if (calendar.Primary != null && calendar.Primary.Value)
                                 {
                                     SyncAppointmentsGoogleFolder = calendar.Id;
+                                    SyncAppointmentsGoogleTimeZone = calendar.TimeZone;
                                     break;
                                 }
                             }
@@ -353,7 +358,10 @@ namespace GoContactSyncMod
                     catch (Exception ex)
                     {
                         if (i == 2)
+                        {
+                            Logger.Log(ex, EventType.Debug);
                             throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
+                        }
                         else //wait ten seconds and try again
                             System.Threading.Thread.Sleep(1000 * 10);
                     }   
@@ -374,7 +382,10 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     if (i == 2)
+                    {
+                        Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
+                    }
                     else //wait ten seconds and try again
                         System.Threading.Thread.Sleep(1000 * 10);
                 }
@@ -1477,7 +1488,17 @@ namespace GoContactSyncMod
                         MatchNotes();
 
                     if (SyncAppointments)
+                    {
+                        Logger.Log("Outlook default time zone: " + TimeZoneInfo.Local.Id, EventType.Information);
+                        Logger.Log("Google default time zone: " + SyncAppointmentsGoogleTimeZone, EventType.Information);
+                        if (String.IsNullOrEmpty(Timezone))
+                        {
+                            if (TimeZoneChanges != null)
+                                TimeZoneChanges(SyncAppointmentsGoogleTimeZone);
+                            Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
+                        }
                         MatchAppointments();
+                    }
 
 #if debug
                     this.DebugContacts();
