@@ -1497,6 +1497,10 @@ namespace GoContactSyncMod
                                 TimeZoneChanges(SyncAppointmentsGoogleTimeZone);
                             Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
                         }
+                        if (AppointmentSync.WindowsToIana(TimeZoneInfo.Local.Id) != SyncAppointmentsGoogleTimeZone)
+                        {
+                            Logger.Log("Different time zones in Outlook (mapped to "+ AppointmentSync.WindowsToIana(TimeZoneInfo.Local.Id) + ") and Google (" + SyncAppointmentsGoogleTimeZone + ")", EventType.Warning);
+                        }
                         MatchAppointments();
                     }
 
