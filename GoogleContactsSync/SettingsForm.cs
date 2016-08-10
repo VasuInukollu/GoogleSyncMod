@@ -209,7 +209,7 @@ namespace GoContactSyncMod
                     this.contactFoldersComboBox.Visible = this.btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
                     //this.noteFoldersComboBox.Visible = btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                     this.labelTimezone.Visible = this.labelMonthsPast.Visible = this.labelMonthsFuture.Visible = btSyncAppointments.Checked;
-                    this.appointmentFoldersComboBox.Visible = this.appointmentGoogleFoldersComboBox.Visible = this.futureMonthInterval.Visible = this.pastMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = this.btSyncAppointmentsForceRTF.Visible =  btSyncAppointments.Checked;
+                    this.appointmentFoldersComboBox.Visible = this.appointmentGoogleFoldersComboBox.Visible = this.futureMonthInterval.Visible = this.pastMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = this.btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
                     this.cmbSyncProfile.Visible = true;
 
                     string defaultText = "    --- Select an Outlook folder ---";
@@ -312,9 +312,10 @@ namespace GoContactSyncMod
                         Logger.Log("Loaded Outlook folders.", EventType.Information);
 
                     }
-                   
+
                     catch (Exception e)
                     {
+                        Logger.Log(e, EventType.Debug);
                         Logger.Log("Error getting available Outlook and Google folders: " + e.Message, EventType.Warning);
                     }
                     finally
@@ -552,7 +553,7 @@ namespace GoContactSyncMod
             //regKeyValue = regKeyAppRoot.GetValue(RegistrySyncNotesFolder);
             //if (regKeyValue != null && !string.IsNullOrEmpty(regKeyValue as string))
             //    noteFoldersComboBox.SelectedValue = regKeyValue as string;
-            
+
             regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncAppointmentsFolder) as string;
             if (!string.IsNullOrEmpty(regKeyValueStr))
                 appointmentFoldersComboBox.SelectedValue = regKeyValueStr;
@@ -670,7 +671,7 @@ namespace GoContactSyncMod
 
 
                 return userNameIsValid &&
-                    //passwordIsValid && 
+                       //passwordIsValid && 
                        syncProfileIsValid;
             }
         }
