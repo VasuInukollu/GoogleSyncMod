@@ -27,7 +27,7 @@ namespace GoContactSyncMod
         const string BYMONTH = "BYMONTH";
         const string BYMONTHDAY = "BYMONTHDAY";
         const string BYDAY = "BYDAY";
-        const string BYSETPOS= "BYSETPOS";
+        const string BYSETPOS = "BYSETPOS";
 
         const string VALUE = "VALUE";
         const string DATE = "DATE";
@@ -99,13 +99,13 @@ namespace GoContactSyncMod
         /// Updates Outlook appointments (calendar) to Google Calendar
         /// </summary>
         public static void UpdateAppointment(Outlook.AppointmentItem master, Event slave)
-        {            
-            slave.Summary = master.Subject;            
+        {
+            slave.Summary = master.Subject;
 
             ////foreach (Outlook.Attachment attachment in master.Attachments)
             ////    slave.Attachments.Add(master.Attachments);
-            
-            slave.Description = master.Body;            
+
+            slave.Description = master.Body;
 
             switch (master.BusyStatus)
             {
@@ -122,7 +122,7 @@ namespace GoContactSyncMod
                     slave.Status = "tentative";
                     break;
                 //ToDo: case Outlook.OlBusyStatus.olWorkingElsewhere:
-                case Outlook.OlBusyStatus.olFree:                
+                case Outlook.OlBusyStatus.olFree:
                 default:
                     slave.Status = "confirmed";
                     slave.Transparency = "transparent";
@@ -134,47 +134,38 @@ namespace GoContactSyncMod
 
             slave.Location = master.Location;
 
+            if (master.AllDayEvent == true)
+            {
+                slave.Start.Date = master.Start.ToString("yyyy-MM-dd");
+                slave.End.Date = master.End.ToString("yyyy-MM-dd");
+                slave.Start.DateTime = null;
+                slave.End.DateTime = null;
+            }
+            else
+            {
+                slave.Start.Date = null;
+                slave.End.Date = null;
+                slave.Start.DateTime = master.Start;
+                slave.End.DateTime = master.End;
 
-            //if (!master.IsRecurring || master.RecurrenceState != Outlook.OlRecurrenceState.olApptMaster)
-            //{                   
-                if (master.AllDayEvent == true) 
+                //Outlook always has TZ set, even if TZ is the same as default one
+                //Google could have TZ empty, if it is equal to default one
+                if (master.StartTimeZone != null && !string.IsNullOrEmpty(master.StartTimeZone.ID))
                 {
-                    slave.Start.Date = master.Start.ToString("yyyy-MM-dd");
-                    slave.End.Date = master.End.ToString("yyyy-MM-dd");
-                    slave.Start.DateTime = null;
-                    slave.End.DateTime = null;
-                } 
-                else 
-                {
-                    slave.Start.Date = null;
-                    slave.End.Date = null;
-                    slave.Start.DateTime = master.Start;
-                    slave.End.DateTime = master.End;
-                    if (master.StartTimeZone != null && !string.IsNullOrEmpty(master.StartTimeZone.ID))
-                        slave.Start.TimeZone = WindowsToIana(master.StartTimeZone.ID);
-                   if (master.EndTimeZone != null && !string.IsNullOrEmpty(master.EndTimeZone.ID))
-                        slave.End.TimeZone = WindowsToIana(master.EndTimeZone.ID);
+                    var google_tz = WindowsToIana(master.StartTimeZone.ID);
+
+                    if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                        slave.Start.TimeZone = google_tz;
                 }
 
-                if (master.RecurrenceState == Outlook.OlRecurrenceState.olApptMaster)
-                {   //As Timezone is only mandatory for recurrence events
-                    //If user has selected a timezone in settings form, use this as timezone, otherwise assign the Outlook timezoen (not working always and sometimes not compatible
-                    //A list of TZ can be found here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-                    if (!string.IsNullOrEmpty(Synchronizer.Timezone))
-                    {
-                        slave.Start.TimeZone = Synchronizer.Timezone;
-                        slave.End.TimeZone = Synchronizer.Timezone;
-                    }
-                    else
-                    {
-                        if (master.StartTimeZone != null && !string.IsNullOrEmpty(master.StartTimeZone.Name))
-                            slave.Start.TimeZone = master.StartTimeZone.Name;                       
-                        if (master.EndTimeZone != null && !string.IsNullOrEmpty(master.EndTimeZone.Name))
-                            slave.End.TimeZone = master.EndTimeZone.Name;
-                    }
-                }            
-            //}
+                if (master.EndTimeZone != null && !string.IsNullOrEmpty(master.EndTimeZone.ID))
+                {
+                    var google_tz = WindowsToIana(master.EndTimeZone.ID);
 
+                    if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                        slave.End.TimeZone = google_tz;
+                }
+            }
 
             #region participants
             //ToDo: Commented out for now, not sync participants, because otherwise Google raises quota exceptions
@@ -182,7 +173,7 @@ namespace GoContactSyncMod
             //int i = 0;
             //foreach (Outlook.Recipient recipient in master.Recipients)
             //{
-             
+
             //    var participant = new EventAttendee();
 
             //    participant.Email = AppointmentPropertiesUtils.GetOutlookEmailAddress(master.Subject + " - " + master.Start, recipient);
@@ -234,7 +225,7 @@ namespace GoContactSyncMod
         }
 
         public static void UpdateAppointmentReminders(Outlook.AppointmentItem master, Event slave)
-       {
+        {
             if (master.ReminderSet)
             {
                 if (slave.Reminders == null)
@@ -257,7 +248,7 @@ namespace GoContactSyncMod
                 if (reminder.Minutes > 40300)
                 {
                     //ToDo: Check real limit, currently 40300
-                    Logger.Log("Reminder Minutes to big ("  + reminder.Minutes + "), set to maximum of 40300 minutes for appointment: "  + master.Subject +   " - "  + master.Start, EventType.Warning);
+                    Logger.Log("Reminder Minutes to big (" + reminder.Minutes + "), set to maximum of 40300 minutes for appointment: " + master.Subject + " - " + master.Start, EventType.Warning);
                     reminder.Minutes = 40300;
                 }
                 reminder.Method = "popup";
@@ -270,7 +261,7 @@ namespace GoContactSyncMod
                     slave.Reminders.Overrides.Clear();
                 }
                 slave.Reminders.UseDefault = false;
-            }           
+            }
         }
 
         /// <summary>
@@ -278,7 +269,7 @@ namespace GoContactSyncMod
         /// </summary>
         public static void UpdateAppointment(Event master, Outlook.AppointmentItem slave)
         {
-            slave.Subject = master.Summary;            
+            slave.Subject = master.Summary;
 
             //foreach (Outlook.Attachment attachment in master.Attachments)
             //    slave.Attachments.Add(master.Attachments);
@@ -309,15 +300,15 @@ namespace GoContactSyncMod
             }
             catch (Exception e)
             {
-                Logger.Log("Error when converting RTF to plain text, updating Google Appointment '"+ slave.Subject + " - " + slave.Start +"' notes to Outlook without RTF check: " + e.Message , EventType.Debug);
+                Logger.Log("Error when converting RTF to plain text, updating Google Appointment '" + slave.Subject + " - " + slave.Start + "' notes to Outlook without RTF check: " + e.Message, EventType.Debug);
                 slave.Body = master.Description;
             }
-                                                                   
+
 
             //slave.Categories = master.Categories;
             //slave.Duration = master.Duration;
 
-            slave.Location = master.Location;                    
+            slave.Location = master.Location;
 
             //if (master.Times.Count != 1 && master.Recurrence == null)
             //    Logger.Log("Google Appointment with multiple or no times found: " + master.Summary + " - " + Syncronizer.GetTime(master), EventType.Warning);
@@ -343,10 +334,10 @@ namespace GoContactSyncMod
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Error updating event's AllDay/Start/End: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, slave.IsRecurring?EventType.Debug:EventType.Warning);
+                    Logger.Log("Error updating event's AllDay/Start/End: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, slave.IsRecurring ? EventType.Debug : EventType.Warning);
                 }
             }
-            
+
             //slave.StartInStartTimeZone = master.StartInStartTimeZone;
             //slave.StartTimeZone = master.StartTimeZone;
             //slave.StartUTC = master.StartUTC;
@@ -354,26 +345,26 @@ namespace GoContactSyncMod
             //if (!IsOrganizer(GetOrganizer(master)) || !IsOrganizer(GetOrganizer(slave), slave))
             //    slave.MeetingStatus = Outlook.OlMeetingStatus.olMeetingReceived;
 
-	        try
-	        {
-		        if (master.Status.Equals("confirmed") && (master.Transparency == null || master.Transparency.Equals("opaque")))
-			        slave.BusyStatus = Outlook.OlBusyStatus.olBusy;
-		        else if ((master.Status.Equals("confirmed") && master.Transparency.Equals("transparent")) || master.Status.Equals("cancelled"))
-			        slave.BusyStatus = Outlook.OlBusyStatus.olFree;
-		        else if (master.Status.Equals("tentative") && (master.Transparency == null || master.Transparency.Equals("opaque"))) 
-			        slave.BusyStatus = Outlook.OlBusyStatus.olOutOfOffice;
+            try
+            {
+                if (master.Status.Equals("confirmed") && (master.Transparency == null || master.Transparency.Equals("opaque")))
+                    slave.BusyStatus = Outlook.OlBusyStatus.olBusy;
+                else if ((master.Status.Equals("confirmed") && master.Transparency.Equals("transparent")) || master.Status.Equals("cancelled"))
+                    slave.BusyStatus = Outlook.OlBusyStatus.olFree;
+                else if (master.Status.Equals("tentative") && (master.Transparency == null || master.Transparency.Equals("opaque")))
+                    slave.BusyStatus = Outlook.OlBusyStatus.olOutOfOffice;
                 else if (master.Status.Equals("tentative"))
                     slave.BusyStatus = Outlook.OlBusyStatus.olTentative;
                 else
-			        slave.BusyStatus = Outlook.OlBusyStatus.olWorkingElsewhere;
-	        }
-	        catch (Exception e)
-	        {
-		        MessageBox.Show(e.StackTrace);
-		        throw;
-	        }
+                    slave.BusyStatus = Outlook.OlBusyStatus.olWorkingElsewhere;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.StackTrace);
+                throw;
+            }
 
-	        #region Recipients
+            #region Recipients
             //ToDo: Commented out for now, not sync participants, because otherwise Google raises quota exceptions
             //for (int i = slave.Recipients.Count; i > 0; i--)
             //    slave.Recipients.Remove(i);
@@ -399,7 +390,7 @@ namespace GoContactSyncMod
             //            //const string PR_SENDER_ENTRYID = "http://schemas.microsoft.com/mapi/proptag/0x0C190102";//-->Doesn't work: ComException, operation failed
             //            //const string PR_SENDER_NAME = "http://schemas.microsoft.com/mapi/proptag/0x0C1A001F"; //-->Doesn't work: ComException, operation failed
             //            //const string PR_SENDER_EMAIL = "http://schemas.microsoft.com/mapi/proptag/0x0C1F001F";//-->Doesn't work: ComException, operation failed
-                      
+
             //            Microsoft.Office.Interop.Outlook.PropertyAccessor accessor = slave.PropertyAccessor;
             //            accessor.SetProperty(PR_SENT_ON_BEHALF, participant.Email);
 
@@ -462,12 +453,12 @@ namespace GoContactSyncMod
                         slave.ReminderSet = true;
                         slave.ReminderMinutesBeforeStart = reminder.Minutes.Value;
                     }
-                }                        
-            
+                }
+
             UpdateRecurrence(master, slave);
 
             //Sensivity update is only allowed for single appointments or the master
-            if (!slave.IsRecurring || slave.RecurrenceState == Outlook.OlRecurrenceState.olApptMaster) 
+            if (!slave.IsRecurring || slave.RecurrenceState == Outlook.OlRecurrenceState.olApptMaster)
             {
                 switch (master.Visibility)
                 {
@@ -476,14 +467,14 @@ namespace GoContactSyncMod
                     default: slave.Sensitivity = Outlook.OlSensitivity.olNormal; break;
                 }
             }
-    
+
         }
 
         public static void UpdateRecurrence(Outlook.AppointmentItem master, Event slave)
         {
             try
-            {                               
-                
+            {
+
                 if (!master.IsRecurring)
                 {
                     if (slave.Recurrence != null)
@@ -521,7 +512,7 @@ namespace GoContactSyncMod
                 //DateTime date = masterRecurrence.PatternStartDate.Date;
                 ////DateTime time = new DateTime(date.Year, date.Month, date.Day, masterRecurrence.StartTime.Hour, masterRecurrence.StartTime.Minute, masterRecurrence.StartTime.Second);
                 //DateTime time = new DateTime(date.Year, date.Month, date.Day, master.Start.Hour, master.Start.Minute, master.Start.Second);
-                
+
 
                 // The recurrence element contains various values that
                 // are not used in Calendar v3 such as DTSTART
@@ -535,7 +526,7 @@ namespace GoContactSyncMod
 
                 //time = time.AddMinutes(masterRecurrence.Duration);             
                 ////time = new DateTime(date.Year, date.Month, date.Day, masterRecurrence.EndTime.Hour, masterRecurrence.EndTime.Minute, masterRecurrence.EndTime.Second);               
-                
+
                 //slaveRecurrence += DTEND;
                 //slaveRecurrence += ";"+key+":" + time.ToString(format) + "\r\n";
 
@@ -543,16 +534,16 @@ namespace GoContactSyncMod
                     slave.Recurrence = new List<string>();
                 else
                     slave.Recurrence.Clear();
-                slaveRecurrence = RRULE + ":" + FREQ +"=";
+                slaveRecurrence = RRULE + ":" + FREQ + "=";
                 switch (masterRecurrence.RecurrenceType)
                 {
                     case Outlook.OlRecurrenceType.olRecursDaily: slaveRecurrence += DAILY; break;
                     case Outlook.OlRecurrenceType.olRecursWeekly: slaveRecurrence += WEEKLY; break;
-                    case Outlook.OlRecurrenceType.olRecursMonthly: 
+                    case Outlook.OlRecurrenceType.olRecursMonthly:
                     case Outlook.OlRecurrenceType.olRecursMonthNth: slaveRecurrence += MONTHLY; break;
                     case Outlook.OlRecurrenceType.olRecursYearly:
                     case Outlook.OlRecurrenceType.olRecursYearNth: slaveRecurrence += YEARLY; break;
-                    default: throw new NotSupportedException("RecurrenceType not supported by Google: " + masterRecurrence.RecurrenceType);                                     
+                    default: throw new NotSupportedException("RecurrenceType not supported by Google: " + masterRecurrence.RecurrenceType);
                 }
 
                 string byDay = string.Empty;
@@ -567,9 +558,9 @@ namespace GoContactSyncMod
                 if ((masterRecurrence.DayOfWeekMask & Outlook.OlDaysOfWeek.olFriday) == Outlook.OlDaysOfWeek.olFriday)
                     byDay += (string.IsNullOrEmpty(byDay) ? "" : ",") + FR;
                 if ((masterRecurrence.DayOfWeekMask & Outlook.OlDaysOfWeek.olSaturday) == Outlook.OlDaysOfWeek.olSaturday)
-                   byDay += (string.IsNullOrEmpty(byDay) ? "" : ",") + SA;
+                    byDay += (string.IsNullOrEmpty(byDay) ? "" : ",") + SA;
                 if ((masterRecurrence.DayOfWeekMask & Outlook.OlDaysOfWeek.olSunday) == Outlook.OlDaysOfWeek.olSunday)
-                   byDay += (string.IsNullOrEmpty(byDay) ? "" : ",") + SU;
+                    byDay += (string.IsNullOrEmpty(byDay) ? "" : ",") + SU;
 
                 if (!string.IsNullOrEmpty(byDay))
                 {
@@ -591,23 +582,23 @@ namespace GoContactSyncMod
                 if (masterRecurrence.MonthOfYear != 0)
                     slaveRecurrence += ";" + BYMONTH + "=" + masterRecurrence.MonthOfYear;
 
-                if (masterRecurrence.RecurrenceType != Outlook.OlRecurrenceType.olRecursYearly && 
+                if (masterRecurrence.RecurrenceType != Outlook.OlRecurrenceType.olRecursYearly &&
                     masterRecurrence.RecurrenceType != Outlook.OlRecurrenceType.olRecursYearNth &&
                     masterRecurrence.Interval > 1 ||
                     masterRecurrence.Interval > 12)
                 {
                     if (masterRecurrence.RecurrenceType != Outlook.OlRecurrenceType.olRecursYearly &&
                         masterRecurrence.RecurrenceType != Outlook.OlRecurrenceType.olRecursYearNth)
-                        slaveRecurrence += ";" + INTERVAL+ "=" + masterRecurrence.Interval;
+                        slaveRecurrence += ";" + INTERVAL + "=" + masterRecurrence.Interval;
                     else
-                        slaveRecurrence += ";" + INTERVAL + "=" + masterRecurrence.Interval/12;
+                        slaveRecurrence += ";" + INTERVAL + "=" + masterRecurrence.Interval / 12;
                 }
-                
+
                 //format = dateFormat;
                 if (masterRecurrence.PatternEndDate.Date != outlookDateMin &&
                     masterRecurrence.PatternEndDate.Date != outlookDateMax)
                 {
-                    slaveRecurrence += ";" + UNTIL + "=" + masterRecurrence.PatternEndDate.Date.AddDays(master.AllDayEvent?0:1).ToString(dateFormat);
+                    slaveRecurrence += ";" + UNTIL + "=" + masterRecurrence.PatternEndDate.Date.AddDays(master.AllDayEvent ? 0 : 1).ToString(dateFormat);
                 }
                 //else if (masterRecurrence.Occurrences > 0)
                 //{
@@ -631,33 +622,33 @@ namespace GoContactSyncMod
         /// <param name="slave"></param>
         public static void UpdateRecurrence(Event master, Outlook.AppointmentItem slave)
         {
-            var masterRecurrence = master.Recurrence;   
+            var masterRecurrence = master.Recurrence;
             if (masterRecurrence == null)
             {
                 if (slave.IsRecurring && slave.RecurrenceState == Outlook.OlRecurrenceState.olApptMaster)
                     slave.ClearRecurrencePattern();
 
                 return;
-            }            
+            }
 
 
             try
-            {  
-                 
-                 Outlook.RecurrencePattern slaveRecurrence = slave.GetRecurrencePattern();
+            {
 
-                 if (master.Start != null && !string.IsNullOrEmpty(master.Start.Date))
-                 {
-                     slaveRecurrence.StartTime = DateTime.Parse(master.Start.Date);
-                     slaveRecurrence.PatternStartDate = DateTime.Parse(master.Start.Date);
-                 }
-                 else if (master.Start != null && master.Start.DateTime != null)
-                 {
-                     slaveRecurrence.StartTime = master.Start.DateTime.Value;
-                     slaveRecurrence.PatternStartDate = master.Start.DateTime.Value;
-                 }                 
+                Outlook.RecurrencePattern slaveRecurrence = slave.GetRecurrencePattern();
 
-                 
+                if (master.Start != null && !string.IsNullOrEmpty(master.Start.Date))
+                {
+                    slaveRecurrence.StartTime = DateTime.Parse(master.Start.Date);
+                    slaveRecurrence.PatternStartDate = DateTime.Parse(master.Start.Date);
+                }
+                else if (master.Start != null && master.Start.DateTime != null)
+                {
+                    slaveRecurrence.StartTime = master.Start.DateTime.Value;
+                    slaveRecurrence.PatternStartDate = master.Start.DateTime.Value;
+                }
+
+
                 //string[] patterns = masterRecurrence.Value.Split(new char[] {'\r','\n'}, StringSplitOptions.RemoveEmptyEntries);
                 //foreach (string pattern in patterns)
                 //{
@@ -666,7 +657,7 @@ namespace GoContactSyncMod
                 //        //DTSTART;VALUE=DATE:20070501
                 //        //DTSTART;TZID=US-Eastern:19970905T090000
                 //        string[] parts = pattern.Split(new char[] {';',':'});
-                        
+
                 //        slaveRecurrence.StartTime = GetDateTime(parts[parts.Length-1]);
                 //        slaveRecurrence.PatternStartDate = GetDateTime(parts[parts.Length - 1]);
                 //        break;
@@ -674,19 +665,19 @@ namespace GoContactSyncMod
                 //}
 
                 if (master.End != null && !string.IsNullOrEmpty(master.End.Date))
-                     slaveRecurrence.EndTime = DateTime.Parse(master.End.Date);
-                 if (master.End != null && master.End.DateTime != null)
-                     slaveRecurrence.EndTime = master.End.DateTime.Value;
-                 
+                    slaveRecurrence.EndTime = DateTime.Parse(master.End.Date);
+                if (master.End != null && master.End.DateTime != null)
+                    slaveRecurrence.EndTime = master.End.DateTime.Value;
+
                 //foreach (string pattern in patterns)
                 //{
                 //    if (pattern.StartsWith(DTEND))
                 //    {
                 //        string[] parts = pattern.Split(new char[] { ';', ':' });
-                        
+
                 //        slaveRecurrence.EndTime = GetDateTime(parts[parts.Length-1]);
                 //        //Don't update, otherwise it will end after first occurrence: slaveRecurrence.PatternEndDate = GetDateTime(parts[parts.Length - 1]);
-                        
+
                 //        break;
                 //    }
                 //}
@@ -734,9 +725,9 @@ namespace GoContactSyncMod
                                 if (pos.Trim() == "-1")
                                     instance = 5;
                                 else
-                                   throw new NotSupportedException("Only 'BYSETPOS=-1' is allowed by Outlook, but it was: " + part);                                    
+                                    throw new NotSupportedException("Only 'BYSETPOS=-1' is allowed by Outlook, but it was: " + part);
 
-                              break;
+                                break;
                             }
                         }
 
@@ -768,7 +759,7 @@ namespace GoContactSyncMod
                                         }
                                         break;
                                     default: throw new NotSupportedException("RecurrenceType not supported by Outlook: " + part);
-                                                                        
+
                                 }
                                 break;
                             }
@@ -784,7 +775,7 @@ namespace GoContactSyncMod
                                 string[] days = part.Split(',');
                                 foreach (string day in days)
                                 {
-                                    string dayValue = day.Substring(day.IndexOf("=") + 1);                                    
+                                    string dayValue = day.Substring(day.IndexOf("=") + 1);
 
                                     switch (dayValue.Trim(new char[] { '1', '2', '3', '4', ' ' }))
                                     {
@@ -827,7 +818,7 @@ namespace GoContactSyncMod
                         foreach (string part in parts)
                         {
                             if (part.StartsWith(COUNT))
-                            {                                
+                            {
                                 slaveRecurrence.Occurrences = int.Parse(part.Substring(part.IndexOf('=') + 1));
                                 break;
                             }
@@ -840,7 +831,7 @@ namespace GoContactSyncMod
                             }
                         }
 
-                        
+
 
 
 
@@ -869,13 +860,13 @@ namespace GoContactSyncMod
                     }
 
                 }
-                
+
 
             }
             catch (Exception ex)
             {
-              //ErrorHandler.Handle(ex);
-              Logger.Log("Error updating event's BYSETPOS: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, EventType.Error);
+                //ErrorHandler.Handle(ex);
+                Logger.Log("Error updating event's BYSETPOS: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, EventType.Error);
             }
 
 
@@ -883,16 +874,16 @@ namespace GoContactSyncMod
 
         public static bool UpdateRecurrenceExceptions(Outlook.AppointmentItem master, Event slave, Synchronizer sync)
         {
-            
+
             bool ret = false;
 
             Outlook.Exceptions exceptions = master.GetRecurrencePattern().Exceptions;
 
-            if (exceptions != null && exceptions.Count != 0)                
+            if (exceptions != null && exceptions.Count != 0)
             {
                 foreach (Outlook.Exception exception in exceptions)
                 {
-                    if (!exception.Deleted) 
+                    if (!exception.Deleted)
                     {
                         //Add exception time (but only if in given time range
                         if ((Synchronizer.MonthsInPast == 0 || exception.AppointmentItem.End >= DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) &&
@@ -916,7 +907,7 @@ namespace GoContactSyncMod
 
                             try
                             {
-                                sync.UpdateAppointment(exception.AppointmentItem, ref googleRecurrenceException);                               
+                                sync.UpdateAppointment(exception.AppointmentItem, ref googleRecurrenceException);
                                 //googleRecurrenceExceptions.Add(googleRecurrenceException);                            
 
                                 ret = true;
@@ -931,32 +922,32 @@ namespace GoContactSyncMod
                     else
                     {//Delete exception time
 
-                    //    //for (int i=slave.Times.Count;i>0;i--)
-                    //    //{
-                    //    //    When time = slave.Times[i-1];
-                    //    //    if (time.StartTime.Equals(exception.AppointmentItem.Start))
-                    //    //    {
-                    //    //        slave.Times.Remove(time);
-                    //    //        ret = true;
-                    //    //        break;
-                    //    //    }
-                    //    //}
+                        //    //for (int i=slave.Times.Count;i>0;i--)
+                        //    //{
+                        //    //    When time = slave.Times[i-1];
+                        //    //    if (time.StartTime.Equals(exception.AppointmentItem.Start))
+                        //    //    {
+                        //    //        slave.Times.Remove(time);
+                        //    //        ret = true;
+                        //    //        break;
+                        //    //    }
+                        //    //}
 
-                    //    //for (int i = googleRecurrenceExceptions.Count; i > 0;i-- )
-                    //    //{
-                    //    //    if (googleRecurrenceExceptions[i-1].Times[0].StartTime.Equals(exception.OriginalDate))
-                    //    //    {
-                    //    //        googleRecurrenceExceptions[i - 1].Delete();
-                    //    //        googleRecurrenceExceptions.RemoveAt(i - 1);
-                    //    //    }
-                    //    //}
+                        //    //for (int i = googleRecurrenceExceptions.Count; i > 0;i-- )
+                        //    //{
+                        //    //    if (googleRecurrenceExceptions[i-1].Times[0].StartTime.Equals(exception.OriginalDate))
+                        //    //    {
+                        //    //        googleRecurrenceExceptions[i - 1].Delete();
+                        //    //        googleRecurrenceExceptions.RemoveAt(i - 1);
+                        //    //    }
+                        //    //}
 
-                    //    //ToDo: Doesn't work for all recurrences                        
-                    //    var googleRecurrenceException = sync.GetGoogleAppointmentByStartDate(slave.Id, exception.OriginalDate);                                 
+                        //    //ToDo: Doesn't work for all recurrences                        
+                        //    var googleRecurrenceException = sync.GetGoogleAppointmentByStartDate(slave.Id, exception.OriginalDate);                                 
 
-                    //    if (googleRecurrenceException != null)
-                    //        googleRecurrenceException.Delete();
-                        
+                        //    if (googleRecurrenceException != null)
+                        //        googleRecurrenceException.Delete();
+
                         if ((Synchronizer.MonthsInPast == 0 || exception.OriginalDate >= DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) &&
                              (Synchronizer.MonthsInFuture == 0 || exception.OriginalDate <= DateTime.Now.AddMonths(Synchronizer.MonthsInFuture)))
                         {
@@ -967,9 +958,9 @@ namespace GoContactSyncMod
                             googleRecurrenceException.RecurringEventId = slave.Id;
                             //googleRecurrenceException.OriginalEvent.Href = ???
                             DateTime start = exception.OriginalDate.AddHours(master.Start.Hour).AddMinutes(master.Start.Minute).AddSeconds(master.Start.Second);
-                            googleRecurrenceException.OriginalStartTime =  new EventDateTime();
+                            googleRecurrenceException.OriginalStartTime = new EventDateTime();
                             googleRecurrenceException.OriginalStartTime.TimeZone = slave.Start.TimeZone;
-                            
+
                             if (master.AllDayEvent)
                             {
                                 googleRecurrenceException.OriginalStartTime.Date = start.ToString("yyyy-MM-dd");
@@ -981,7 +972,7 @@ namespace GoContactSyncMod
                                 googleRecurrenceException.End.DateTime = start.AddMinutes(master.Duration);
                             }
                             googleRecurrenceException.Start = googleRecurrenceException.OriginalStartTime;
-                           
+
                             googleRecurrenceException.Summary = master.Subject;
 
                             try
@@ -1004,7 +995,7 @@ namespace GoContactSyncMod
 
 
                         }
-                        
+
 
                     }
                 }
@@ -1036,7 +1027,7 @@ namespace GoContactSyncMod
                 catch (Exception ignored)
                 {
                     Logger.Log("Google Appointment with OriginalEvent found, but Outlook occurrence not found: " + googleRecurrenceException.Summary + " - " + googleRecurrenceException.OriginalStartTime.DateTime + ": " + ignored, EventType.Debug);
-                }                
+                }
 
 
                 if (outlookRecurrenceException != null)
@@ -1064,10 +1055,10 @@ namespace GoContactSyncMod
                             outlookRecurrenceException.Delete();
                             string timeToLog = null;
                             if (googleRecurrenceException.OriginalStartTime != null)
-                            {   
+                            {
                                 timeToLog = googleRecurrenceException.OriginalStartTime.Date;
                                 if (string.IsNullOrEmpty(timeToLog) && googleRecurrenceException.OriginalStartTime.DateTime != null)
-                                timeToLog =  googleRecurrenceException.OriginalStartTime.DateTime.Value.ToString();
+                                    timeToLog = googleRecurrenceException.OriginalStartTime.DateTime.Value.ToString();
                             }
 
                             Logger.Log("Deleted obsolete recurrence exception from Outlook: " + slave.Subject + " - " + timeToLog, EventType.Information);
@@ -1082,13 +1073,13 @@ namespace GoContactSyncMod
                         }
                         ret = true;
 
-                        
+
                     }
                     else
                         Logger.Log("Error updating recurrence exception from Google to Outlook (couldn't be reload from Google): " + outlookRecurrenceException.Subject + " - " + outlookRecurrenceException.Start, EventType.Information);
 
                 }
-                
+
 
                 //}
 
@@ -1101,7 +1092,7 @@ namespace GoContactSyncMod
         {
             string format = dateFormat;
             if (dateTime.Contains("T"))
-                format += "'T'"+timeFormat;
+                format += "'T'" + timeFormat;
             if (dateTime.EndsWith("Z"))
                 format += "'Z'";
             return DateTime.ParseExact(dateTime, format, new System.Globalization.CultureInfo("en-US"));
@@ -1168,7 +1159,7 @@ namespace GoContactSyncMod
         //    else
         //        return false;
         //}
-        
+
 
     }
 }
