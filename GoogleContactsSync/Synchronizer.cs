@@ -1336,6 +1336,77 @@ namespace GoContactSyncMod
             LoadOutlookNotes();
             LoadGoogleNotes();
         }
+        /// <summary>
+        /// Remove duplicates from Google: two different Google appointments pointing to the same Outlook appointment.
+        /// </summary>
+        private void RemoveGoogleDuplicatedAppointments()
+        {
+            var appointments = new Dictionary<string, int>();
+
+            //scan all Google appointments
+            for (int i = 0; i < GoogleAppointments.Count; i++)
+            {
+                Google.Apis.Calendar.v3.Data.Event e = null;
+
+                try
+                {
+                    e = GoogleAppointments[i];
+                    if (e != null)
+                    {
+                        string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
+                        //check if Google event is linked to Outlook appointment
+                        if (!string.IsNullOrEmpty(oid))
+                        {
+                            //check if there is already another Google event linked to the same Outlook appointment 
+                            if (appointments.ContainsKey(oid))
+                            {
+                                var a = GetOutlookAppointmentById(oid);
+                                if (a != null)
+                                {
+                                    string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, a);
+                                    //check to which Outlook appoinment Google event is linked
+                                    if (AppointmentPropertiesUtils.GetGoogleId(e) == gid)
+                                    {
+                                        int j = appointments[gid];
+                                        e = GoogleAppointments[j];
+                                        if (e != null)
+                                        {
+                                            AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e);
+                                            if (!string.IsNullOrEmpty(e.Summary))
+                                            {
+                                                Logger.Log("Duplicated appointment: " + e.Summary + ".", EventType.Information);
+                                            }
+                                        }
+                                        appointments[oid] = i;
+                                    }
+                                    else
+                                    {
+                                        AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e);
+                                        if (!string.IsNullOrEmpty(e.Summary))
+                                        {
+                                            Logger.Log("Duplicated appointment: " + e.Summary + ".", EventType.Information);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                appointments.Add(oid, i);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //this is needed because some appointments throw exceptions
+                    if (e != null && !string.IsNullOrEmpty(e.Summary))
+                        Logger.Log("Accessing Google appointment: " + e.Summary + " threw and exception. Skipping: " + ex.Message, EventType.Warning);
+                    else
+                        Logger.Log("Accessing Google appointment threw and exception. Skipping: " + ex.Message, EventType.Warning);
+                    continue;
+                }
+            }
+        }
 
         /// <summary>
         /// Remove duplicates from Outlook: two different Outlook appointments pointing to the same Google appointment.
@@ -1353,39 +1424,48 @@ namespace GoContactSyncMod
                 try
                 {
                     ola = OutlookAppointments[i] as Outlook.AppointmentItem;
-                    string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, ola);
-                    //check if Outlook appointment is linked to Google event
-                    if (!string.IsNullOrEmpty(gid))
+                    if (ola != null)
                     {
-                        //check if there is already another Outlook appointment linked to the same Google event 
-                        if (appointments.ContainsKey(gid))
+                        string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, ola);
+                        //check if Outlook appointment is linked to Google event
+                        if (!string.IsNullOrEmpty(gid))
                         {
-                            var e = GetGoogleAppointmentById(gid);
-                            string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
-                            //check to which Outlook appoinment Google event is linked
-                            if (AppointmentPropertiesUtils.GetOutlookId(ola) == oid)
+                            //check if there is already another Outlook appointment linked to the same Google event 
+                            if (appointments.ContainsKey(gid))
                             {
-                                int j = appointments[gid];
-                                ola = OutlookAppointments[j] as Outlook.AppointmentItem;
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
-                                if (!string.IsNullOrEmpty(ola.Subject))
+                                var e = GetGoogleAppointmentById(gid);
+                                if (e != null)
                                 {
-                                    Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
+                                    string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
+                                    //check to which Outlook appoinment Google event is linked
+                                    if (AppointmentPropertiesUtils.GetOutlookId(ola) == oid)
+                                    {
+                                        int j = appointments[gid];
+                                        ola = OutlookAppointments[j] as Outlook.AppointmentItem;
+                                        if (ola != null)
+                                        {
+                                            AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
+                                            if (!string.IsNullOrEmpty(ola.Subject))
+                                            {
+                                                Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
+                                            }
+                                        }
+                                        appointments[gid] = i;
+                                    }
+                                    else
+                                    {
+                                        AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
+                                        if (!string.IsNullOrEmpty(ola.Subject))
+                                        {
+                                            Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
+                                        }
+                                    }
                                 }
-                                appointments[gid] = i;
                             }
                             else
                             {
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
-                                if (!string.IsNullOrEmpty(ola.Subject))
-                                {
-                                    Logger.Log("Duplicated appointment: " + ola.Subject + ".", EventType.Information);
-                                }
+                                appointments.Add(gid, i);
                             }
-                        }
-                        else
-                        {
-                            appointments.Add(gid, i);
                         }
                     }
                 }
@@ -1406,6 +1486,7 @@ namespace GoContactSyncMod
             LoadOutlookAppointments();
             LoadGoogleAppointments();
             RemoveOutlookDuplicatedAppointments();
+            RemoveGoogleDuplicatedAppointments();
         }
 
         /// <summary>
@@ -3798,6 +3879,30 @@ namespace GoContactSyncMod
                         return appointment;
                 }
 
+            return null;
+        }
+
+        public Outlook.AppointmentItem GetOutlookAppointmentById(string id)
+        {
+            for (int i = OutlookAppointments.Count; i >= 1; i--)
+            {
+                Outlook.AppointmentItem a = null;
+
+                try
+                {
+                    a = OutlookAppointments[i] as Outlook.AppointmentItem;
+                    if (a == null)
+                    {
+                        continue;
+                    }
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                if (AppointmentPropertiesUtils.GetOutlookId(a) == id)
+                    return a;
+            }
             return null;
         }
 
