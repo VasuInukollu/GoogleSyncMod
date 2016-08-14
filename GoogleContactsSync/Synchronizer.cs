@@ -56,7 +56,7 @@ namespace GoContactSyncMod
         private OAuth2Authenticator authenticator;
 
         public DocumentsRequest DocumentsRequest { get; private set; }
-        public EventsResource EventRequest { get; private set; }        
+        public EventsResource EventRequest { get; private set; }
 
         private static Outlook.NameSpace _outlookNamespace;
         public static Outlook.NameSpace OutlookNameSpace
@@ -117,6 +117,7 @@ namespace GoContactSyncMod
         public static ushort MonthsInPast { get; set; }
         public static ushort MonthsInFuture { get; set; }
         public static string Timezone { get; set; }
+        public static bool MappingBetweenTimeZonesRequired { get; set; }
 
         //private ConflictResolution? _conflictResolution;
         //public ConflictResolution? CResolution
@@ -197,9 +198,9 @@ namespace GoContactSyncMod
                 using (var stream = new MemoryStream(jsonSecrets))
                 {
                     FileDataStore fDS = new FileDataStore(Logger.AuthFolder, true);
-                    
+
                     GoogleClientSecrets clientSecrets = GoogleClientSecrets.Load(stream);
-                    
+
                     credential = GCSMOAuth2WebAuthorizationBroker.AuthorizeAsync(
                                     clientSecrets.Secrets,
                                     scopes.ToArray(),
@@ -235,18 +236,18 @@ namespace GoContactSyncMod
                     {
                         //DocumentsRequest = new DocumentsRequest(rs);
                         DocumentsRequest = new DocumentsRequest(settings);
-                  
+
                         //Instantiate an Authenticator object according to your authentication, to use ResumableUploader
                         //GDataCredentials cred = new GDataCredentials(credential.Token.AccessToken);
                         //GOAuth2RequestFactory rf = new GOAuth2RequestFactory(null, Application.ProductName, parameters);
                         //DocumentsRequest.Service.RequestFactory = rf;
-                      
-                        authenticator = new OAuth2Authenticator(Application.ProductName, parameters);                        
+
+                        authenticator = new OAuth2Authenticator(Application.ProductName, parameters);
                     }
                     if (SyncAppointments)
                     {
                         //ContactsRequest = new Google.Contacts.ContactsRequest()
-                        
+
                         CalendarRequest = GoogleServices.CreateCalendarService(initializer);
 
                         //CalendarRequest.setUserCredentials(username, password);
@@ -364,7 +365,7 @@ namespace GoContactSyncMod
                         }
                         else //wait ten seconds and try again
                             System.Threading.Thread.Sleep(1000 * 10);
-                    }   
+                    }
                 }
                 catch (COMException ex)
                 {
@@ -436,7 +437,7 @@ namespace GoContactSyncMod
                     throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.");
 
                 CreateOutlookNamespace();
-                
+
                 if (_outlookNamespace == null)
                     throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.");
                 else
@@ -465,7 +466,7 @@ namespace GoContactSyncMod
                 {
                     _outlookNamespace.GetFolderFromID(SyncContactsFolder);
                 }
-                
+
             }
             catch (COMException ex)
             {
@@ -834,14 +835,14 @@ namespace GoContactSyncMod
                 {
                     if (!await SingleResetGoogleAppointmentMatches(deleteGoogleAppointments, cancellationToken))
                         break;
-                }        
+                }
             }
 
             Logger.Log("Finished all Google changes.", EventType.Information);
 
         }
 
-        
+
         /// <summary>
         /// Resets Google appointment matches via single updates.
         /// </summary>
@@ -866,11 +867,11 @@ namespace GoContactSyncMod
                 Events feed;
                 bool gone_error = false;
                 bool modified_error = false;
-               
+
                 do
                 {
                     query.PageToken = pageToken;
-                    
+
                     //TODO (obelix30) - convert to Polly after retargeting to 4.5
                     try
                     {
@@ -931,7 +932,7 @@ namespace GoContactSyncMod
                     pageToken = feed.NextPageToken;
                 }
                 while (pageToken != null);
-    
+
                 if (modified_error)
                 {
                     Logger.Log("Some Google appointments modified before update.", EventType.Debug);
@@ -952,7 +953,7 @@ namespace GoContactSyncMod
             }
         }
 
-       
+
         /// <summary>
         /// Resets Google appointment matches via batch updates.
         /// </summary>
@@ -962,7 +963,7 @@ namespace GoContactSyncMod
         internal async Task<bool> BatchResetGoogleAppointmentMatches(bool deleteGoogleAppointments, CancellationToken cancellationToken)
         {
             const string message = "Error updating Google appointments.";
-           
+
             try
             {
                 var query = EventRequest.List(SyncAppointmentsGoogleFolder);
@@ -977,19 +978,19 @@ namespace GoContactSyncMod
 
                 Events feed;
                 var br = new BatchRequest(CalendarRequest);
-                
+
                 var events = new Dictionary<string, Google.Apis.Calendar.v3.Data.Event>();
                 bool gone_error = false;
                 bool modified_error = false;
                 bool rate_error = false;
                 bool current_batch_rate_error = false;
-                
+
 
                 int batches = 1;
                 do
                 {
                     query.PageToken = pageToken;
-                   
+
                     //TODO (obelix30) - check why sometimes exception happen like below,  we have custom backoff attached
                     //                    Google.GoogleApiException occurred
                     //User Rate Limit Exceeded[403]
@@ -1046,7 +1047,7 @@ namespace GoContactSyncMod
                                             modified_error = true;
                                         }
                                         else if (msg.StatusCode == System.Net.HttpStatusCode.Gone)
-                                        {  
+                                        {
                                             gone_error = true;
                                         }
                                         else if (GoogleServices.IsTransientError(msg.StatusCode, error))
@@ -1067,7 +1068,7 @@ namespace GoContactSyncMod
                                         current_batch_rate_error = false;
                                         await Task.Delay(GoogleServices.BatchRequestBackoffDelay);
                                         Logger.Log("Back-Off waited " + GoogleServices.BatchRequestBackoffDelay + "ms before next retry...", EventType.Debug);
-                                       
+
                                     }
                                     await br.ExecuteAsync(cancellationToken);
                                     // TODO(obelix30): https://github.com/google/google-api-dotnet-client/issues/725
@@ -1076,7 +1077,7 @@ namespace GoContactSyncMod
                                     Logger.Log("Batch of Google changes finished (" + batches + ")", EventType.Information);
                                     batches++;
                                 }
-                            }                    
+                            }
                         }
                     }
                     pageToken = feed.NextPageToken;
@@ -1357,7 +1358,7 @@ namespace GoContactSyncMod
                     if (!string.IsNullOrEmpty(gid))
                     {
                         //check if there is already another Outlook appointment linked to the same Google event 
-                        if (appointments.ContainsKey (gid))
+                        if (appointments.ContainsKey(gid))
                         {
                             var e = GetGoogleAppointmentById(gid);
                             string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
@@ -1497,9 +1498,11 @@ namespace GoContactSyncMod
                                 TimeZoneChanges(SyncAppointmentsGoogleTimeZone);
                             Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
                         }
+                        MappingBetweenTimeZonesRequired = false;
                         if (AppointmentSync.WindowsToIana(TimeZoneInfo.Local.Id) != SyncAppointmentsGoogleTimeZone)
                         {
-                            Logger.Log("Different time zones in Outlook (mapped to "+ AppointmentSync.WindowsToIana(TimeZoneInfo.Local.Id) + ") and Google (" + SyncAppointmentsGoogleTimeZone + ")", EventType.Warning);
+                            MappingBetweenTimeZonesRequired = true;
+                            Logger.Log("Different time zones in Outlook (mapped to " + AppointmentSync.WindowsToIana(TimeZoneInfo.Local.Id) + ") and Google (" + SyncAppointmentsGoogleTimeZone + ")", EventType.Warning);
                         }
                         MatchAppointments();
                     }
@@ -2258,7 +2261,7 @@ namespace GoContactSyncMod
                 if (slave.Creator == null || AppointmentSync.IsOrganizer(slave.Creator.Email))
                 {
                     AppointmentPropertiesUtils.SetGoogleOutlookAppointmentId(SyncProfile, slave, master);
-                    slave = SaveGoogleAppointment(slave);                    
+                    slave = SaveGoogleAppointment(slave);
                 }
 
                 //ToDo: Doesn'T work for newly created recurrence appointments before save, because Event.Reminder is throwing NullPointerException and Reminders cannot be initialized, therefore moved to after saving
@@ -2317,7 +2320,7 @@ namespace GoContactSyncMod
         /// </summary>
         public bool UpdateAppointment(ref Google.Apis.Calendar.v3.Data.Event master, Outlook.AppointmentItem slave, List<Google.Apis.Calendar.v3.Data.Event> googleAppointmentExceptions)
         {
-                        
+
             //if (master.Participants.Count > 1)
             //{
             //    bool organizerIsGoogle = AppointmentSync.IsOrganizer(AppointmentSync.GetOrganizer(master));
@@ -2414,7 +2417,7 @@ namespace GoContactSyncMod
                     }
                     catch (COMException ex)
                     {
-                        Logger.Log("Error saving Outlook appointment: \"" + master.Summary + " - " + GetTime(master) + "\".\n"+ex.StackTrace, EventType.Warning);
+                        Logger.Log("Error saving Outlook appointment: \"" + master.Summary + " - " + GetTime(master) + "\".\n" + ex.StackTrace, EventType.Warning);
                         return false;
                     }
                 }
@@ -2433,7 +2436,7 @@ namespace GoContactSyncMod
 
                 //After saving Outlook Appointment => also sync recurrence exceptions and increase SyncCount
                 if (master.Recurrence != null && googleAppointmentExceptions != null && AppointmentSync.UpdateRecurrenceExceptions(googleAppointmentExceptions, slave, this))
-                    SyncedCount++;                
+                    SyncedCount++;
             }
 
             return true;
@@ -2535,7 +2538,7 @@ namespace GoContactSyncMod
                 // Start the update process.  
                 uploader.AsyncOperationCompleted += new AsyncOperationCompletedEventHandler(OnGoogleNoteUpdated);
                 uploader.UpdateAsync(authenticator, match.GoogleNote.DocumentEntry, match);
-                
+
                 //uploader.Update(_authenticator, match.GoogleNote.DocumentEntry);
 
             }
@@ -2809,8 +2812,8 @@ namespace GoContactSyncMod
                 {
                     string error = "Error saving EXISTING Google appointment: ";
                     error += googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
-                    error += " - Creator: " + (googleAppointment.Creator != null?googleAppointment.Creator.Email:"null") ;
-                    error += " - Organizer: " + (googleAppointment.Organizer != null?googleAppointment.Organizer.Email:"null");
+                    error += " - Creator: " + (googleAppointment.Creator != null ? googleAppointment.Creator.Email : "null");
+                    error += " - Organizer: " + (googleAppointment.Organizer != null ? googleAppointment.Organizer.Email : "null");
                     error += ". \n" + ex.Message;
                     Logger.Log(error, EventType.Warning);
                     //string newEx = String.Format("Error saving EXISTING Google appointment: {0}. \n{1}", googleAppointment.Summary + " - " + GetTime(googleAppointment), ex.Message);
@@ -3501,7 +3504,7 @@ namespace GoContactSyncMod
 
             lock (_syncRoot)
             {
-                
+
                 Logger.Log("Resetting Outlook appointment matches...", EventType.Information);
                 //1 based array
                 for (int i = OutlookAppointments.Count; i >= 1; i--)
@@ -3540,7 +3543,7 @@ namespace GoContactSyncMod
                         }
                     }
                 }
-                
+
             }
             //}
             //finally

@@ -4,6 +4,7 @@ using System.Windows;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Google.Apis.Calendar.v3.Data;
 using System.Linq;
+using NodaTime;
 
 namespace GoContactSyncMod
 {
@@ -93,6 +94,14 @@ namespace GoContactSyncMod
             var tzid = tzdbSource.MapTimeZoneId(tzi);
             if (tzid == null) return null;
             return tzdbSource.CanonicalIdMap[tzid];
+        }
+
+        public static DateTime LocaltoUTC(DateTime dateTime, string IanaZone)
+        {
+            var localDateTime = LocalDateTime.FromDateTime(dateTime);
+            var usersTimezone = DateTimeZoneProviders.Tzdb[IanaZone];
+            var zonedDbDateTime = usersTimezone.AtLeniently(localDateTime);
+            return zonedDbDateTime.ToDateTimeUtc();
         }
 
         /// <summary>
@@ -325,12 +334,53 @@ namespace GoContactSyncMod
                         slave.AllDayEvent = !string.IsNullOrEmpty(master.Start.Date);
                     if (master.Start != null && !string.IsNullOrEmpty(master.Start.Date))
                         slave.Start = DateTime.Parse(master.Start.Date);
-                    else if (master.Start != null && master.Start.DateTime != null && slave.Start != master.Start.DateTime)
-                        slave.Start = master.Start.DateTime.Value;
+                    else if (master.Start != null && master.Start.DateTime != null)
+                    {
+                        //before setting times in Outlook, set correct time zone
+                        if (master.Start.TimeZone == null)
+                        {
+                            if (Synchronizer.MappingBetweenTimeZonesRequired)
+                            {
+                                var outlook_tz = IanaToWindows(Synchronizer.SyncAppointmentsGoogleTimeZone);
+                                slave.StartTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
+                            }
+                        }
+                        else
+                        {
+                            var outlook_tz = IanaToWindows(master.Start.TimeZone);
+                            slave.StartTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
+                        }
+                        //master.Start.DateTime is specified in Google calendar default time zone
+                        var startUTC = LocaltoUTC(master.Start.DateTime.Value, Synchronizer.SyncAppointmentsGoogleTimeZone);
+
+                        if (slave.StartUTC != startUTC)
+                            slave.StartUTC = startUTC;
+
+                    }
                     if (master.End != null && !string.IsNullOrEmpty(master.End.Date))
                         slave.End = DateTime.Parse(master.End.Date);
-                    else if (master.End != null && master.End.DateTime != null && slave.End != master.End.DateTime)
-                        slave.End = master.End.DateTime.Value;
+                    else if (master.End != null && master.End.DateTime != null)
+                    {
+                        //before setting times in Outlook, set correct time zone
+                        if (master.End.TimeZone == null)
+                        {
+                            if (Synchronizer.MappingBetweenTimeZonesRequired)
+                            {
+                                var outlook_tz = IanaToWindows(Synchronizer.SyncAppointmentsGoogleTimeZone);
+                                slave.EndTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
+                            }
+                        }
+                        else
+                        {
+                            var outlook_tz = IanaToWindows(master.End.TimeZone);
+                            slave.EndTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
+                        }
+                        //master.End.DateTime is specified in Google calendar default time zone
+                        var endUTC = LocaltoUTC(master.End.DateTime.Value, Synchronizer.SyncAppointmentsGoogleTimeZone);
+
+                        if (slave.EndUTC != endUTC)
+                            slave.EndUTC = endUTC;
+                    }
                 }
                 catch (Exception ex)
                 {
