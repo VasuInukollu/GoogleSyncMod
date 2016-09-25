@@ -1,10 +1,10 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
-## Version [next version] - 
+## Version [3.10.1] - 25.09.2016 
 
 ### SVN commits
 
-**r610 - r**:
+**r610 - r659:
 
 - UPDATE: Update NuGet packages to latest version 
 - FIX: update detection routine to fetch information about the latest version [bugs: #795, #826, #845, #853]
@@ -12,6 +12,7 @@
 - FIX: Remove duplicates from Outlook: two different Outlook appointments pointing to the same Google appointment. [bug: #614]
 - FIX: Force Outlook to set country in formatted address string. [bug: #850]
 - FIX: Clear Google reminders in case Outlook appointment has no reminders. [bug: #599]
+- FIX: Synchronize time zones. [bugs: #533, #654, #813, #851, #852, #856]
 
 ## Version [3.10.0] - 14.06.2016
 
