@@ -1,10 +1,23 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [next version] - 
+
+### SVN commits
+
+**r610 - r**:
+
+- UPDATE: Update NuGet packages to latest version 
+- FIX: update detection routine to fetch information about the latest version [bugs: #795, #826, #845, #853]
+- FIX: Ignore exceptions when retrieving windows version, put more diagnostic to log in case of exception [bug: #849]
+- FIX: Remove duplicates from Outlook: two different Outlook appointments pointing to the same Google appointment. [bug: #614]
+- FIX: Force Outlook to set country in formatted address string. [bug: #850]
+- FIX: Clear Google reminders in case Outlook appointment has no reminders. [bug: #599]
+
 ## Version [3.10.0] - 14.06.2016
 
 ### SVN commits
 
-**r586 - r606**:
+**r586 - r609**:
 
 - CHANGE: Retargetted to .NET 4.5,  as a result Windows XP is not supported anymore, minimum requirement is Windows Vista SP2.
 - UPDATE: Update NuGet packages to latest version (new version of Google client libraries require .NET 4.5)
