@@ -1,15 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using NUnit.Framework;
 using Google.GData.Contacts;
-using Google.GData.Client;
-using Google.GData.Extensions;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using Microsoft.Office.Interop.Outlook;
 using System.Threading;
-using System.Web;
-using System.Net;
 using System.IO;
 using System.Drawing;
 using System.Configuration;
@@ -30,7 +23,7 @@ namespace GoContactSyncMod.UnitTests
         const string groupName = "A TEST GROUP";
 
        
-        [OneTimeSetUpAttribute]
+        [OneTimeSetUp]
         public void Init() 
         {            
             //string timestamp = DateTime.Now.Ticks.ToString();            
@@ -1196,6 +1189,314 @@ namespace GoContactSyncMod.UnitTests
             Assert.IsNotNull(match.GoogleContact);
 
             outlookContact.Delete();   
+        }
+
+        [Test]
+        public void TestRemoveGoogleDuplicatedContacts_01()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test contact
+            var olc1 = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
+            olc1.FullName = name;
+            olc1.FileAs = name;
+            olc1.Email1Address = email;
+            olc1.HomeAddress = "10 Parades";
+            olc1.PrimaryTelephoneNumber = "123";
+            olc1.Save();
+
+            var c2 = new Contact();
+            sync.UpdateContact(olc1, c2);
+            ContactMatch m2 = new ContactMatch(new OutlookContactInfo(olc1, sync), c2);
+            sync.SaveContact(m2);
+            c2 = m2.GoogleContact;
+
+            var c1 = new Contact();
+            sync.UpdateContact(olc1, c1);
+            ContactMatch m1 = new ContactMatch(new OutlookContactInfo(olc1, sync), c1);
+            sync.SaveContact(m1);
+            c1 = m1.GoogleContact;
+
+            var gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, olc1);
+            var gid_c1 = ContactPropertiesUtils.GetGoogleId(c1);
+            var gid_c2 = ContactPropertiesUtils.GetGoogleId(c2);
+            var oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, c1);
+            var oid_c2 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, c2);
+            var oid_olc1 = ContactPropertiesUtils.GetOutlookId(olc1);
+
+            // assert contact olc1 and c1 are pointing to each other
+            Assert.AreEqual(gid_olc1, gid_c1);
+            Assert.AreEqual(oid_olc1, oid_c1);
+            // assert contact c2 also points to olc1
+            Assert.AreEqual(oid_olc1, oid_c2);
+            // assert contact olc1 does not point to c2
+            Assert.AreNotEqual(gid_olc1, gid_c2);
+
+            sync.LoadContacts();
+
+            var f_c1 = sync.GetGoogleContactById(gid_c1);
+            var f_c2 = sync.GetGoogleContactById(gid_c2);
+            var f_olc1 = sync.GetOutlookContactById(oid_olc1);
+
+            Assert.IsNotNull(f_c1);
+            Assert.IsNotNull(f_c2);
+            Assert.IsNotNull(f_olc1);
+
+            var f_gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, f_olc1);
+            var f_gid_c1 = ContactPropertiesUtils.GetGoogleId(f_c1);
+            var f_gid_c2 = ContactPropertiesUtils.GetGoogleId(f_c2);
+            var f_oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, f_c1);
+            var f_oid_c2 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, f_c2);
+            var f_oid_olc1 = ContactPropertiesUtils.GetOutlookId(f_olc1);
+
+            // assert contacts olc1 and c1 are pointing to each other
+            Assert.AreEqual(f_gid_olc1, f_gid_c1);
+            Assert.AreEqual(f_oid_olc1, f_oid_c1);
+            // assert contact c2 does not point to olc1
+            Assert.AreNotEqual(f_oid_olc1, f_oid_c2);
+            // assert contact olc1 does not point to c2
+            Assert.AreNotEqual(f_gid_olc1, f_gid_c2);
+
+            DeleteTestContact(f_olc1);
+            DeleteTestContact(f_c1);
+            DeleteTestContact(f_c2);
+        }
+
+        [Test]
+        public void TestRemoveGoogleDuplicatedContacts_02()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test contact
+            var olc1 = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
+            olc1.FullName = name;
+            olc1.FileAs = name;
+            olc1.Email1Address = email;
+            olc1.HomeAddress = "10 Parades";
+            olc1.PrimaryTelephoneNumber = "123";
+            olc1.Save();
+
+            // create new Google test contact
+            var c2 = new Contact();
+            sync.UpdateContact(olc1, c2);
+            ContactMatch m2 = new ContactMatch(new OutlookContactInfo(olc1, sync), c2);
+            sync.SaveContact(m2);
+            c2 = m2.GoogleContact;
+
+            var c1 = new Contact();
+            sync.UpdateContact(olc1, c1);
+            ContactMatch m1 = new ContactMatch(new OutlookContactInfo(olc1, sync), c1);
+            sync.SaveContact(m1);
+            c1 = m1.GoogleContact;
+
+            ContactPropertiesUtils.ResetOutlookGoogleContactId(sync, olc1);
+
+            var gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, olc1);
+            var gid_c1 = ContactPropertiesUtils.GetGoogleId(c1);
+            var gid_c2 = ContactPropertiesUtils.GetGoogleId(c2);
+            var oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, c1);
+            var oid_c2 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, c2);
+            var oid_olc1 = ContactPropertiesUtils.GetOutlookId(olc1);
+
+            // assert contact c1 points to olc1
+            Assert.AreEqual(oid_olc1, oid_c1);
+            // assert contact c2 points to olc1
+            Assert.AreEqual(oid_olc1, oid_c2);
+            // assert contact olc1 does not point to c1
+            Assert.AreNotEqual(gid_olc1, gid_c1);
+            // assert contact olc1 does not point to c2
+            Assert.AreNotEqual(gid_olc1, gid_c2);
+
+            sync.LoadContacts();
+
+            var f_c1 = sync.GetGoogleContactById(gid_c1);
+            var f_c2 = sync.GetGoogleContactById(gid_c2);
+            var f_olc1 = sync.GetOutlookContactById(oid_olc1);
+
+            Assert.IsNotNull(f_c1);
+            Assert.IsNotNull(f_c2);
+            Assert.IsNotNull(f_olc1);
+
+            var f_gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, f_olc1);
+            var f_gid_c1 = ContactPropertiesUtils.GetGoogleId(f_c1);
+            var f_gid_c2 = ContactPropertiesUtils.GetGoogleId(f_c2);
+            var f_oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, f_c1);
+            var f_oid_c2 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, f_c2);
+            var f_oid_olc1 = ContactPropertiesUtils.GetOutlookId(f_olc1);
+
+            // assert contact c1 does not point to olc1
+            Assert.AreNotEqual(f_oid_olc1, f_oid_c1);
+            // assert contact olc1 does not point to c1
+            Assert.AreNotEqual(f_gid_olc1, f_gid_c1);
+            // assert contact c2 does not point to olc1
+            Assert.AreNotEqual(f_oid_olc1, f_oid_c2);
+            // assert contact olc1 does not point to c2
+            Assert.AreNotEqual(f_gid_olc1, f_gid_c2);
+
+            DeleteTestContact(f_olc1);
+            DeleteTestContact(f_c1);
+            DeleteTestContact(f_c2);
+        }
+
+        [Test]
+        public void TestRemoveOutlookDuplicatedContacts_01()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test contact
+            var olc1 = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
+            olc1.FullName = name;
+            olc1.FileAs = name;
+            olc1.Email1Address = email;
+            olc1.HomeAddress = "10 Parades";
+            olc1.PrimaryTelephoneNumber = "123";
+            olc1.Save();
+
+            var c1 = new Contact();
+            sync.UpdateContact(olc1, c1);
+            ContactMatch m1 = new ContactMatch(new OutlookContactInfo(olc1, sync), c1);
+            sync.SaveContact(m1);
+            c1 = m1.GoogleContact;
+
+            var olc2 = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
+            olc2.FullName = name;
+            olc2.FileAs = name;
+            olc2.Email1Address = email;
+            olc2.HomeAddress = "10 Parades";
+            olc2.PrimaryTelephoneNumber = "123";
+            olc2.Save();
+
+            sync.UpdateContact(olc2, c1);
+            ContactMatch m2 = new ContactMatch(new OutlookContactInfo(olc2, sync), c1);
+            sync.SaveContact(m2);
+            c1 = m2.GoogleContact;
+
+            var gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, olc1);
+            var gid_olc2 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, olc2);
+            var gid_c1 = ContactPropertiesUtils.GetGoogleId(c1);
+            var oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, c1);
+            var oid_olc1 = ContactPropertiesUtils.GetOutlookId(olc1);
+            var oid_olc2 = ContactPropertiesUtils.GetOutlookId(olc2);
+
+            // assert contacts olc2 and c1 are pointing to each other
+            Assert.AreEqual(gid_olc2, gid_c1);
+            Assert.AreEqual(oid_olc2, oid_c1);
+            // assert contact olc1 also points to c1
+            Assert.AreEqual(gid_olc1, gid_c1);
+            // assert contact c1 does not point to olc1
+            Assert.AreNotEqual(oid_c1, oid_olc1);
+
+            sync.LoadContacts();
+
+            var f_c1 = sync.GetGoogleContactById(gid_c1);
+            var f_olc1 = sync.GetOutlookContactById(oid_olc1);
+            var f_olc2 = sync.GetOutlookContactById(oid_olc2);
+
+            Assert.IsNotNull(f_c1);
+            Assert.IsNotNull(f_olc1);
+            Assert.IsNotNull(f_olc2);
+
+            var f_gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, f_olc1);
+            var f_gid_olc2 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, f_olc2);
+            var f_gid_c1 = ContactPropertiesUtils.GetGoogleId(f_c1);
+            var f_oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, f_c1);
+            var f_oid_olc1 = ContactPropertiesUtils.GetOutlookId(f_olc1);
+            var f_oid_olc2 = ContactPropertiesUtils.GetOutlookId(f_olc2);
+
+            // assert contacts olc2 and c1 are pointing to each other
+            Assert.AreEqual(f_gid_olc2, f_gid_c1);
+            Assert.AreEqual(f_oid_olc2, f_oid_c1);
+            // assert contact olc1 does not point to c1
+            Assert.AreNotEqual(f_oid_olc1, f_oid_c1);
+            // assert contact olc1 does not point to c1
+            Assert.AreNotEqual(f_gid_olc1, f_gid_c1);
+
+            DeleteTestContact(f_olc1);
+            DeleteTestContact(f_olc2);
+            DeleteTestContact(f_c1);
+        }
+
+        [Test]
+        public void TestRemoveOutlookDuplicatedContacts_02()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test contact
+            var olc1 = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
+            olc1.FullName = name;
+            olc1.FileAs = name;
+            olc1.Email1Address = email;
+            olc1.HomeAddress = "10 Parades";
+            olc1.PrimaryTelephoneNumber = "123";
+            olc1.Save();
+
+            var c1 = new Contact();
+            sync.UpdateContact(olc1, c1);
+            ContactMatch m1 = new ContactMatch(new OutlookContactInfo(olc1, sync), c1);
+            sync.SaveContact(m1);
+            c1 = m1.GoogleContact;
+
+            var olc2 = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
+            olc2.FullName = name;
+            olc2.FileAs = name;
+            olc2.Email1Address = email;
+            olc2.HomeAddress = "10 Parades";
+            olc2.PrimaryTelephoneNumber = "123";
+            olc2.Save();
+
+            sync.UpdateContact(olc2, c1);
+            ContactMatch m2 = new ContactMatch(new OutlookContactInfo(olc2, sync), c1);
+            sync.SaveContact(m2);
+            c1 = m1.GoogleContact;
+
+            ContactPropertiesUtils.ResetGoogleOutlookContactId(sync.SyncProfile, c1);
+            c1 = sync.SaveGoogleContact(c1);
+
+            var gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, olc1);
+            var gid_olc2 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, olc2);
+            var gid_c1 = ContactPropertiesUtils.GetGoogleId(c1);
+            var oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, c1);
+            var oid_olc1 = ContactPropertiesUtils.GetOutlookId(olc1);
+            var oid_olc2 = ContactPropertiesUtils.GetOutlookId(olc2);
+
+            // assert olc1 points to c1
+            Assert.AreEqual(gid_olc1, gid_c1);
+            // assert olc2 points to c1
+            Assert.AreEqual(gid_olc2, gid_c1);
+            // assert contact c1 does not point to olc1
+            Assert.AreNotEqual(oid_c1, oid_olc1);
+            // assert contact c1 does not point to olc2
+            Assert.AreNotEqual(oid_c1, oid_olc2);
+
+            sync.LoadContacts();
+
+            var f_c1 = sync.GetGoogleContactById(gid_c1);
+            var f_olc1 = sync.GetOutlookContactById(oid_olc1);
+            var f_olc2 = sync.GetOutlookContactById(oid_olc2);
+
+            Assert.IsNotNull(f_c1);
+            Assert.IsNotNull(f_olc1);
+            Assert.IsNotNull(f_olc2);
+
+            var f_gid_olc1 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, f_olc1);
+            var f_gid_olc2 = ContactPropertiesUtils.GetOutlookGoogleContactId(sync, f_olc2);
+            var f_gid_c1 = ContactPropertiesUtils.GetGoogleId(f_c1);
+            var f_oid_c1 = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, f_c1);
+            var f_oid_olc1 = ContactPropertiesUtils.GetOutlookId(f_olc1);
+            var f_oid_olc2 = ContactPropertiesUtils.GetOutlookId(f_olc2);
+
+            // assert olc1 does not point to c1
+            Assert.AreNotEqual(f_gid_olc1, f_gid_c1);
+            // assert olc2 does not point to c1
+            Assert.AreNotEqual(f_gid_olc2, f_gid_c1);
+            // assert contact c1 does not point to olc1
+            Assert.AreNotEqual(f_oid_c1, f_oid_olc1);
+            // assert contact c1 does not point to olc2
+            Assert.AreNotEqual(f_oid_c1, f_oid_olc2);
+
+            DeleteTestContact(f_olc1);
+            DeleteTestContact(f_olc2);
+            DeleteTestContact(f_c1);
         }
 
         private void DeleteTestContacts(ContactMatch match)

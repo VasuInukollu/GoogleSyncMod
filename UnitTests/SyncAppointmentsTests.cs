@@ -1,16 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using NUnit.Framework;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using Microsoft.Office.Interop.Outlook;
 using System.Threading;
-using System.Web;
-using System.Net;
-using System.IO;
-using System.Drawing;
-using System.Configuration;
-using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 
 namespace GoContactSyncMod.UnitTests
@@ -104,7 +95,291 @@ namespace GoContactSyncMod.UnitTests
             sync.LogoffOutlook();
             sync.LogoffGoogle();
         }
-        
+
+        [Test]
+        public void TestRemoveGoogleDuplicatedAppointments_01()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test appointment
+            var ola1 = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
+            ola1.Subject = name;
+            ola1.Start = DateTime.Now;
+            ola1.End = DateTime.Now.AddHours(1);
+            ola1.AllDayEvent = false;
+            ola1.ReminderSet = false;
+            ola1.Save();
+
+            // create new Google test appointments
+            var e1 = Factory.NewEvent();
+            sync.UpdateAppointment(ola1, ref e1);
+            var e2 = Factory.NewEvent();
+            AppointmentSync.UpdateAppointment(ola1, e2);
+            AppointmentPropertiesUtils.SetGoogleOutlookAppointmentId(sync.SyncProfile, e2, ola1);
+            e2 = sync.SaveGoogleAppointment(e2);
+
+            var gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola1);
+            var gid_e1 = AppointmentPropertiesUtils.GetGoogleId(e1);
+            var gid_e2 = AppointmentPropertiesUtils.GetGoogleId(e2);
+            var oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, e1);
+            var oid_e2 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, e2);
+            var oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(ola1);
+
+            // assert appointments ola1 and e1 are pointing to each other
+            Assert.AreEqual(gid_ola1, gid_e1);
+            Assert.AreEqual(oid_ola1, oid_e1);
+            // assert appointment e2 also points to ola1
+            Assert.AreEqual(oid_ola1, oid_e2);
+            // assert appointment ola1 does not point to e2
+            Assert.AreNotEqual(gid_ola1, gid_e2);
+
+            sync.LoadAppointments();
+
+            var f_e1 = sync.GetGoogleAppointmentById(gid_e1);
+            var f_e2 = sync.GetGoogleAppointmentById(gid_e2);
+            var f_ola1 = sync.GetOutlookAppointmentById(oid_ola1);
+
+            Assert.IsNotNull(f_e1);
+            Assert.IsNotNull(f_e2);
+            Assert.IsNotNull(f_ola1);
+
+            var f_gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, f_ola1);
+            var f_gid_e1 = AppointmentPropertiesUtils.GetGoogleId(f_e1);
+            var f_gid_e2 = AppointmentPropertiesUtils.GetGoogleId(f_e2);
+            var f_oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, f_e1);
+            var f_oid_e2 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, f_e2);
+            var f_oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(f_ola1);
+
+            // assert appointments ola1 and e1 are pointing to each other
+            Assert.AreEqual(f_gid_ola1, f_gid_e1);
+            Assert.AreEqual(f_oid_ola1, f_oid_e1);
+            // assert appointment e2 does not point to ola1
+            Assert.AreNotEqual(f_oid_ola1, f_oid_e2);
+            // assert appointment ola1 does not point to e2
+            Assert.AreNotEqual(f_gid_ola1, f_gid_e2);
+
+            DeleteTestAppointment(f_ola1);
+            DeleteTestAppointment(f_e1);
+            DeleteTestAppointment(f_e2);
+        }
+
+        [Test]
+        public void TestRemoveGoogleDuplicatedAppointments_02()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test appointment
+            var ola1 = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
+            ola1.Subject = name;
+            ola1.Start = DateTime.Now;
+            ola1.End = DateTime.Now.AddHours(1);
+            ola1.AllDayEvent = false;
+            ola1.ReminderSet = false;
+            ola1.Save();
+
+            // create new Google test appointments
+            var e1 = Factory.NewEvent();
+            sync.UpdateAppointment(ola1, ref e1);
+            var e2 = Factory.NewEvent();
+            AppointmentSync.UpdateAppointment(ola1, e2);
+            AppointmentPropertiesUtils.SetGoogleOutlookAppointmentId(sync.SyncProfile, e2, ola1);
+            e2 = sync.SaveGoogleAppointment(e2);
+            AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(sync, ola1);
+
+            var gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola1);
+            var gid_e1 = AppointmentPropertiesUtils.GetGoogleId(e1);
+            var gid_e2 = AppointmentPropertiesUtils.GetGoogleId(e2);
+            var oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, e1);
+            var oid_e2 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, e2);
+            var oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(ola1);
+
+            // assert appointment e1 points to ola1
+            Assert.AreEqual(oid_ola1, oid_e1);
+            // assert appointment e2 points to ola1
+            Assert.AreEqual(oid_ola1, oid_e2);
+            // assert appointment ola1 does not point to e1
+            Assert.AreNotEqual(gid_ola1, gid_e1);
+            // assert appointment ola1 does not point to e2
+            Assert.AreNotEqual(gid_ola1, gid_e2);
+
+            sync.LoadAppointments();
+
+            var f_e1 = sync.GetGoogleAppointmentById(gid_e1);
+            var f_e2 = sync.GetGoogleAppointmentById(gid_e2);
+            var f_ola1 = sync.GetOutlookAppointmentById(oid_ola1);
+
+            Assert.IsNotNull(f_e1);
+            Assert.IsNotNull(f_e2);
+            Assert.IsNotNull(f_ola1);
+
+            var f_gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, f_ola1);
+            var f_gid_e1 = AppointmentPropertiesUtils.GetGoogleId(f_e1);
+            var f_gid_e2 = AppointmentPropertiesUtils.GetGoogleId(f_e2);
+            var f_oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, f_e1);
+            var f_oid_e2 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, f_e2);
+            var f_oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(f_ola1);
+
+            // assert appointment e1 does not point to ola1
+            Assert.AreNotEqual(f_oid_ola1, f_oid_e1);
+            // assert appointment ola1 does not point to e1
+            Assert.AreNotEqual(f_gid_ola1, f_gid_e1);
+            // assert appointment e2 does not point to ola1
+            Assert.AreNotEqual(f_oid_ola1, f_oid_e2);
+            // assert appointment ola1 does not point to e2
+            Assert.AreNotEqual(f_gid_ola1, f_gid_e2);
+
+            DeleteTestAppointment(f_ola1);
+            DeleteTestAppointment(f_e1);
+            DeleteTestAppointment(f_e2);
+        }
+
+        [Test]
+        public void TestRemoveOutlookDuplicatedAppointments_01()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test appointment
+            var ola1 = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
+            ola1.Subject = name;
+            ola1.Start = DateTime.Now;
+            ola1.End = DateTime.Now.AddHours(1);
+            ola1.AllDayEvent = false;
+            ola1.ReminderSet = false;
+            ola1.Save();
+
+            // create new Google test appointments
+            var e1 = Factory.NewEvent();
+            sync.UpdateAppointment(ola1, ref e1);
+
+            var ola2 = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
+            ola2.Subject = name;
+            ola2.Start = DateTime.Now;
+            ola2.End = DateTime.Now.AddHours(1);
+            ola2.AllDayEvent = false;
+            ola2.ReminderSet = false;
+            ola2.Save();
+            sync.UpdateAppointment(ola2, ref e1);
+
+            var gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola1);
+            var gid_ola2 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola2);
+            var gid_e1 = AppointmentPropertiesUtils.GetGoogleId(e1);
+            var oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, e1);
+            var oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(ola1);
+            var oid_ola2 = AppointmentPropertiesUtils.GetOutlookId(ola2);
+
+            // assert appointments ola2 and e1 are pointing to each other
+            Assert.AreEqual(gid_ola2, gid_e1);
+            Assert.AreEqual(oid_ola2, oid_e1);
+            // assert appointment ola1 also points to e1
+            Assert.AreEqual(gid_ola1, gid_e1);
+            // assert appointment e1 does not point to ola1
+            Assert.AreNotEqual(oid_e1, oid_ola1);
+
+            sync.LoadAppointments();
+
+            var f_e1 = sync.GetGoogleAppointmentById(gid_e1);
+            var f_ola1 = sync.GetOutlookAppointmentById(oid_ola1);
+            var f_ola2 = sync.GetOutlookAppointmentById(oid_ola2);
+
+            Assert.IsNotNull(f_e1);
+            Assert.IsNotNull(f_ola1);
+            Assert.IsNotNull(f_ola2);
+
+            var f_gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, f_ola1);
+            var f_gid_ola2 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, f_ola2);
+            var f_gid_e1 = AppointmentPropertiesUtils.GetGoogleId(f_e1);
+            var f_oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, f_e1);
+            var f_oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(f_ola1);
+            var f_oid_ola2 = AppointmentPropertiesUtils.GetOutlookId(f_ola2);
+
+            // assert appointments ola2 and e1 are pointing to each other
+            Assert.AreEqual(f_gid_ola2, f_gid_e1);
+            Assert.AreEqual(f_oid_ola2, f_oid_e1);
+            // assert appointment ola1 does not point to e1
+            Assert.AreNotEqual(f_oid_ola1, f_oid_e1);
+            // assert appointment ola1 does not point to e1
+            Assert.AreNotEqual(f_gid_ola1, f_gid_e1);
+
+            DeleteTestAppointment(f_ola1);
+            DeleteTestAppointment(f_ola2);
+            DeleteTestAppointment(f_e1);
+        }
+
+        [Test]
+        public void TestRemoveOutlookDuplicatedAppointments_02()
+        {
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
+
+            // create new Outlook test appointment
+            var ola1 = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
+            ola1.Subject = name;
+            ola1.Start = DateTime.Now;
+            ola1.End = DateTime.Now.AddHours(1);
+            ola1.AllDayEvent = false;
+            ola1.ReminderSet = false;
+            ola1.Save();
+
+            // create new Google test appointments
+            var e1 = Factory.NewEvent();
+            sync.UpdateAppointment(ola1, ref e1);
+
+            var ola2 = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
+            ola2.Subject = name;
+            ola2.Start = DateTime.Now;
+            ola2.End = DateTime.Now.AddHours(1);
+            ola2.AllDayEvent = false;
+            ola2.ReminderSet = false;
+            ola2.Save();
+            sync.UpdateAppointment(ola2, ref e1);
+            AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(sync.SyncProfile, e1);
+            e1 = sync.SaveGoogleAppointment(e1);
+            
+            var gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola1);
+            var gid_ola2 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola2);
+            var gid_e1 = AppointmentPropertiesUtils.GetGoogleId(e1);
+            var oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, e1);
+            var oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(ola1);
+            var oid_ola2 = AppointmentPropertiesUtils.GetOutlookId(ola2);
+
+            // assert ola1 points to e1
+            Assert.AreEqual(gid_ola1, gid_e1);
+            // assert ola2 points to e1
+            Assert.AreEqual(gid_ola2, gid_e1);
+            // assert appointment e1 does not point to ola1
+            Assert.AreNotEqual(oid_e1, oid_ola1);
+            // assert appointment e1 does not point to ola2
+            Assert.AreNotEqual(oid_e1, oid_ola2);
+
+            sync.LoadAppointments();
+
+            var f_e1 = sync.GetGoogleAppointmentById(gid_e1);
+            var f_ola1 = sync.GetOutlookAppointmentById(oid_ola1);
+            var f_ola2 = sync.GetOutlookAppointmentById(oid_ola2);
+
+            Assert.IsNotNull(f_e1);
+            Assert.IsNotNull(f_ola1);
+            Assert.IsNotNull(f_ola2);
+
+            var f_gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, f_ola1);
+            var f_gid_ola2 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, f_ola2);
+            var f_gid_e1 = AppointmentPropertiesUtils.GetGoogleId(f_e1);
+            var f_oid_e1 = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, f_e1);
+            var f_oid_ola1 = AppointmentPropertiesUtils.GetOutlookId(f_ola1);
+            var f_oid_ola2 = AppointmentPropertiesUtils.GetOutlookId(f_ola2);
+
+            // assert ola1 does not point to e1
+            Assert.AreNotEqual(f_gid_ola1, f_gid_e1);
+            // assert ola2 does not point to e1
+            Assert.AreNotEqual(f_gid_ola2, f_gid_e1);
+            // assert appointment e1 does not point to ola1
+            Assert.AreNotEqual(f_oid_e1, f_oid_ola1);
+            // assert appointment e1 does not point to ola2
+            Assert.AreNotEqual(f_oid_e1, f_oid_ola2);
+
+            DeleteTestAppointment(f_ola1);
+            DeleteTestAppointment(f_ola2);
+            DeleteTestAppointment(f_e1);
+        }
 
         [Test]
         public void TestSync_Time()
