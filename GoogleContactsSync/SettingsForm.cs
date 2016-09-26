@@ -239,6 +239,7 @@ namespace GoContactSyncMod
                             }
                             catch (Exception e)
                             {
+                                Logger.Log(e, EventType.Debug);
                                 Logger.Log("Error getting available Outlook folders: " + e.Message, EventType.Warning);
                             }
                         }
@@ -317,6 +318,7 @@ namespace GoContactSyncMod
                     {
                         Logger.Log(e, EventType.Debug);
                         Logger.Log("Error getting available Outlook and Google folders: " + e.Message, EventType.Warning);
+
                     }
                     finally
                     {
