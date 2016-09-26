@@ -489,6 +489,7 @@ namespace GoContactSyncMod
                 }
                 else
                 {
+                    Logger.Log(ex, EventType.Debug);
                     throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                 }
             }
