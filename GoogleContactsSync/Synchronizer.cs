@@ -256,6 +256,7 @@ namespace GoContactSyncMod
 
                         //Get Primary Calendar, if not set from outside
                         if (string.IsNullOrEmpty(SyncAppointmentsGoogleFolder))
+                        {
                             foreach (var calendar in calendarList)
                             {
                                 if (calendar.Primary != null && calendar.Primary.Value)
@@ -265,6 +266,18 @@ namespace GoContactSyncMod
                                     break;
                                 }
                             }
+                        }
+                        else
+                        {
+                            foreach (var calendar in calendarList)
+                            {
+                                if (calendar.Id == SyncAppointmentsGoogleFolder)
+                                {
+                                    SyncAppointmentsGoogleTimeZone = calendar.TimeZone;
+                                    break;
+                                }
+                            }
+                        }
 
                         if (SyncAppointmentsGoogleFolder == null)
                             throw new Exception("Google Calendar not defined (primary not found)");
