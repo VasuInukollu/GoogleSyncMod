@@ -152,11 +152,6 @@ namespace GoContactSyncMod
             }
             else
             {
-                slave.Start.Date = null;
-                slave.End.Date = null;
-                slave.Start.DateTime = master.Start;
-                slave.End.DateTime = master.End;
-
                 //Outlook always has TZ set, even if TZ is the same as default one
                 //Google could have TZ empty, if it is equal to default one
                 if (master.StartTimeZone != null && !string.IsNullOrEmpty(master.StartTimeZone.ID))
@@ -174,6 +169,11 @@ namespace GoContactSyncMod
                     if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
                         slave.End.TimeZone = google_tz;
                 }
+
+                slave.Start.Date = null;
+                slave.End.Date = null;
+                slave.Start.DateTime = master.Start;
+                slave.End.DateTime = master.End;
             }
 
             #region participants
@@ -558,6 +558,18 @@ namespace GoContactSyncMod
                 ////    key = TZID + "=" + "Asia/Singapore";
                 //if (!string.IsNullOrEmpty(Syncronizer.Timezone))
                 //    key = TZID + "=" + Syncronizer.Timezone;
+
+                if (master.StartTimeZone != null && !string.IsNullOrEmpty(master.StartTimeZone.ID))
+                {
+                    var google_tz = WindowsToIana(master.StartTimeZone.ID);
+                    slave.Start.TimeZone = google_tz;
+                }
+
+                if (master.EndTimeZone != null && !string.IsNullOrEmpty(master.EndTimeZone.ID))
+                {
+                    var google_tz = WindowsToIana(master.EndTimeZone.ID);
+                    slave.End.TimeZone = google_tz;
+                }
 
                 //DateTime date = masterRecurrence.PatternStartDate.Date;
                 ////DateTime time = new DateTime(date.Year, date.Month, date.Day, masterRecurrence.StartTime.Hour, masterRecurrence.StartTime.Minute, masterRecurrence.StartTime.Second);
