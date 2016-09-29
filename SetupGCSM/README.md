@@ -1,5 +1,15 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.2] - 29.09.2016 
+
+### SVN commits
+
+**r660 - r671:
+
+- UPDATE: Update NuGet packages to latest version. 
+- FIX: Set time zone for recurrent appointments.
+- FIX: Added more logging [bugs: #870, #871]
+
 ## Version [3.10.1] - 25.09.2016 
 
 ### SVN commits
