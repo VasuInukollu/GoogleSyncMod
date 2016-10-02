@@ -1,22 +1,43 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace GoContactSyncMod
 {
     internal static class OutlookRegistryUtils
     {
+        public static string GetOutlookVersion()
+        {
+            string ret = string.Empty;
+
+            int outlookVersion = GetMajorVersion(GetOutlookPath());
+            ret = GetMajorVersionToString(outlookVersion);
+
+            string outlookKey = @"Software\Wow6432Node\Microsoft\Office\" + outlookVersion + @".0\Outlook";
+            RegistryKey registryOutlookKey = Registry.LocalMachine.OpenSubKey(outlookKey, false);
+                
+            if (registryOutlookKey != null)
+            {
+                string bitness = registryOutlookKey.GetValue(@"Bitness").ToString();
+                if (bitness == "x86")
+                    return ret + " (32-bit)";
+                else if (bitness == "x64")
+                    return ret + " (64-bit)";
+                else
+                    return ret + " (unknown)";
+            }
+
+            return ret;
+        }
+
         public static string GetPossibleErrorDiagnosis()
         {
             int outlookVersion = GetMajorVersion(GetOutlookPath());
             string diagnosis = CheckOfficeRegistry(outlookVersion);
             return "Could not connect to 'Microsoft Outlook'.\r\nYou have " + GetMajorVersionToString(outlookVersion) + " installed.\r\n" + diagnosis;
         }
-            
+           
         private static string CheckOfficeRegistry(int outlookVersion)
         {
             string toReturn = string.Empty;
@@ -37,7 +58,6 @@ namespace GoContactSyncMod
             {
                 return "Cannot open registry " + interfaceKey.ToString() + ".\r\nPlease read FAQ and fix your Office installation";
             }
-
 
             if (!string.IsNullOrEmpty(registryVersion))
             {
