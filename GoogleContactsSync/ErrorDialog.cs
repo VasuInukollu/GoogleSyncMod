@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Windows;
-using System.Windows.Documents;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GoContactSyncMod
@@ -20,7 +14,7 @@ namespace GoContactSyncMod
             InitializeComponent();
         }
 
-        public async void setErrorText(Exception ex)
+        public async Task setErrorText(Exception ex)
         {
             if (await VersionInformation.isNewVersionAvailable(CancellationToken.None))
             {
@@ -58,19 +52,19 @@ namespace GoContactSyncMod
             richTextBoxError.AppendText("OS VERSION:      " + VersionInformation.GetWindowsVersion() + Environment.NewLine);
             richTextBoxError.AppendText(Environment.NewLine);
             richTextBoxError.AppendText("ERROR MESAGE:" + Environment.NewLine + Environment.NewLine);
-            AppendTextWithColor(ex.Message + Environment.NewLine,Color.Firebrick);
+            AppendTextWithColor(ex.Message + Environment.NewLine, Color.Firebrick);
             richTextBoxError.AppendText(Environment.NewLine);
             richTextBoxError.AppendText("ERROR MESAGE STACK TRACE:" + Environment.NewLine + Environment.NewLine);
             if (ex.StackTrace != null)
                 AppendTextWithColor(ex.StackTrace, Color.Firebrick);
             else
-                AppendTextWithColor("NO STACK TRACE AVAILABLE",Color.Firebrick);
+                AppendTextWithColor("NO STACK TRACE AVAILABLE", Color.Firebrick);
 
             string message = richTextBoxError.Text.Replace("\n", "\r\n");
             //copy to clipboard
             try
             {
-                Thread thread = new Thread(() => System.Windows.Clipboard.SetDataObject(message,true));
+                Thread thread = new Thread(() => System.Windows.Clipboard.SetDataObject(message, true));
                 thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
                 thread.Start();
                 thread.Join();
@@ -108,7 +102,7 @@ namespace GoContactSyncMod
 
         private void openBugsUrl(object sender, EventArgs e)
         {
-            Process.Start("http://sourceforge.net/p/googlesyncmod/bugs/?source=navbar");
+            Process.Start("https://sourceforge.net/p/googlesyncmod/bugs/?source=navbar");
         }
 
         private void ErrorDialog_FormClosed(object sender, FormClosedEventArgs e)

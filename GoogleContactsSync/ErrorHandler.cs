@@ -27,7 +27,7 @@ namespace GoContactSyncMod
         }
 
         // TODO: Write a nice error dialog, that maybe supports directly email sending as bugreport
-        public static void Handle(Exception ex)
+        public static async void Handle(Exception ex)
         {
             //save user culture
             CultureInfo oldCI = Thread.CurrentThread.CurrentCulture;
@@ -60,8 +60,8 @@ namespace GoContactSyncMod
             //create and show error information
             using (ErrorDialog errorDialog = new ErrorDialog())
             {
-                errorDialog.setErrorText(ex);
-                errorDialog.Show();
+                await errorDialog.setErrorText(ex);
+                errorDialog.ShowDialog ();
             }
 
             //set user culture
