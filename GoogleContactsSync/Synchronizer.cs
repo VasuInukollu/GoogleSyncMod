@@ -331,8 +331,6 @@ namespace GoContactSyncMod
                     OutlookApplication = null;
                     _outlookNamespace = null;
                     CreateOutlookInstance();
-
-
                 }
                 catch (Exception ex)
                 {
@@ -359,14 +357,18 @@ namespace GoContactSyncMod
                     }
                     catch (COMException ex)
                     {
-                        if (ex.ErrorCode == -2147312566) //0x80029c4a
+                        if (ex.ErrorCode == unchecked((int)0x80029c4a))
+                        {
+                            Logger.Log(ex, EventType.Debug);
                             throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                        }
                         // That failed - try to create a new application object, launching Outlook in the background
                         OutlookApplication = new Outlook.Application();
                         break;
                     }
                     catch (InvalidCastException ex)
                     {
+                        Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
                     }
                     catch (Exception ex)
@@ -376,21 +378,28 @@ namespace GoContactSyncMod
                             Logger.Log(ex, EventType.Debug);
                             throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                         }
-                        else //wait ten seconds and try again
-                            System.Threading.Thread.Sleep(1000 * 10);
+                        else
+                            System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
                     }
                 }
                 catch (COMException ex)
                 {
-                    if (ex.ErrorCode == -2147312566) //0x80029c4a
+                    if (ex.ErrorCode == unchecked((int)0x80029c4a))
+                    {
+                        Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                    }
                     if (i == 2)
+                    {
+                        Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
-                    else //wait ten seconds and try again
-                        System.Threading.Thread.Sleep(1000 * 10);
+                    }
+                    else
+                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
                 }
                 catch (InvalidCastException ex)
                 {
+                    Logger.Log(ex, EventType.Debug);
                     throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
                 }
                 catch (Exception ex)
@@ -400,8 +409,8 @@ namespace GoContactSyncMod
                         Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
                     }
-                    else //wait ten seconds and try again
-                        System.Threading.Thread.Sleep(1000 * 10);
+                    else
+                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
                 }
             }
         }
@@ -414,27 +423,37 @@ namespace GoContactSyncMod
                 try
                 {
                     _outlookNamespace = OutlookApplication.GetNamespace("MAPI");
-                    break;  //Exit the for loop, if gettng outlook namespace was successful
+                    break;  //Exit the for loop, if getting outlook namespace was successful
                 }
                 catch (COMException ex)
                 {
-                    if (ex.ErrorCode == -2147312566) //0x80029c4a
+                    if (ex.ErrorCode == unchecked((int)0x80029c4a))
+                    {
+                        Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                    }
                     if (i == 2)
+                    {
+                        Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
-                    else //wait ten seconds and try again
-                        System.Threading.Thread.Sleep(1000 * 10);
+                    }
+                    else
+                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
                 }
                 catch (InvalidCastException ex)
                 {
+                    Logger.Log(ex, EventType.Debug);
                     throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
                 }
                 catch (Exception ex)
                 {
                     if (i == 2)
+                    {
+                        Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
-                    else //wait ten seconds and try again
-                        System.Threading.Thread.Sleep(1000 * 10);
+                    }
+                    else
+                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
                 }
             }
         }
@@ -483,8 +502,9 @@ namespace GoContactSyncMod
             }
             catch (COMException ex)
             {
-                if (ex.ErrorCode == -2147312566) //0x80029c4a
+                if (ex.ErrorCode == unchecked((int)0x80029c4a))
                 {
+                    Logger.Log(ex, EventType.Debug);
                     throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
                 }
                 else
