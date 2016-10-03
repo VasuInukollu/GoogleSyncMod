@@ -1,5 +1,16 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.3] - 03.10.2016 
+
+### SVN commits
+
+**r672 - r686:
+
+- UPDATE: Update NuGet packages to latest version. 
+- FIX: Corrected time zone mapping between Google and Outlook
+- FIX: Added more logging [bugs: #863, #870]
+- FIX: Added AutoGenerateBindingRedirects
+
 ## Version [3.10.2] - 29.09.2016 
 
 ### SVN commits
