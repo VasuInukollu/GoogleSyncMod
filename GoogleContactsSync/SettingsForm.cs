@@ -149,6 +149,7 @@ namespace GoContactSyncMod
             Text = Text + " - " + Application.ProductVersion;
             Logger.LogUpdated += new Logger.LogUpdatedHandler(Logger_LogUpdated);
             Logger.Log("Started application " + Application.ProductName + " (" + Application.ProductVersion + ") on " + VersionInformation.GetWindowsVersion() +" and " + OutlookRegistryUtils.GetOutlookVersion(), EventType.Information);
+            Logger.Log("Detailed log file created: " + Logger.Folder + "log.txt", EventType.Information);
             ContactsMatcher.NotificationReceived += new ContactsMatcher.NotificationHandler(OnNotificationReceived);
             NotesMatcher.NotificationReceived += new NotesMatcher.NotificationHandler(OnNotificationReceived);
             AppointmentsMatcher.NotificationReceived += new AppointmentsMatcher.NotificationHandler(OnNotificationReceived);

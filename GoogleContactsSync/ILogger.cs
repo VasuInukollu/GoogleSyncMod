@@ -38,13 +38,14 @@ namespace GoContactSyncMod
 
         static Logger()
         {
-            if (!Directory.Exists(Folder))
-            {
-                Directory.CreateDirectory(Folder);
-                Directory.CreateDirectory(AuthFolder);
-            }
             try
             {
+                if (!Directory.Exists(Folder))
+                    Directory.CreateDirectory(Folder);
+
+                if (!Directory.Exists(AuthFolder))
+                    Directory.CreateDirectory(AuthFolder);
+           
                 string logFileName = Folder + "log.txt";
                 
                 //If log file is bigger than 1 MB, move it to backup file and create new file
