@@ -1812,17 +1812,16 @@ namespace GoContactSyncMod
                     {
                         Logger.Log("Outlook default time zone: " + TimeZoneInfo.Local.Id, EventType.Information);
                         Logger.Log("Google default time zone: " + SyncAppointmentsGoogleTimeZone, EventType.Information);
-                        if (String.IsNullOrEmpty(Timezone))
-                        {
-                            if (TimeZoneChanges != null)
-                                TimeZoneChanges(SyncAppointmentsGoogleTimeZone);
+                        if (string.IsNullOrEmpty(Timezone))
+                        {                  
+                            TimeZoneChanges?.Invoke(SyncAppointmentsGoogleTimeZone);
                             Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
                         }
                         MappingBetweenTimeZonesRequired = false;
-                        if (AppointmentSync.WindowsToIana(TimeZoneInfo.Local.Id) != SyncAppointmentsGoogleTimeZone)
+                        if (TimeZoneInfo.Local.Id != AppointmentSync.IanaToWindows(SyncAppointmentsGoogleTimeZone))
                         {
                             MappingBetweenTimeZonesRequired = true;
-                            Logger.Log("Different time zones in Outlook (mapped to " + AppointmentSync.WindowsToIana(TimeZoneInfo.Local.Id) + ") and Google (" + SyncAppointmentsGoogleTimeZone + ")", EventType.Warning);
+                            Logger.Log("Different time zones in Outlook (" + TimeZoneInfo.Local.Id + ") and Google (mapped to " + AppointmentSync.IanaToWindows(SyncAppointmentsGoogleTimeZone) + ")", EventType.Warning);
                         }
                         MatchAppointments();
                     }

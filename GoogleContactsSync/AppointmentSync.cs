@@ -47,7 +47,7 @@ namespace GoContactSyncMod
         const string SU = "SU";
 
         // This will return the Windows zone that matches the IANA zone, if one exists.
-        private static string IanaToWindows(string ianaZoneId)
+        internal static string IanaToWindows(string ianaZoneId)
         {
             var utcZones = new[] { "Etc/UTC", "Etc/UCT", "Etc/GMT" };
             if (utcZones.Contains(ianaZoneId, StringComparer.Ordinal))
