@@ -623,7 +623,6 @@ namespace GoContactSyncMod
             }
         }
 
-
         private bool ValidSyncFolders
         {
             get
@@ -644,8 +643,25 @@ namespace GoContactSyncMod
 
                 return syncContactFolderIsValid && /*syncNoteFolderIsValid &&*/ syncAppointmentFolderIsValid;
             }
+        }
 
+        private bool ValidSyncContactFolders
+        {
+            get
+            {
+                return (contactFoldersComboBox.SelectedIndex >= 1 && contactFoldersComboBox.SelectedIndex < contactFoldersComboBox.Items.Count)
+                                                || !btSyncContacts.Checked;
+            }
+        }
 
+        private bool ValidSyncAppointmentFolders
+        {
+            get
+            {
+                return (appointmentFoldersComboBox.SelectedIndex >= 1 && appointmentFoldersComboBox.SelectedIndex < appointmentFoldersComboBox.Items.Count)
+                        && (appointmentGoogleFoldersComboBox.SelectedIndex == appointmentGoogleFoldersComboBox.Items.Count - 1 || appointmentGoogleFoldersComboBox.SelectedIndex >= 1 && appointmentGoogleFoldersComboBox.SelectedIndex < appointmentGoogleFoldersComboBox.Items.Count)
+                                                || !btSyncAppointments.Checked;
+            }
         }
 
         private bool ValidCredentials
@@ -702,8 +718,21 @@ namespace GoContactSyncMod
 
                 fillSyncFolderItems();
 
-                if (!ValidSyncFolders)
-                    throw new Exception("At least one Outlook folder is not selected or invalid! You have to choose one folder for each item you want to sync!");
+                if (!ValidSyncContactFolders)
+                {
+                    Logger.Log(@"contactFoldersComboBox.SelectedIndex: " + contactFoldersComboBox.SelectedIndex, EventType.Debug);
+                    Logger.Log(@"contactFoldersComboBox.Items.Count: " + contactFoldersComboBox.Items.Count, EventType.Debug);    
+                    throw new Exception("At least one Outlook contact folder is not selected or invalid!");
+                }
+
+                if (!ValidSyncAppointmentFolders)
+                {
+                    Logger.Log(@"appointmentFoldersComboBox.SelectedIndex: " + appointmentFoldersComboBox.SelectedIndex, EventType.Debug);
+                    Logger.Log(@"appointmentFoldersComboBox.Items.Count: " + appointmentFoldersComboBox.Items.Count, EventType.Debug);
+                    Logger.Log(@"appointmentGoogleFoldersComboBox.SelectedIndex: " + appointmentGoogleFoldersComboBox.SelectedIndex, EventType.Debug);
+                    Logger.Log(@"appointmentGoogleFoldersComboBox.Items.Count: " + appointmentGoogleFoldersComboBox.Items.Count, EventType.Debug);
+                    throw new Exception("At least one Outlook appointment folder is not selected or invalid!");
+                }
 
                 //IconTimerSwitch(true);
                 ThreadStart starter = new ThreadStart(Sync_ThreadStarter);
