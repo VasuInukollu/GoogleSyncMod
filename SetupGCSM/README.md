@@ -6,9 +6,9 @@
 
 **r687 - r692:
 
-FIX: Release memory while scanning Outlook items [bug #874]
-FIX: Added more detailed logging [bug #871]
-FIX: Handle situation when bitness is not set in registry [bug #876]
+- FIX: Release memory while scanning Outlook items [bug #874]
+- FIX: Added more detailed logging [bug #871]
+- FIX: Handle situation when bitness is not set in registry [bug #876]
 
 ## Version [3.10.3] - 03.10.2016 
 
