@@ -1407,31 +1407,38 @@ namespace GoContactSyncMod
                         var a = GetOutlookAppointmentById(oid);
                         if (a != null)
                         {
-                            string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, a);
+                            try
+                            {
+                                string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, a);
 
-                            //check to which Outlook appoinment Google event is linked
-                            if (AppointmentPropertiesUtils.GetGoogleId(e1) == gid)
-                            {
-                                AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e2);
-                                if (!string.IsNullOrEmpty(e2.Summary))
+                                //check to which Outlook appoinment Google event is linked
+                                if (AppointmentPropertiesUtils.GetGoogleId(e1) == gid)
                                 {
-                                    Logger.Log("Duplicated appointment: " + e2.Summary + ".", EventType.Debug);
+                                    AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e2);
+                                    if (!string.IsNullOrEmpty(e2.Summary))
+                                    {
+                                        Logger.Log("Duplicated appointment: " + e2.Summary + ".", EventType.Debug);
+                                    }
+                                    appointments[oid] = i;
                                 }
-                                appointments[oid] = i;
-                            }
-                            else if (AppointmentPropertiesUtils.GetGoogleId(e2) == gid)
-                            {
-                                AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e1);
-                                if (!string.IsNullOrEmpty(e1.Summary))
+                                else if (AppointmentPropertiesUtils.GetGoogleId(e2) == gid)
                                 {
-                                    Logger.Log("Duplicated appointment: " + e1.Summary + ".", EventType.Debug);
+                                    AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e1);
+                                    if (!string.IsNullOrEmpty(e1.Summary))
+                                    {
+                                        Logger.Log("Duplicated appointment: " + e1.Summary + ".", EventType.Debug);
+                                    }
+                                }
+                                else
+                                {
+                                    AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e1);
+                                    AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e2);
+                                    AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, a);
                                 }
                             }
-                            else
+                            finally
                             {
-                                AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e1);
-                                AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, e2);
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, a);
+                                Marshal.ReleaseComObject(a);
                             }
                         }
                         else
@@ -1493,38 +1500,45 @@ namespace GoContactSyncMod
                             appointments.Remove(gid);
                             continue;
                         }
-
-                        var e = GetGoogleAppointmentById(gid);
-                        if (e != null)
+                        try
                         {
-                            string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
-                            //check to which Outlook appoinment Google event is linked
-                            if (AppointmentPropertiesUtils.GetOutlookId(ola1) == oid)
+                            var e = GetGoogleAppointmentById(gid);
+                            if (e != null)
                             {
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola2);
-                                if (!string.IsNullOrEmpty(ola2.Subject))
+                                string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
+                                //check to which Outlook appoinment Google event is linked
+                                if (AppointmentPropertiesUtils.GetOutlookId(ola1) == oid)
                                 {
-                                    Logger.Log("Duplicated appointment: " + ola2.Subject + ".", EventType.Debug);
-                                }
+                                    AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola2);
+                                    if (!string.IsNullOrEmpty(ola2.Subject))
+                                    {
+                                        Logger.Log("Duplicated appointment: " + ola2.Subject + ".", EventType.Debug);
+                                    }
 
-                                appointments[gid] = i;
-                            }
-                            else if (AppointmentPropertiesUtils.GetOutlookId(ola2) == oid)
-                            {
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola1);
-                                if (!string.IsNullOrEmpty(ola1.Subject))
+                                    appointments[gid] = i;
+                                }
+                                else if (AppointmentPropertiesUtils.GetOutlookId(ola2) == oid)
                                 {
-                                    Logger.Log("Duplicated appointment: " + ola1.Subject + ".", EventType.Debug);
+                                    AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola1);
+                                    if (!string.IsNullOrEmpty(ola1.Subject))
+                                    {
+                                        Logger.Log("Duplicated appointment: " + ola1.Subject + ".", EventType.Debug);
+                                    }
+                                }
+                                else
+                                {
+                                    //duplicated Outlook appointments found, but Google event does not exist
+                                    //so lets clean the link from Outlook appointments  
+                                    AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola1);
+                                    AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola2);
+                                    appointments.Remove(gid);
                                 }
                             }
-                            else
-                            {
-                                //duplicated Outlook appointments found, but Google event does not exist
-                                //so lets clean the link from Outlook appointments  
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola1);
-                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola2);
-                                appointments.Remove(gid);
-                            }
+                        }
+                        finally
+                        {
+                            if (ola2 != null)
+                                Marshal.ReleaseComObject(ola2);
                         }
                     }
                     else
@@ -1540,6 +1554,11 @@ namespace GoContactSyncMod
                     else
                         Logger.Log("Accessing Outlook appointment threw and exception. Skipping: " + ex.Message, EventType.Warning);
                     continue;
+                }
+                finally
+                {
+                    if (ola1 != null)
+                        Marshal.ReleaseComObject(ola1);
                 }
             }
         }
@@ -1578,30 +1597,38 @@ namespace GoContactSyncMod
                         var a = GetOutlookContactById(oid);
                         if (a != null)
                         {
-                            string gid = ContactPropertiesUtils.GetOutlookGoogleContactId(this, a);
-                            //check to which Outlook contact Google contact is linked
-                            if (ContactPropertiesUtils.GetGoogleId(c1) == gid)
+                            try
                             {
-                                ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c2);
-                                if (!string.IsNullOrEmpty(c2.Title))
+                                string gid = ContactPropertiesUtils.GetOutlookGoogleContactId(this, a);
+                                //check to which Outlook contact Google contact is linked
+                                if (ContactPropertiesUtils.GetGoogleId(c1) == gid)
                                 {
-                                    Logger.Log("Duplicated contact: " + c2.Title + ".", EventType.Debug);
+                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c2);
+                                    if (!string.IsNullOrEmpty(c2.Title))
+                                    {
+                                        Logger.Log("Duplicated contact: " + c2.Title + ".", EventType.Debug);
+                                    }
+                                    contacts[oid] = i;
                                 }
-                                contacts[oid] = i;
-                            }
-                            else if (ContactPropertiesUtils.GetGoogleId(c2) == gid)
-                            {
-                                ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c1);
-                                if (!string.IsNullOrEmpty(c1.Title))
+                                else if (ContactPropertiesUtils.GetGoogleId(c2) == gid)
                                 {
-                                    Logger.Log("Duplicated contact: " + c1.Title + ".", EventType.Debug);
+                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c1);
+                                    if (!string.IsNullOrEmpty(c1.Title))
+                                    {
+                                        Logger.Log("Duplicated contact: " + c1.Title + ".", EventType.Debug);
+                                    }
+                                }
+                                else
+                                {
+                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c1);
+                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c2);
+                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, a);
                                 }
                             }
-                            else
+                            finally
                             {
-                                ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c1);
-                                ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c2);
-                                ContactPropertiesUtils.ResetOutlookGoogleContactId(this, a);
+                                if (a != null)
+                                    Marshal.ReleaseComObject(a);
                             }
                         }
                         else
@@ -1663,45 +1690,52 @@ namespace GoContactSyncMod
                             contacts.Remove(gid);
                             continue;
                         }
-
-                        var c = GetGoogleContactById(gid);
-                        if (c != null)
+                        try
                         {
-                            string oid = ContactPropertiesUtils.GetGoogleOutlookContactId(SyncProfile, c);
-                            //check to which Outlook contact Google contact is linked
-                            if (ContactPropertiesUtils.GetOutlookId(olc1) == oid)
+                            var c = GetGoogleContactById(gid);
+                            if (c != null)
                             {
-                                ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
-                                if (!string.IsNullOrEmpty(olc2.FileAs))
+                                string oid = ContactPropertiesUtils.GetGoogleOutlookContactId(SyncProfile, c);
+                                //check to which Outlook contact Google contact is linked
+                                if (ContactPropertiesUtils.GetOutlookId(olc1) == oid)
                                 {
-                                    Logger.Log("Duplicated contact: " + olc2.FileAs + ".", EventType.Debug);
+                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
+                                    if (!string.IsNullOrEmpty(olc2.FileAs))
+                                    {
+                                        Logger.Log("Duplicated contact: " + olc2.FileAs + ".", EventType.Debug);
+                                    }
+                                    contacts[oid] = i;
                                 }
-                                contacts[oid] = i;
-                            }
-                            else if (ContactPropertiesUtils.GetOutlookId(olc2) == oid)
-                            {
-                                ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
-                                if (!string.IsNullOrEmpty(olc1.FileAs))
+                                else if (ContactPropertiesUtils.GetOutlookId(olc2) == oid)
                                 {
-                                    Logger.Log("Duplicated contact: " + olc1.FileAs + ".", EventType.Debug);
+                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
+                                    if (!string.IsNullOrEmpty(olc1.FileAs))
+                                    {
+                                        Logger.Log("Duplicated contact: " + olc1.FileAs + ".", EventType.Debug);
+                                    }
+                                }
+                                else
+                                {
+                                    //duplicated Outlook contacts found, but Google contact does not exist
+                                    //so lets clean the link from Outlook contacts  
+                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
+                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
+                                    contacts.Remove(gid);
                                 }
                             }
                             else
                             {
                                 //duplicated Outlook contacts found, but Google contact does not exist
-                                //so lets clean the link from Outlook contacts  
+                                //so lets clean the link from Outlook contacts
                                 ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
                                 ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
                                 contacts.Remove(gid);
                             }
                         }
-                        else
+                        finally
                         {
-                            //duplicated Outlook contacts found, but Google contact does not exist
-                            //so lets clean the link from Outlook contacts
-                            ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
-                            ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
-                            contacts.Remove(gid);
+                            if (olc2 != null)
+                                Marshal.ReleaseComObject(olc2);
                         }
                     }
                     else
@@ -1717,6 +1751,11 @@ namespace GoContactSyncMod
                     else
                         Logger.Log("Accessing Outlook contact threw and exception. Skipping: " + ex.Message, EventType.Debug);
                     continue;
+                }
+                finally
+                {
+                    if (olc1 != null)
+                        Marshal.ReleaseComObject(olc1);
                 }
             }
         }
