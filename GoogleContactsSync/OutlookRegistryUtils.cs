@@ -10,22 +10,41 @@ namespace GoContactSyncMod
         public static string GetOutlookVersion()
         {
             string ret = string.Empty;
+            RegistryKey registryOutlookKey = null;
 
-            int outlookVersion = GetMajorVersion(GetOutlookPath());
-            ret = GetMajorVersionToString(outlookVersion);
-
-            string outlookKey = @"Software\Wow6432Node\Microsoft\Office\" + outlookVersion + @".0\Outlook";
-            RegistryKey registryOutlookKey = Registry.LocalMachine.OpenSubKey(outlookKey, false);
-                
-            if (registryOutlookKey != null)
+            try
             {
-                string bitness = registryOutlookKey.GetValue(@"Bitness").ToString();
-                if (bitness == "x86")
-                    return ret + " (32-bit)";
-                else if (bitness == "x64")
-                    return ret + " (64-bit)";
-                else
-                    return ret + " (unknown)";
+                int outlookVersion = GetMajorVersion(GetOutlookPath());
+                ret = GetMajorVersionToString(outlookVersion);
+
+                string outlookKey = @"Software\Wow6432Node\Microsoft\Office\" + outlookVersion + @".0\Outlook";
+                registryOutlookKey = Registry.LocalMachine.OpenSubKey(outlookKey, false);
+
+                if (registryOutlookKey != null)
+                {
+                    string bitness = registryOutlookKey.GetValue(@"Bitness", @" (unknown bitness)").ToString();
+                    if (string.IsNullOrEmpty(bitness))
+                    {
+                        return ret + @" (unknown bitness)";
+                    }
+                    else
+                    {
+                        if (bitness == @"x86")
+                            return ret + @" (32-bit)";
+                        else if (bitness == @"x64")
+                            return ret + @" (64-bit)";
+                        else
+                            return ret + @" (unknown)";
+                    }
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                if (registryOutlookKey != null)
+                    registryOutlookKey.Close();
             }
 
             return ret;
@@ -37,7 +56,7 @@ namespace GoContactSyncMod
             string diagnosis = CheckOfficeRegistry(outlookVersion);
             return "Could not connect to 'Microsoft Outlook'.\r\nYou have " + GetMajorVersionToString(outlookVersion) + " installed.\r\n" + diagnosis;
         }
-           
+
         private static string CheckOfficeRegistry(int outlookVersion)
         {
             string toReturn = string.Empty;
