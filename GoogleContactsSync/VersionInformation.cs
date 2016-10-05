@@ -107,20 +107,26 @@ namespace GoContactSyncMod
                     response.EnsureSuccessStatusCode();
                     var stream = await response.Content.ReadAsStreamAsync();
                     var doc = XDocument.Load(stream);
-                    
-                    var webVersionNumber = new Version(doc.Element("Version").Value);
-                    //compare both versions
-                    var result = webVersionNumber.CompareTo(getGCSMVersion());
-                    if (result > 0)
-                    {   //newer version found
-                        Logger.Log("New version of GCSM detected on sf.net!", EventType.Information);
-                        return true;
+
+                    var strVersion = doc.Element("Version").Value;
+                    if (!string.IsNullOrEmpty(strVersion))
+                    {
+                        var webVersionNumber = new Version(strVersion);
+                        //compare both versions
+                        var result = webVersionNumber.CompareTo(getGCSMVersion());
+                        if (result > 0)
+                        {   //newer version found
+                            Logger.Log("New version of GCSM detected on sf.net!", EventType.Information);
+                            return true;
+                        }
+                        else
+                        {   //older or same version found
+                            Logger.Log("Version of GCSM is uptodate.", EventType.Information);
+                            return false;
+                        }
                     }
                     else
-                    {   //older or same version found
-                        Logger.Log("Version of GCSM is uptodate.", EventType.Information);
                         return false;
-                    }
                 }
             }
             catch (Exception ex)
