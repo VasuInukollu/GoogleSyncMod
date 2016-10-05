@@ -328,6 +328,12 @@ namespace GoContactSyncMod
                     }
 
                     LoadSettingsFolders(SyncProfile);
+
+                    if (contactFoldersComboBox.SelectedIndex == -1)
+                        contactFoldersComboBox.SelectedIndex = 0;
+
+                    if (appointmentFoldersComboBox.SelectedIndex == -1)
+                        appointmentFoldersComboBox.SelectedIndex = 0;
                 }
             }
         }
