@@ -19,7 +19,11 @@ namespace GoContactSyncMod
 
                 string outlookKey = @"Software\Wow6432Node\Microsoft\Office\" + outlookVersion + @".0\Outlook";
                 registryOutlookKey = Registry.LocalMachine.OpenSubKey(outlookKey, false);
-
+                if (registryOutlookKey == null)
+                {
+                    outlookKey = @"Software\Microsoft\Office\" + outlookVersion + @".0\Outlook";
+                    registryOutlookKey = Registry.LocalMachine.OpenSubKey(outlookKey, false);
+                }
                 if (registryOutlookKey != null)
                 {
                     string bitness = registryOutlookKey.GetValue(@"Bitness", @" (unknown bitness)").ToString();
