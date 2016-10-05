@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace GoContactSyncMod
@@ -126,6 +127,10 @@ namespace GoContactSyncMod
             if (ex.InnerException != null)
             {
                 Log("Inner Exception Type: " + ex.InnerException.GetType().ToString(), eventType);
+                if (ex.InnerException is COMException)
+                {
+                    Log("Inner Error Code: " + ((COMException)ex.InnerException).ErrorCode.ToString("X"), eventType);
+                }
                 Log("Inner Exception: " + ex.InnerException.Message, eventType);
                 Log("Inner Source: " + ex.InnerException.Source, eventType);
                 if (ex.InnerException.StackTrace != null)
@@ -134,6 +139,10 @@ namespace GoContactSyncMod
                 }
             }
             Log("Exception Type: " + ex.GetType().ToString(), eventType);
+            if (ex is COMException)
+            {
+                Log("Error Code: " + ((COMException)ex).ErrorCode.ToString("X"), eventType);
+            }
             Log("Exception: " + ex.Message, eventType);
             Log("Source: " + ex.Source, eventType);
             if (ex.StackTrace != null)
@@ -144,7 +153,7 @@ namespace GoContactSyncMod
             Thread.CurrentThread.CurrentCulture = oldCI;
             Thread.CurrentThread.CurrentUICulture = oldCI;
         }
-
+        
         /*
         public void LogUnique(string message, EventType eventType)
         {
@@ -154,7 +163,7 @@ namespace GoContactSyncMod
         }
         */
 
-		public static void ClearLog()
+        public static void ClearLog()
         {
             messages.Clear();
         }
