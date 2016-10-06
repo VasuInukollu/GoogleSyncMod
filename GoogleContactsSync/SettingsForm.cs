@@ -948,7 +948,7 @@ namespace GoContactSyncMod
             {
                 SetLastSyncText("Sync failed.");
                 notifyIcon.Text = Application.ProductName + "\nSync failed";
-
+                Logger.Log(ex, EventType.Debug);
                 if (ex is COMException)
                 {
                     string message = "Outlook exception, please assure that Outlook is running and not closed when syncing";
