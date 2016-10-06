@@ -1,3 +1,4 @@
+using Google.Contacts;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -127,9 +128,11 @@ namespace GoContactSyncMod
             if (ex.InnerException != null)
             {
                 Log("Inner Exception Type: " + ex.InnerException.GetType().ToString(), eventType);
-                if (ex.InnerException is COMException)
+
+                COMException ci = ex.InnerException as COMException;
+                if (ci != null)
                 {
-                    Log("Inner Error Code: " + ((COMException)ex.InnerException).ErrorCode.ToString("X"), eventType);
+                    Log("Inner Error Code: " + ci.ErrorCode.ToString("X"), eventType);
                 }
                 Log("Inner Exception: " + ex.InnerException.Message, eventType);
                 Log("Inner Source: " + ex.InnerException.Source, eventType);
@@ -139,9 +142,10 @@ namespace GoContactSyncMod
                 }
             }
             Log("Exception Type: " + ex.GetType().ToString(), eventType);
-            if (ex is COMException)
+            COMException c = ex as COMException;
+            if (c != null)
             {
-                Log("Error Code: " + ((COMException)ex).ErrorCode.ToString("X"), eventType);
+                Log("Error Code: " + c.ErrorCode.ToString("X"), eventType);
             }
             Log("Exception: " + ex.Message, eventType);
             Log("Source: " + ex.Source, eventType);
