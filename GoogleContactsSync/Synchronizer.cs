@@ -263,6 +263,8 @@ namespace GoContactSyncMod
                                 {
                                     SyncAppointmentsGoogleFolder = calendar.Id;
                                     SyncAppointmentsGoogleTimeZone = calendar.TimeZone;
+                                    if (string.IsNullOrEmpty(SyncAppointmentsGoogleTimeZone))
+                                        Logger.Log("Empty Google time zone for calendar" + calendar.Id, EventType.Debug);
                                     break;
                                 }
                             }
@@ -274,6 +276,8 @@ namespace GoContactSyncMod
                                 if (calendar.Id == SyncAppointmentsGoogleFolder)
                                 {
                                     SyncAppointmentsGoogleTimeZone = calendar.TimeZone;
+                                    if (string.IsNullOrEmpty(SyncAppointmentsGoogleTimeZone))
+                                        Logger.Log("Empty Google time zone for calendar" + calendar.Id, EventType.Debug);
                                     break;
                                 }
                             }
@@ -3446,9 +3450,10 @@ namespace GoContactSyncMod
                 {
                     return ContactsRequest.Insert(feedUri, group);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    //TODO: save google group xml for diagnistics
+                    Logger.Log(ex, EventType.Debug);
+                    Logger.Log("Group dump: " + group.ToString (), EventType.Debug);
                     throw;
                 }
             }
