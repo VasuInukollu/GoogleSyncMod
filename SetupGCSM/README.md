@@ -1,10 +1,21 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.5] - 06.10.2016 
+
+### SVN commits
+
+**r695 - r704:
+
+- FIX: Add more logging [bugs #871, #877, #878, #879]
+- FIX: Improved logging for COMExceptions [bug #871]
+- FIX: In case folder was set not correctly, switch to default one [bug #871]
+- FIX: Avoid exception if version information cannot be read 
+
 ## Version [3.10.4] - 04.10.2016 
 
 ### SVN commits
 
-**r687 - r692:
+**r689 - r694:
 
 - FIX: Release memory while scanning Outlook items [bug #874]
 - FIX: Added more detailed logging [bug #871]
@@ -14,7 +25,7 @@
 
 ### SVN commits
 
-**r672 - r686:
+**r672 - r688:
 
 - UPDATE: Update NuGet packages to latest version. 
 - FIX: Corrected time zone mapping between Google and Outlook
