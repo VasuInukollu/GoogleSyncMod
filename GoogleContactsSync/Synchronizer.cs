@@ -502,7 +502,6 @@ namespace GoContactSyncMod
                 {
                     _outlookNamespace.GetFolderFromID(SyncContactsFolder);
                 }
-
             }
             catch (COMException ex)
             {
@@ -510,6 +509,30 @@ namespace GoContactSyncMod
                 {
                     Logger.Log(ex, EventType.Debug);
                     throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
+                }
+                else if (ex.ErrorCode == unchecked((int)0x80040111)) //"The server is not available. Contact your administrator if this condition persists."
+                {
+                    try
+                    {
+                        Logger.Log("Trying to logon, 1st try", EventType.Debug);
+                        _outlookNamespace.Logon("", "", false, false);
+                        Logger.Log("1st try OK", EventType.Debug);
+                    }
+                    catch (Exception e1)
+                    { 
+                        Logger.Log(e1, EventType.Debug);
+                        try
+                        {
+                            Logger.Log("Trying to logon, 2nd try", EventType.Debug);
+                            _outlookNamespace.Logon("", "", true, true);
+                            Logger.Log("2nd try OK", EventType.Debug);
+                        }
+                        catch (Exception e2)
+                        {
+                            Logger.Log(e2, EventType.Debug);
+                            throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", e2);
+                        }
+                    }
                 }
                 else
                 {
