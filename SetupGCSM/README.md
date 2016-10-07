@@ -1,10 +1,19 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.6] - 07.10.2016 
+
+### SVN commits
+
+**r704 - r7045:
+
+- FIX: Logon to MAPI in case of exception [bug]
+
+
 ## Version [3.10.5] - 06.10.2016 
 
 ### SVN commits
 
-**r695 - r704:
+**r695 - r703:
 
 - FIX: Add more logging [bugs #871, #877, #878, #879]
 - FIX: Improved logging for COMExceptions [bug #871]
