@@ -4,10 +4,10 @@
 
 ### SVN commits
 
-**r704 - r7045:
+**r704 - r708:
 
-- FIX: Logon to MAPI in case of exception [bug]
-
+- FIX: Logon to MAPI in case of exception [bug #871]
+- FIX: Select the first item in folder combo [bug #871]
 
 ## Version [3.10.5] - 06.10.2016 
 
