@@ -329,10 +329,10 @@ namespace GoContactSyncMod
 
                     LoadSettingsFolders(SyncProfile);
 
-                    if (contactFoldersComboBox.SelectedIndex == -1)
+                    if ((contactFoldersComboBox.SelectedIndex == -1) && (contactFoldersComboBox.Items.Count>0))
                         contactFoldersComboBox.SelectedIndex = 0;
 
-                    if (appointmentFoldersComboBox.SelectedIndex == -1)
+                    if ((appointmentFoldersComboBox.SelectedIndex == -1) && (appointmentFoldersComboBox.Items.Count>0))
                         appointmentFoldersComboBox.SelectedIndex = 0;
                 }
             }
