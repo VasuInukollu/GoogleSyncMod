@@ -148,7 +148,7 @@ namespace GoContactSyncMod
             InitializeComponent();
             Text = Text + " - " + Application.ProductVersion;
             Logger.LogUpdated += new Logger.LogUpdatedHandler(Logger_LogUpdated);
-            Logger.Log("Started application " + Application.ProductName + " (" + Application.ProductVersion + ") on " + VersionInformation.GetWindowsVersion() +" and " + OutlookRegistryUtils.GetOutlookVersion(), EventType.Information);
+            Logger.Log("Started application " + Application.ProductName + " (" + Application.ProductVersion + ") on " + VersionInformation.GetWindowsVersion() + " and " + OutlookRegistryUtils.GetOutlookVersion(), EventType.Information);
             Logger.Log("Detailed log file created: " + Logger.Folder + "log.txt", EventType.Information);
             ContactsMatcher.NotificationReceived += new ContactsMatcher.NotificationHandler(OnNotificationReceived);
             NotesMatcher.NotificationReceived += new NotesMatcher.NotificationHandler(OnNotificationReceived);
@@ -200,140 +200,148 @@ namespace GoContactSyncMod
         }
         private void fillSyncFolderItems()
         {
-            lock (syncRoot)
+            if (this.InvokeRequired)
             {
-                if (this.contactFoldersComboBox.DataSource == null || /*this.noteFoldersComboBox.DataSource == null ||*/ this.appointmentFoldersComboBox.DataSource == null || this.appointmentGoogleFoldersComboBox.DataSource == null && btSyncAppointments.Checked ||
-                    this.contactFoldersComboBox.Items.Count == 0 || /*this.noteFoldersComboBox.Items.Count == 0 ||*/ this.appointmentFoldersComboBox.Items.Count == 0 || this.appointmentGoogleFoldersComboBox.Items.Count == 0 && btSyncAppointments.Checked)
-                {//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                    Logger.Log("Loading Outlook folders...", EventType.Information);
+                Invoke(new InvokeCallback(fillSyncFolderItems));
+            }
+            else
+            {
 
-                    this.contactFoldersComboBox.Visible = this.btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
-                    //this.noteFoldersComboBox.Visible = btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                    this.labelTimezone.Visible = this.labelMonthsPast.Visible = this.labelMonthsFuture.Visible = btSyncAppointments.Checked;
-                    this.appointmentFoldersComboBox.Visible = this.appointmentGoogleFoldersComboBox.Visible = this.futureMonthInterval.Visible = this.pastMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = this.btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
-                    this.cmbSyncProfile.Visible = true;
+                lock (syncRoot)
+                {
+                    if (this.contactFoldersComboBox.DataSource == null || /*this.noteFoldersComboBox.DataSource == null ||*/ this.appointmentFoldersComboBox.DataSource == null || this.appointmentGoogleFoldersComboBox.DataSource == null && btSyncAppointments.Checked ||
+                        this.contactFoldersComboBox.Items.Count == 0 || /*this.noteFoldersComboBox.Items.Count == 0 ||*/ this.appointmentFoldersComboBox.Items.Count == 0 || this.appointmentGoogleFoldersComboBox.Items.Count == 0 && btSyncAppointments.Checked)
+                    {//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                        Logger.Log("Loading Outlook folders...", EventType.Information);
 
-                    string defaultText = "    --- Select an Outlook folder ---";
-                    ArrayList outlookContactFolders = new ArrayList();
-                    ArrayList outlookNoteFolders = new ArrayList();
-                    ArrayList outlookAppointmentFolders = new ArrayList();
+                        this.contactFoldersComboBox.Visible = this.btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
+                        //this.noteFoldersComboBox.Visible = btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                        this.labelTimezone.Visible = this.labelMonthsPast.Visible = this.labelMonthsFuture.Visible = btSyncAppointments.Checked;
+                        this.appointmentFoldersComboBox.Visible = this.appointmentGoogleFoldersComboBox.Visible = this.futureMonthInterval.Visible = this.pastMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = this.btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
+                        this.cmbSyncProfile.Visible = true;
 
-                    try
-                    {
-                        Cursor = Cursors.WaitCursor;
-                        SuspendLayout();
+                        string defaultText = "    --- Select an Outlook folder ---";
+                        ArrayList outlookContactFolders = new ArrayList();
+                        ArrayList outlookNoteFolders = new ArrayList();
+                        ArrayList outlookAppointmentFolders = new ArrayList();
 
-                        this.contactFoldersComboBox.BeginUpdate();
-                        //this.noteFoldersComboBox.BeginUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                        this.appointmentFoldersComboBox.BeginUpdate();
-                        this.contactFoldersComboBox.DataSource = null;
-                        //this.noteFoldersComboBox.DataSource = null;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                        this.appointmentFoldersComboBox.DataSource = null;
-                        //this.contactFoldersComboBox.Items.Clear();
-
-                        Microsoft.Office.Interop.Outlook.Folders folders = Synchronizer.OutlookNameSpace.Folders;
-                        foreach (Microsoft.Office.Interop.Outlook.Folder folder in folders)
+                        try
                         {
-                            try
+                            Cursor = Cursors.WaitCursor;
+                            SuspendLayout();
+
+                            this.contactFoldersComboBox.BeginUpdate();
+                            //this.noteFoldersComboBox.BeginUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                            this.appointmentFoldersComboBox.BeginUpdate();
+                            this.contactFoldersComboBox.DataSource = null;
+                            //this.noteFoldersComboBox.DataSource = null;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                            this.appointmentFoldersComboBox.DataSource = null;
+                            //this.contactFoldersComboBox.Items.Clear();
+
+                            Microsoft.Office.Interop.Outlook.Folders folders = Synchronizer.OutlookNameSpace.Folders;
+                            foreach (Microsoft.Office.Interop.Outlook.Folder folder in folders)
                             {
-                                GetOutlookMAPIFolders(outlookContactFolders, outlookNoteFolders, outlookAppointmentFolders, folder);
+                                try
+                                {
+                                    GetOutlookMAPIFolders(outlookContactFolders, outlookNoteFolders, outlookAppointmentFolders, folder);
+                                }
+                                catch (Exception e)
+                                {
+                                    Logger.Log(e, EventType.Debug);
+                                    Logger.Log("Error getting available Outlook folders: " + e.Message, EventType.Warning);
+                                }
                             }
-                            catch (Exception e)
+
+                            if (outlookContactFolders != null) // && outlookContactFolders.Count > 0)
                             {
-                                Logger.Log(e, EventType.Debug);
-                                Logger.Log("Error getting available Outlook folders: " + e.Message, EventType.Warning);
+                                outlookContactFolders.Sort();
+                                outlookContactFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
+                                this.contactFoldersComboBox.DataSource = outlookContactFolders;
+                                this.contactFoldersComboBox.DisplayMember = "DisplayName";
+                                this.contactFoldersComboBox.ValueMember = "FolderID";
                             }
+
+
+                            //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                            //if (outlookNoteFolders != null) // && outlookNoteFolders.Count > 0)
+                            //{
+                            //    outlookNoteFolders.Sort();
+                            //    outlookNoteFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
+                            //    this.noteFoldersComboBox.DataSource = outlookNoteFolders;
+                            //    this.noteFoldersComboBox.DisplayMember = "DisplayName";
+                            //    this.noteFoldersComboBox.ValueMember = "FolderID";
+                            //}
+
+                            if (outlookAppointmentFolders != null) // && outlookAppointmentFolders.Count > 0)
+                            {
+                                outlookAppointmentFolders.Sort();
+                                outlookAppointmentFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
+                                this.appointmentFoldersComboBox.DataSource = outlookAppointmentFolders;
+                                this.appointmentFoldersComboBox.DisplayMember = "DisplayName";
+                                this.appointmentFoldersComboBox.ValueMember = "FolderID";
+                            }
+
+                            this.contactFoldersComboBox.EndUpdate();
+                            //this.noteFoldersComboBox.EndUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                            this.appointmentFoldersComboBox.EndUpdate();
+
+                            this.contactFoldersComboBox.SelectedValue = defaultText;
+                            //this.noteFoldersComboBox.SelectedValue = defaultText;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                            this.appointmentFoldersComboBox.SelectedValue = defaultText;
+
+                            //this.contactFoldersComboBox.SelectedValue = "";
+                            //this.noteFoldersComboBox.SelectedValue = "";
+                            //this.appointmentFoldersComboBox.SelectedValue = "";
+
+                            //Select Default Folder per Default
+                            foreach (OutlookFolder folder in contactFoldersComboBox.Items)
+                                if (folder.IsDefaultFolder)
+                                {
+                                    this.contactFoldersComboBox.SelectedValue = folder.FolderID;
+                                    break;
+                                }
+
+                            //Select Default Folder per Default
+                            //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                            //foreach (OutlookFolder folder in noteFoldersComboBox.Items)
+                            //    if (folder.IsDefaultFolder)
+                            //    {
+                            //        this.noteFoldersComboBox.SelectedItem = folder;
+                            //        break;
+                            //    }
+
+                            //Select Default Folder per Default
+                            foreach (OutlookFolder folder in appointmentFoldersComboBox.Items)
+                                if (folder.IsDefaultFolder)
+                                {
+                                    this.appointmentFoldersComboBox.SelectedItem = folder;
+                                    break;
+                                }
+
+                            Logger.Log("Loaded Outlook folders.", EventType.Information);
+
                         }
 
-                        if (outlookContactFolders != null) // && outlookContactFolders.Count > 0)
+                        catch (Exception e)
                         {
-                            outlookContactFolders.Sort();
-                            outlookContactFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
-                            this.contactFoldersComboBox.DataSource = outlookContactFolders;
-                            this.contactFoldersComboBox.DisplayMember = "DisplayName";
-                            this.contactFoldersComboBox.ValueMember = "FolderID";
+                            Logger.Log(e, EventType.Debug);
+                            Logger.Log("Error getting available Outlook and Google folders: " + e.Message, EventType.Warning);
+
+                        }
+                        finally
+                        {
+                            Cursor = Cursors.Default;
+                            ResumeLayout();
                         }
 
+                        LoadSettingsFolders(SyncProfile);
 
-                        //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                        //if (outlookNoteFolders != null) // && outlookNoteFolders.Count > 0)
-                        //{
-                        //    outlookNoteFolders.Sort();
-                        //    outlookNoteFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
-                        //    this.noteFoldersComboBox.DataSource = outlookNoteFolders;
-                        //    this.noteFoldersComboBox.DisplayMember = "DisplayName";
-                        //    this.noteFoldersComboBox.ValueMember = "FolderID";
-                        //}
+                        if ((contactFoldersComboBox.SelectedIndex == -1) && (contactFoldersComboBox.Items.Count > 0))
+                            contactFoldersComboBox.SelectedIndex = 0;
 
-                        if (outlookAppointmentFolders != null) // && outlookAppointmentFolders.Count > 0)
-                        {
-                            outlookAppointmentFolders.Sort();
-                            outlookAppointmentFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
-                            this.appointmentFoldersComboBox.DataSource = outlookAppointmentFolders;
-                            this.appointmentFoldersComboBox.DisplayMember = "DisplayName";
-                            this.appointmentFoldersComboBox.ValueMember = "FolderID";
-                        }
-
-                        this.contactFoldersComboBox.EndUpdate();
-                        //this.noteFoldersComboBox.EndUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                        this.appointmentFoldersComboBox.EndUpdate();
-
-                        this.contactFoldersComboBox.SelectedValue = defaultText;
-                        //this.noteFoldersComboBox.SelectedValue = defaultText;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                        this.appointmentFoldersComboBox.SelectedValue = defaultText;
-
-                        //this.contactFoldersComboBox.SelectedValue = "";
-                        //this.noteFoldersComboBox.SelectedValue = "";
-                        //this.appointmentFoldersComboBox.SelectedValue = "";
-
-                        //Select Default Folder per Default
-                        foreach (OutlookFolder folder in contactFoldersComboBox.Items)
-                            if (folder.IsDefaultFolder)
-                            {
-                                this.contactFoldersComboBox.SelectedValue = folder.FolderID;
-                                break;
-                            }
-
-                        //Select Default Folder per Default
-                        //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                        //foreach (OutlookFolder folder in noteFoldersComboBox.Items)
-                        //    if (folder.IsDefaultFolder)
-                        //    {
-                        //        this.noteFoldersComboBox.SelectedItem = folder;
-                        //        break;
-                        //    }
-
-                        //Select Default Folder per Default
-                        foreach (OutlookFolder folder in appointmentFoldersComboBox.Items)
-                            if (folder.IsDefaultFolder)
-                            {
-                                this.appointmentFoldersComboBox.SelectedItem = folder;
-                                break;
-                            }
-
-                        Logger.Log("Loaded Outlook folders.", EventType.Information);
-
+                        if ((appointmentFoldersComboBox.SelectedIndex == -1) && (appointmentFoldersComboBox.Items.Count > 0))
+                            appointmentFoldersComboBox.SelectedIndex = 0;
                     }
-
-                    catch (Exception e)
-                    {
-                        Logger.Log(e, EventType.Debug);
-                        Logger.Log("Error getting available Outlook and Google folders: " + e.Message, EventType.Warning);
-
-                    }
-                    finally
-                    {
-                        Cursor = Cursors.Default;
-                        ResumeLayout();
-                    }
-
-                    LoadSettingsFolders(SyncProfile);
-
-                    if ((contactFoldersComboBox.SelectedIndex == -1) && (contactFoldersComboBox.Items.Count>0))
-                        contactFoldersComboBox.SelectedIndex = 0;
-
-                    if ((appointmentFoldersComboBox.SelectedIndex == -1) && (appointmentFoldersComboBox.Items.Count>0))
-                        appointmentFoldersComboBox.SelectedIndex = 0;
                 }
             }
         }
@@ -557,7 +565,10 @@ namespace GoContactSyncMod
 
             string regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncContactsFolder) as string;
             if (!string.IsNullOrEmpty(regKeyValueStr))
-                contactFoldersComboBox.SelectedValue = regKeyValueStr;
+            {
+                if (contactFoldersComboBox.Items.Contains(regKeyValueStr))
+                    contactFoldersComboBox.SelectedValue = regKeyValueStr;
+            }
             //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             //regKeyValue = regKeyAppRoot.GetValue(RegistrySyncNotesFolder);
             //if (regKeyValue != null && !string.IsNullOrEmpty(regKeyValue as string))
@@ -565,7 +576,10 @@ namespace GoContactSyncMod
 
             regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncAppointmentsFolder) as string;
             if (!string.IsNullOrEmpty(regKeyValueStr))
-                appointmentFoldersComboBox.SelectedValue = regKeyValueStr;
+            {
+                if (appointmentFoldersComboBox.Items.Contains(regKeyValueStr))
+                    appointmentFoldersComboBox.SelectedValue = regKeyValueStr;
+            }
 
             regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncAppointmentsGoogleFolder) as string;
             if (!string.IsNullOrEmpty(regKeyValueStr))
@@ -727,7 +741,7 @@ namespace GoContactSyncMod
                 if (!ValidSyncContactFolders)
                 {
                     Logger.Log(@"contactFoldersComboBox.SelectedIndex: " + contactFoldersComboBox.SelectedIndex, EventType.Debug);
-                    Logger.Log(@"contactFoldersComboBox.Items.Count: " + contactFoldersComboBox.Items.Count, EventType.Debug);    
+                    Logger.Log(@"contactFoldersComboBox.Items.Count: " + contactFoldersComboBox.Items.Count, EventType.Debug);
                     throw new Exception("At least one Outlook contact folder is not selected or invalid!");
                 }
 
