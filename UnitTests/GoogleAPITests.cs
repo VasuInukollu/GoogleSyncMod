@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using NUnit.Framework;
 using Google.GData.Contacts;
 using Google.GData.Client;
 using Google.GData.Extensions;
-using System.Configuration;
 using Google.Contacts;
 using Google.Documents;
 using Google.GData.Client.ResumableUpload;
@@ -39,7 +37,7 @@ namespace GoContactSyncMod.UnitTests
                 _logUpdateHandler = new Logger.LogUpdatedHandler(Logger_LogUpdated);
                 Logger.LogUpdated += _logUpdateHandler;
             }
-        }    
+        }
 
         [Test]
         public void CreateNewContact()
@@ -63,7 +61,7 @@ namespace GoContactSyncMod.UnitTests
 
             UserCredential credential;
             byte[] jsonSecrets = Properties.Resources.client_secrets;
-            
+
             using (var stream = new MemoryStream(jsonSecrets))
             {
                 FileDataStore fDS = new FileDataStore(Logger.AuthFolder, true);
@@ -77,7 +75,7 @@ namespace GoContactSyncMod.UnitTests
                                 CancellationToken.None,
                                 fDS).
                                 Result;
-                
+
                 OAuth2Parameters parameters = new OAuth2Parameters
                 {
                     ClientId = clientSecrets.Secrets.ClientId,
@@ -87,13 +85,13 @@ namespace GoContactSyncMod.UnitTests
                     AccessToken = credential.Token.AccessToken,
                     RefreshToken = credential.Token.RefreshToken
                 };
-               
+
                 RequestSettings settings = new RequestSettings("GoContactSyncMod", parameters);
 
                 service = new ContactsRequest(settings);
             }
 
-            
+
 
 
             #region Delete previously created test contact.
@@ -176,11 +174,11 @@ namespace GoContactSyncMod.UnitTests
 
             UserCredential credential;
             byte[] jsonSecrets = Properties.Resources.client_secrets;
-            
+
             //using (var stream = new FileStream(Path.GetDirectoryName(System.Reflection.Assembly.GetAssembly(this.GetType()).Location) + "\\client_secrets.json", FileMode.Open, FileAccess.Read))
             //using (var stream = new FileStream("client_secrets.json", FileMode.Open, FileAccess.Read))
-                    //using (var stream = new FileStream(Application.StartupPath + "\\client_secrets.json", FileMode.Open, FileAccess.Read))
-            using (var stream = new MemoryStream(jsonSecrets))            
+            //using (var stream = new FileStream(Application.StartupPath + "\\client_secrets.json", FileMode.Open, FileAccess.Read))
+            using (var stream = new MemoryStream(jsonSecrets))
             {
                 FileDataStore fDS = new FileDataStore(Logger.AuthFolder, true);
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
@@ -224,29 +222,29 @@ namespace GoContactSyncMod.UnitTests
             {
                 if (entry.Summary != null && entry.Summary.Contains("GCSM Test Appointment") && !entry.Status.Equals("cancelled"))
                 {
-                    Logger.Log("Deleting Google appointment:" +entry.Summary + " - " + entry.Start.DateTime.ToString(), EventType.Information);
+                    Logger.Log("Deleting Google appointment:" + entry.Summary + " - " + entry.Start.DateTime.ToString(), EventType.Information);
                     service.Delete(primaryCalendar.Id, entry.Id);
                     Logger.Log("Deleted Google appointment", EventType.Information);
                     //break;
                 }
             }
 
-                   
-            
+
+
             #endregion
 
             var newEntry = Factory.NewEvent();
             newEntry.Summary = "GCSM Test Appointment";
             newEntry.Start.DateTime = DateTime.Now;
-            newEntry.End.DateTime = DateTime.Now;                                    
+            newEntry.End.DateTime = DateTime.Now;
 
-            var createdEntry = service.Insert(newEntry,primaryCalendar.Id).Execute();
+            var createdEntry = service.Insert(newEntry, primaryCalendar.Id).Execute();
 
             Logger.Log("Created Google appointment", EventType.Information);
 
             Assert.IsNotNull(createdEntry.Id);
 
-            var updatedEntry = service.Update(createdEntry, primaryCalendar.Id,createdEntry.Id).Execute();
+            var updatedEntry = service.Update(createdEntry, primaryCalendar.Id, createdEntry.Id).Execute();
 
             Logger.Log("Updated Google appointment", EventType.Information);
 
@@ -312,7 +310,7 @@ namespace GoContactSyncMod.UnitTests
                 _authenticator = new OAuth2Authenticator("GCSM Unit Tests", parameters);
             }
 
-            
+
 
             //Delete previously created test note.            
             DeleteTestNote(service);
@@ -341,7 +339,7 @@ namespace GoContactSyncMod.UnitTests
 
             #region workaround flow to use UploadDocument, not needed anymore because of new approach to use ResumableUploader
             //Google.GData.Documents.DocumentEntry createdEntry2 = service.Service.UploadDocument(file, newEntry.Title);
-            
+
             //Assert.IsNotNull(createdEntry2.Id.Uri);
 
             ////delete test note            
@@ -350,15 +348,138 @@ namespace GoContactSyncMod.UnitTests
 
             #region New approach how to update an existing document: https://developers.google.com/google-apps/documents-list/#updatingchanging_documents_and_files            
             //Instantiate the ResumableUploader component.      
-            ResumableUploader uploader = new ResumableUploader();            
+            ResumableUploader uploader = new ResumableUploader();
             uploader.AsyncOperationCompleted += new AsyncOperationCompletedEventHandler(OnGoogleNoteCreated);
-            Synchronizer.CreateGoogleNote(newEntry, file, service, uploader, _authenticator);            
-            #endregion            
+            Synchronizer.CreateGoogleNote(newEntry, file, service, uploader, _authenticator);
+            #endregion
 
             //Wait 5 seconds to give the testcase the chance to finish the Async events
             System.Threading.Thread.Sleep(5000);
 
             DeleteTestNote(service);
+        }
+
+        [Test]
+        public void Test_OldRecurringAppointment()
+        {
+            string gmailUsername;
+            string syncProfile;
+            GoogleAPITests.LoadSettings(out gmailUsername, out syncProfile);
+
+            EventsResource service;
+            CalendarListEntry primaryCalendar = null;
+            var scopes = new List<string>();
+            //Contacts-Scope
+            scopes.Add("https://www.google.com/m8/feeds");
+            //Notes-Scope
+            scopes.Add("https://docs.google.com/feeds/");
+           
+            scopes.Add(CalendarService.Scope.Calendar);
+
+            UserCredential credential;
+            byte[] jsonSecrets = Properties.Resources.client_secrets;
+
+            //using (var stream = new FileStream(Path.GetDirectoryName(System.Reflection.Assembly.GetAssembly(this.GetType()).Location) + "\\client_secrets.json", FileMode.Open, FileAccess.Read))
+            //using (var stream = new FileStream("client_secrets.json", FileMode.Open, FileAccess.Read))
+            //using (var stream = new FileStream(Application.StartupPath + "\\client_secrets.json", FileMode.Open, FileAccess.Read))
+            using (var stream = new MemoryStream(jsonSecrets))
+            {
+                FileDataStore fDS = new FileDataStore(Logger.AuthFolder, true);
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                GoogleClientSecrets.Load(stream).Secrets, scopes, gmailUsername, CancellationToken.None,
+                fDS).Result;
+
+                var initializer = new Google.Apis.Services.BaseClientService.Initializer();
+                initializer.HttpClientInitializer = credential;
+                var CalendarRequest = new CalendarService(initializer);
+                //CalendarRequest.setUserCredentials(username, password);
+
+                var list = CalendarRequest.CalendarList.List().Execute().Items;
+                foreach (var calendar in list)
+                {
+                    if (calendar.Primary != null && calendar.Primary.Value)
+                    {
+                        primaryCalendar = calendar;
+                        break;
+                    }
+                }
+
+                if (primaryCalendar == null)
+                    throw new Exception("Primary Calendar not found");
+
+
+                //EventQuery query = new EventQuery("https://www.google.com/calendar/feeds/default/private/full");
+                //ToDo: Upgrade to v3, EventQuery query = new EventQuery("https://www.googleapis.com/calendar/v3/calendars/default/events");
+                service = CalendarRequest.Events;
+            }
+
+            #region Delete previously created test contact.
+            var query = service.List(primaryCalendar.Id);
+            query.MaxResults = 500;
+            query.TimeMin = DateTime.Now.AddDays(-10);
+            query.TimeMax = DateTime.Now.AddDays(10);
+            //query.Q = "GCSM Test Appointment";
+
+            var feed = query.Execute();
+            Logger.Log("Loaded Google appointments", EventType.Information);
+            foreach (Google.Apis.Calendar.v3.Data.Event entry in feed.Items)
+            {
+                if (entry.Summary != null && entry.Summary.Contains("GCSM Test Appointment") && !entry.Status.Equals("cancelled"))
+                {
+                    Logger.Log("Deleting Google appointment:" + entry.Summary + " - " + entry.Start.DateTime.ToString(), EventType.Information);
+                    service.Delete(primaryCalendar.Id, entry.Id);
+                    Logger.Log("Deleted Google appointment", EventType.Information);
+                    //break;
+                }
+            }
+
+
+
+            #endregion
+
+            var e1 = new Google.Apis.Calendar.v3.Data.Event();
+            e1.Summary = "Birthday1";
+            e1.Start = new EventDateTime();
+            e1.End = new EventDateTime();
+            e1.Start.DateTime = new DateTime(1970, 10, 14, 10, 0, 0);
+            e1.End.DateTime = new DateTime(1970, 10, 14, 11, 0, 0);
+            e1.Start.TimeZone = "Europe/Warsaw";
+            e1.End.TimeZone = "Europe/Warsaw";
+            e1.Recurrence = new List<String>();
+            e1.Recurrence.Add("RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10");
+
+            Assert.AreEqual("1970-10-14T08:00:00.000Z", e1.Start.DateTimeRaw);
+            var c1 = service.Insert(e1, primaryCalendar.Id).Execute();
+            Assert.AreEqual("1970-10-14T09:00:00+01:00", c1.Start.DateTimeRaw);
+
+            var e2 = new Google.Apis.Calendar.v3.Data.Event();
+            e2.Summary = "Birthday2";
+            e2.Start = new EventDateTime();
+            e2.End = new EventDateTime();
+            e2.Start.DateTime = new DateTime(2000, 10, 14, 10, 0, 0);
+            e2.End.DateTime = new DateTime(2000, 10, 14, 11, 0, 0);
+            e2.Start.TimeZone = "Europe/Warsaw";
+            e2.End.TimeZone = "Europe/Warsaw";
+            e2.Recurrence = new List<String>();
+            e2.Recurrence.Add("RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10");
+
+            Assert.AreEqual("2000-10-14T08:00:00.000Z", e2.Start.DateTimeRaw);
+            var c2 = service.Insert(e2, primaryCalendar.Id).Execute();
+            Assert.AreEqual("2000-10-14T10:00:00+02:00", c2.Start.DateTimeRaw);
+
+
+
+
+            Logger.Log("Created Google appointment", EventType.Information);
+
+            Assert.IsNotNull(c1.Id);
+
+            
+
+            //delete test contacts
+            //service.Delete(primaryCalendar.Id, createdEntry.Id).Execute();
+
+            Logger.Log("Deleted Google appointment", EventType.Information);
         }
 
         private void OnGoogleNoteCreated(object sender, AsyncOperationCompletedEventArgs e)
@@ -381,11 +502,11 @@ namespace GoContactSyncMod.UnitTests
         private void OnGoogleNoteUpdated(object sender, AsyncOperationCompletedEventArgs e)
         {
             DocumentEntry entry = e.Entry as DocumentEntry;
-            
+
             Assert.IsNotNull(entry);
 
             Logger.Log("Updated Google note", EventType.Information);
-            
+
             System.IO.File.Delete(e.UserState as string);
         }
 
@@ -480,11 +601,11 @@ namespace GoContactSyncMod.UnitTests
                     syncAppointmentsFolder = regKeyAppRoot.GetValue("SyncAppointmentsFolder") as string;
             if (string.IsNullOrEmpty(Synchronizer.SyncAppointmentsGoogleFolder))
                 if (regKeyAppRoot.GetValue("SyncAppointmentsGoogleFolder") != null)
-                    Synchronizer.SyncAppointmentsGoogleFolder = regKeyAppRoot.GetValue("SyncAppointmentsGoogeFolder") as string;           
+                    Synchronizer.SyncAppointmentsGoogleFolder = regKeyAppRoot.GetValue("SyncAppointmentsGoogeFolder") as string;
         }
 
         private static Microsoft.Win32.RegistryKey LoadSettings(out string gmailUsername, out string syncProfile)
-        { 
+        {
             //sync.LoginToGoogle(ConfigurationManager.AppSettings["Gmail.Username"],  ConfigurationManager.AppSettings["Gmail.Password"]);
             //ToDo: Reading the username and config from the App.Config file doesn't work. If it works, consider special characters like & = &amp; in the XML file
             //ToDo: Maybe add a common Test account to the App.config and read it from there, encrypt the password
@@ -502,7 +623,7 @@ namespace GoContactSyncMod.UnitTests
             if (regKeyAppRoot.GetValue("Username") != null)
             {
                 gmailUsername = regKeyAppRoot.GetValue("Username") as string;
-                
+
             }
 
             return regKeyAppRoot;
