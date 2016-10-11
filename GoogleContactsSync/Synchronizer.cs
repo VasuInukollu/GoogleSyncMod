@@ -442,7 +442,7 @@ namespace GoContactSyncMod
                         throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                     }
                     else
-                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
+                       Thread.Sleep(1000 * 10 * (i + 1));
                 }
                 catch (InvalidCastException ex)
                 {
@@ -457,7 +457,7 @@ namespace GoContactSyncMod
                         throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                     }
                     else
-                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
+                        Thread.Sleep(1000 * 10 * (i + 1));
                 }
             }
         }
@@ -494,13 +494,15 @@ namespace GoContactSyncMod
             //Just try to access the outlookNamespace to check, if it is still accessible, throws COMException, if not reachable 
             try
             {
-                if (string.IsNullOrEmpty(SyncContactsFolder))
+                try
                 {
                     _outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderContacts);
                 }
-                else
+                catch (Exception e3)
                 {
-                    _outlookNamespace.GetFolderFromID(SyncContactsFolder);
+                    Logger.Log("Failed to get default folder for contacts", EventType.Debug);
+                    Logger.Log(e3, EventType.Debug);
+                    _outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
                 }
             }
             catch (COMException ex)
