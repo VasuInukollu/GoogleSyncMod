@@ -83,7 +83,7 @@ namespace GoContactSyncMod
             {
                 Logger.Log(ex, EventType.Debug);
             }
-            
+
             return "Unknown Windows Version";
         }
 

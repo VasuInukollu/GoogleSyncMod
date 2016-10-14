@@ -31,7 +31,7 @@ namespace GoContactSyncMod
         {
             initializer.Scopes = scopes;
             initializer.DataStore = dataStore ?? new FileDataStore(Folder);
-            var flow = new GCSMAuthorizationCodeFlow(initializer,user);
+            var flow = new GCSMAuthorizationCodeFlow(initializer, user);
 
             // Create an authorization code installed app instance and authorize the user.
             return await new AuthorizationCodeInstalledApp(flow, new LocalServerCodeReceiver()).AuthorizeAsync

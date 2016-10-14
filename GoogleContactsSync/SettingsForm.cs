@@ -144,6 +144,8 @@ namespace GoContactSyncMod
 
         private SettingsForm()
         {
+            /* Cannot set Font in designer as there is automatic sorting and Font will be set after AutoScaleDimensions
+             * This will prevent application to work correctly with high DPI systems. */
             Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 
             cancellationTokenSource = new CancellationTokenSource();
@@ -704,7 +706,7 @@ namespace GoContactSyncMod
                 if (!userNameIsValid)
                     toolTip.SetToolTip(UserName, "User is of wrong format, should be full Google Mail address, e.g. user@googelmail.com");
                 else
-                    toolTip.SetToolTip(UserName, String.Empty);
+                    toolTip.SetToolTip(UserName, string.Empty);
                 //if (!passwordIsValid)
                 //    toolTip.SetToolTip(Password, "Password is empty, please provide your Google Mail password");
                 //else
@@ -1023,7 +1025,7 @@ namespace GoContactSyncMod
         {
             // do not show ErrorHandler, as there may be multiple exceptions that would nag the user
             Logger.Log(ex.ToString(), EventType.Error);
-            string message = String.Format("Error Saving Contact: {0}.\nPlease report complete ErrorMessage from Log to the Tracker\nat https://sourceforge.net/tracker/?group_id=369321", ex.Message);
+            string message = string.Format("Error Saving Contact: {0}.\nPlease report complete ErrorMessage from Log to the Tracker\nat https://sourceforge.net/tracker/?group_id=369321", ex.Message);
             ShowBalloonToolTip(title, message, ToolTipIcon.Error, 5000, true);
             /*notifyIcon.BalloonTipTitle = title;
             notifyIcon.BalloonTipText = message;

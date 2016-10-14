@@ -8,31 +8,31 @@ using System.Runtime.InteropServices;
 
 namespace GoContactSyncMod
 {
-	internal static class ContactsMatcher
-	{
-		/// <summary>
-		/// Time tolerance in seconds - used when comparing date modified.
+    internal static class ContactsMatcher
+    {
+        /// <summary>
+        /// Time tolerance in seconds - used when comparing date modified.
         /// Less than 60 seconds doesn't make sense, as the lastSync is saved without seconds and if it is compared
         /// with the LastUpdate dates of Google and Outlook, in the worst case you compare e.g. 15:59 with 16:00 and 
         /// after truncating to minutes you compare 15:00 with 16:00
         /// Better take 120 seconds, because when resetting matches the time difference can be up to 2 minutes
-		/// </summary>
-		public static int TimeTolerance = 120 ;
+        /// </summary>
+        public static int TimeTolerance = 120;
 
         public delegate void NotificationHandler(string message);
         public static event NotificationHandler NotificationReceived;
 
-		/// <summary>
-		/// Matches outlook and google contact by a) google id b) properties.
-		/// </summary>
-		/// <param name="sync">Syncronizer instance</param>
+        /// <summary>
+        /// Matches outlook and google contact by a) google id b) properties.
+        /// </summary>
+        /// <param name="sync">Syncronizer instance</param>
         /// <param name="duplicatesFound">Exception returned, if duplicates have been found (null else)</param>
-		/// <returns>Returns a list of match pairs (outlook contact + google contact) for all contact. Those that weren't matche will have it's peer set to null</returns>
-		public static List<ContactMatch> MatchContacts(Synchronizer sync, out DuplicateDataException duplicatesFound)
-		{
+        /// <returns>Returns a list of match pairs (outlook contact + google contact) for all contact. Those that weren't matche will have it's peer set to null</returns>
+        public static List<ContactMatch> MatchContacts(Synchronizer sync, out DuplicateDataException duplicatesFound)
+        {
             Logger.Log("Matching Outlook and Google contacts...", EventType.Information);
             var result = new List<ContactMatch>();
-            
+
             var duplicateGoogleMatches = string.Empty;
             var duplicateOutlookContacts = string.Empty;
             sync.GoogleContactDuplicates = new Collection<ContactMatch>();
@@ -40,18 +40,18 @@ namespace GoContactSyncMod
 
             var skippedOutlookIds = new List<string>();
 
-			//for each outlook contact try to get google contact id from user properties
-			//if no match - try to match by properties
-			//if no match - create a new match pair without google contact. 
-			//foreach (Outlook._ContactItem olc in outlookContacts)
+            //for each outlook contact try to get google contact id from user properties
+            //if no match - try to match by properties
+            //if no match - create a new match pair without google contact. 
+            //foreach (Outlook._ContactItem olc in outlookContacts)
             var outlookContactsWithoutOutlookGoogleId = new Collection<OutlookContactInfo>();
-		    #region Match first all outlookContacts by sync id
+            #region Match first all outlookContacts by sync id
             for (int i = 1; i <= sync.OutlookContacts.Count; i++)
-			{
+            {
                 Outlook.ContactItem olc = null;
-				try
-				{
-					olc = sync.OutlookContacts[i] as Outlook.ContactItem;
+                try
+                {
+                    olc = sync.OutlookContacts[i] as Outlook.ContactItem;
                     if (olc == null)
                     {
                         Logger.Log("Empty Outlook contact found (maybe distribution list). Skipping", EventType.Warning);
@@ -59,39 +59,39 @@ namespace GoContactSyncMod
                         sync.SkippedCountNotMatches++;
                         continue;
                     }
-				}
-				catch (Exception ex)
-				{
-					//this is needed because some contacts throw exceptions
+                }
+                catch (Exception ex)
+                {
+                    //this is needed because some contacts throw exceptions
                     Logger.Log("Accessing Outlook contact threw and exception. Skipping: " + ex.Message, EventType.Warning);
                     sync.SkippedCount++;
                     sync.SkippedCountNotMatches++;
-					continue;
-				}
+                    continue;
+                }
 
                 try
                 {
 
-				    // sometimes contacts throw Exception when accessing their properties, so we give it a controlled try first.
-				    try
-				    {
-					    string email1Address = olc.Email1Address;
-				    }
-				    catch (Exception ex)
-				    {
-					    string message = string.Format("Can't access contact details for outlook contact, got {0} - '{1}'. Skipping", ex.GetType().ToString(), ex.Message);
-					    try
-					    {
-						    message = string.Format("{0} {1}.", message, olc.FileAs);
+                    // sometimes contacts throw Exception when accessing their properties, so we give it a controlled try first.
+                    try
+                    {
+                        string email1Address = olc.Email1Address;
+                    }
+                    catch (Exception ex)
+                    {
+                        string message = string.Format("Can't access contact details for outlook contact, got {0} - '{1}'. Skipping", ex.GetType().ToString(), ex.Message);
+                        try
+                        {
+                            message = string.Format("{0} {1}.", message, olc.FileAs);
                             //remember skippedOutlookIds to later not delete them if found on Google side
                             skippedOutlookIds.Add(string.Copy(olc.EntryID));
-                                                
-					    }
-					    catch
-					    {
+
+                        }
+                        catch
+                        {
                             //e.g. if olc.FileAs also fails, ignore, because messge already set
-						    //message = null;
-					    }
+                            //message = null;
+                        }
 
                         //if (olc != null && message != null) // it's useless to say "we couldn't access some contacts properties
                         //{
@@ -99,37 +99,37 @@ namespace GoContactSyncMod
                         //}
                         sync.SkippedCount++;
                         sync.SkippedCountNotMatches++;
-                        continue;                                        
-				    }
+                        continue;
+                    }
 
                     if (!IsContactValid(olc))
-				    {
-					    Logger.Log(string.Format("Invalid outlook contact ({0}). Skipping", olc.FileAs), EventType.Warning);
-                        skippedOutlookIds.Add(string.Copy(olc.EntryID));
-                        sync.SkippedCount++;
-                        sync.SkippedCountNotMatches++;
-					    continue;
-				    }
-
-				    if (olc.Body != null && olc.Body.Length > 62000)
-				    {
-					    // notes field too large                    
-					    Logger.Log(string.Format("Skipping outlook contact ({0}). Reduce the notes field to a maximum of 62.000 characters.", olc.FileAs), EventType.Warning);
+                    {
+                        Logger.Log(string.Format("Invalid outlook contact ({0}). Skipping", olc.FileAs), EventType.Warning);
                         skippedOutlookIds.Add(string.Copy(olc.EntryID));
                         sync.SkippedCount++;
                         sync.SkippedCountNotMatches++;
                         continue;
-				    }
+                    }
 
-                	if (NotificationReceived != null)
-                    	NotificationReceived(String.Format("Matching contact {0} of {1} by id: {2} ...", i, sync.OutlookContacts.Count, olc.FileAs));
+                    if (olc.Body != null && olc.Body.Length > 62000)
+                    {
+                        // notes field too large                    
+                        Logger.Log(string.Format("Skipping outlook contact ({0}). Reduce the notes field to a maximum of 62.000 characters.", olc.FileAs), EventType.Warning);
+                        skippedOutlookIds.Add(string.Copy(olc.EntryID));
+                        sync.SkippedCount++;
+                        sync.SkippedCountNotMatches++;
+                        continue;
+                    }
+
+                    if (NotificationReceived != null)
+                        NotificationReceived(string.Format("Matching contact {0} of {1} by id: {2} ...", i, sync.OutlookContacts.Count, olc.FileAs));
 
                     // Create our own info object to go into collections/lists, so we can free the Outlook objects and not run out of resources / exceed policy limits.
                     var olci = new OutlookContactInfo(olc, sync);
 
-				    //try to match this contact to one of google contacts
+                    //try to match this contact to one of google contacts
                     Outlook.UserProperties userProperties = olc.UserProperties;
-				    Outlook.UserProperty idProp = userProperties[sync.OutlookPropertyNameId];
+                    Outlook.UserProperty idProp = userProperties[sync.OutlookPropertyNameId];
                     try
                     {
                         if (idProp != null)
@@ -185,7 +185,7 @@ namespace GoContactSyncMod
                                     sync.GoogleContacts.Remove(foundContact);
                                 }
                                 else
-                                {                                    
+                                {
                                     outlookContactsWithoutOutlookGoogleId.Add(olci);
                                 }
                             }
@@ -216,14 +216,14 @@ namespace GoContactSyncMod
                 OutlookContactInfo olci = outlookContactsWithoutOutlookGoogleId[i];
 
                 if (NotificationReceived != null)
-                    NotificationReceived(String.Format("Matching contact {0} of {1} by unique properties: {2} ...", i + 1, outlookContactsWithoutOutlookGoogleId.Count, olci.FileAs));
+                    NotificationReceived(string.Format("Matching contact {0} of {1} by unique properties: {2} ...", i + 1, outlookContactsWithoutOutlookGoogleId.Count, olci.FileAs));
 
                 //no match found by id => match by common properties
                 //create a default match pair with just outlook contact.
                 var match = new ContactMatch(olci, null);
 
                 //foreach google contact try to match and create a match pair if found some match(es)
-                for (int j=sync.GoogleContacts.Count-1;j>=0;j--)
+                for (int j = sync.GoogleContacts.Count - 1; j >= 0; j--)
                 {
                     Contact entry = sync.GoogleContacts[j];
                     if (entry.Deleted)
@@ -241,7 +241,7 @@ namespace GoContactSyncMod
                     if (!string.IsNullOrEmpty(olci.FileAs) && !string.IsNullOrEmpty(entry.Title) && olci.FileAs.Equals(entry.Title.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||  //Replace twice to not replace a \r\n by \r\r\n. This is necessary because \r\n are saved as \n only to google
                         !string.IsNullOrEmpty(olci.FileAs) && !string.IsNullOrEmpty(entry.Name.FullName) && olci.FileAs.Equals(entry.Name.FullName.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||
                         !string.IsNullOrEmpty(olci.FullName) && !string.IsNullOrEmpty(entry.Name.FullName) && olci.FullName.Equals(entry.Name.FullName.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||
-                        !string.IsNullOrEmpty(olci.TitleFirstLastAndSuffix) && !string.IsNullOrEmpty(entryTitleFirstLastAndSuffix) && olci.TitleFirstLastAndSuffix.Equals(entryTitleFirstLastAndSuffix.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||                        
+                        !string.IsNullOrEmpty(olci.TitleFirstLastAndSuffix) && !string.IsNullOrEmpty(entryTitleFirstLastAndSuffix) && olci.TitleFirstLastAndSuffix.Equals(entryTitleFirstLastAndSuffix.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||
                         !string.IsNullOrEmpty(olci.Email1Address) && entry.Emails.Count > 0 && olci.Email1Address.Equals(entry.Emails[0].Address, StringComparison.InvariantCultureIgnoreCase) ||
                         //!string.IsNullOrEmpty(olci.Email2Address) && FindEmail(olci.Email2Address, entry.Emails) != null ||
                         //!string.IsNullOrEmpty(olci.Email3Address) && FindEmail(olci.Email3Address, entry.Emails) != null ||
@@ -251,7 +251,7 @@ namespace GoContactSyncMod
                     {
                         match.AddGoogleContact(entry);
                         sync.GoogleContacts.Remove(entry);
-                    }                    
+                    }
 
                 }
 
@@ -365,9 +365,9 @@ namespace GoContactSyncMod
                     {
                         string entryTitleFirstLastAndSuffix = OutlookContactInfo.GetTitleFirstLastAndSuffix(duplicate.AllGoogleContactMatches[0]);
                         if (duplicate.AllGoogleContactMatches.Count > 0 &&
-                            (!string.IsNullOrEmpty(olci.FileAs) && !string.IsNullOrEmpty(duplicate.AllGoogleContactMatches[0].Title) && olci.FileAs.Equals(duplicate.AllGoogleContactMatches[0].Title.Replace("\r\n", "\n").Replace("\n","\r\n"), StringComparison.InvariantCultureIgnoreCase) ||  //Replace twice to not replace a \r\n by \r\r\n. This is necessary because \r\n are saved as \n only to google
+                            (!string.IsNullOrEmpty(olci.FileAs) && !string.IsNullOrEmpty(duplicate.AllGoogleContactMatches[0].Title) && olci.FileAs.Equals(duplicate.AllGoogleContactMatches[0].Title.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||  //Replace twice to not replace a \r\n by \r\r\n. This is necessary because \r\n are saved as \n only to google
                              !string.IsNullOrEmpty(olci.FileAs) && !string.IsNullOrEmpty(duplicate.AllGoogleContactMatches[0].Name.FullName) && olci.FileAs.Equals(duplicate.AllGoogleContactMatches[0].Name.FullName.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||
-                             !string.IsNullOrEmpty(olci.FullName) && !string.IsNullOrEmpty(duplicate.AllGoogleContactMatches[0].Name.FullName) && olci.FullName.Equals(duplicate.AllGoogleContactMatches[0].Name.FullName.Replace("\r\n", "\n").Replace("\n","\r\n"), StringComparison.InvariantCultureIgnoreCase) ||
+                             !string.IsNullOrEmpty(olci.FullName) && !string.IsNullOrEmpty(duplicate.AllGoogleContactMatches[0].Name.FullName) && olci.FullName.Equals(duplicate.AllGoogleContactMatches[0].Name.FullName.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||
                              !string.IsNullOrEmpty(olci.TitleFirstLastAndSuffix) && !string.IsNullOrEmpty(entryTitleFirstLastAndSuffix) && olci.TitleFirstLastAndSuffix.Equals(entryTitleFirstLastAndSuffix.Replace("\r\n", "\n").Replace("\n", "\r\n"), StringComparison.InvariantCultureIgnoreCase) ||
                              !string.IsNullOrEmpty(olci.Email1Address) && duplicate.AllGoogleContactMatches[0].Emails.Count > 0 && olci.Email1Address.Equals(duplicate.AllGoogleContactMatches[0].Emails[0].Address, StringComparison.InvariantCultureIgnoreCase) ||
                              //!string.IsNullOrEmpty(olci.Email2Address) && FindEmail(olci.Email2Address, duplicate.AllGoogleContactMatches[0].Emails) != null ||
@@ -403,13 +403,13 @@ namespace GoContactSyncMod
                             string str = olci.FileAs + " (" + olci.Email1Address + ", " + olci.MobileTelephoneNumber + ")";
                             if (!duplicateOutlookContacts.Contains(str))
                                 duplicateOutlookContacts += Environment.NewLine + str;
-                            
+
                             break;
                         }
                     }
 
                     if (!duplicateFound)
-                        Logger.Log(string.Format("No match found for outlook contact ({0}) => {1}", olci.FileAs, (olci.UserProperties.GoogleContactId != null?"Delete from Outlook":"Add to Google")), EventType.Information);
+                        Logger.Log(string.Format("No match found for outlook contact ({0}) => {1}", olci.FileAs, (olci.UserProperties.GoogleContactId != null ? "Delete from Outlook" : "Add to Google")), EventType.Information);
                 }
                 else
                 {
@@ -427,13 +427,13 @@ namespace GoContactSyncMod
 
                             string str = olci.FileAs + " (" + olci.Email1Address + ", " + olci.MobileTelephoneNumber + ")";
                             if (!duplicateGoogleMatches.Contains(str))
-                                duplicateGoogleMatches += Environment.NewLine + str;                            
+                                duplicateGoogleMatches += Environment.NewLine + str;
                         }
                     }
 
-                   
-                                        
-                }                
+
+
+                }
 
                 result.Add(match);
             }
@@ -444,17 +444,17 @@ namespace GoContactSyncMod
             else
                 duplicatesFound = null;
 
-			//return result;
+            //return result;
 
-			//for each google contact that's left (they will be nonmatched) create a new match pair without outlook contact. 
-			for (int i=0; i< sync.GoogleContacts.Count;i++)
-			{
-               Contact entry = sync.GoogleContacts[i];
-               if (NotificationReceived != null)
-                    NotificationReceived(String.Format("Adding new Google contact {0} of {1} by unique properties: {2} ...", i+1, sync.GoogleContacts.Count, entry.Title));               
-                    
-				// only match if there is either an email or mobile phone or a name or a company
-				// otherwise a matching google contact will be created at each sync
+            //for each google contact that's left (they will be nonmatched) create a new match pair without outlook contact. 
+            for (int i = 0; i < sync.GoogleContacts.Count; i++)
+            {
+                Contact entry = sync.GoogleContacts[i];
+                if (NotificationReceived != null)
+                    NotificationReceived(string.Format("Adding new Google contact {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleContacts.Count, entry.Title));
+
+                // only match if there is either an email or mobile phone or a name or a company
+                // otherwise a matching google contact will be created at each sync
                 bool mobileExists = false;
                 foreach (PhoneNumber phone in entry.Phonenumbers)
                 {
@@ -463,10 +463,10 @@ namespace GoContactSyncMod
                         mobileExists = true;
                         break;
                     }
-                }                             
+                }
 
                 string googleOutlookId = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, entry);
-                if (!String.IsNullOrEmpty(googleOutlookId) && skippedOutlookIds.Contains(googleOutlookId))
+                if (!string.IsNullOrEmpty(googleOutlookId) && skippedOutlookIds.Contains(googleOutlookId))
                 {
                     Logger.Log("Skipped GoogleContact because Outlook contact couldn't be matched because of previous problem (see log): " + entry.Title, EventType.Warning);
                 }
@@ -498,68 +498,68 @@ namespace GoContactSyncMod
                     Logger.Log(string.Format("No match found for Google contact ({0}) => {1}", entry.Title, (!string.IsNullOrEmpty(googleOutlookId) ? "Delete from Google" : "Add to Outlook")), EventType.Information);
                     var match = new ContactMatch(null, entry);
                     result.Add(match);
-                }				
-			}
-			return result;
-		}
+                }
+            }
+            return result;
+        }
 
-		private static bool IsContactValid(Outlook.ContactItem contact)
-		{
-			/*if (!string.IsNullOrEmpty(contact.FileAs))
+        private static bool IsContactValid(Outlook.ContactItem contact)
+        {
+            /*if (!string.IsNullOrEmpty(contact.FileAs))
 				return true;*/
 
-			if (!string.IsNullOrEmpty(contact.Email1Address))
-				return true;
+            if (!string.IsNullOrEmpty(contact.Email1Address))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.Email2Address))
-				return true;
+            if (!string.IsNullOrEmpty(contact.Email2Address))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.Email3Address))
-				return true;
+            if (!string.IsNullOrEmpty(contact.Email3Address))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.HomeTelephoneNumber))
-				return true;
+            if (!string.IsNullOrEmpty(contact.HomeTelephoneNumber))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.BusinessTelephoneNumber))
-				return true;
+            if (!string.IsNullOrEmpty(contact.BusinessTelephoneNumber))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.MobileTelephoneNumber))
-				return true;
+            if (!string.IsNullOrEmpty(contact.MobileTelephoneNumber))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.HomeAddress))
-				return true;
+            if (!string.IsNullOrEmpty(contact.HomeAddress))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.BusinessAddress))
-				return true;
+            if (!string.IsNullOrEmpty(contact.BusinessAddress))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.OtherAddress))
-				return true;
+            if (!string.IsNullOrEmpty(contact.OtherAddress))
+                return true;
 
-			if (!string.IsNullOrEmpty(contact.Body))
-				return true;
+            if (!string.IsNullOrEmpty(contact.Body))
+                return true;
 
             if (contact.Birthday != DateTime.MinValue)
                 return true;
 
-			return false;
-		}
+            return false;
+        }
 
-		public static void SyncContacts(Synchronizer sync)
-		{
-            for (int i = 0; i < sync.Contacts.Count; i++ )
-			{
+        public static void SyncContacts(Synchronizer sync)
+        {
+            for (int i = 0; i < sync.Contacts.Count; i++)
+            {
                 ContactMatch match = sync.Contacts[i];
                 if (NotificationReceived != null)
-                    NotificationReceived(String.Format("Syncing contact {0} of {1}: {2} ...", i + 1, sync.Contacts.Count, match.ToString()));
-                
+                    NotificationReceived(string.Format("Syncing contact {0} of {1}: {2} ...", i + 1, sync.Contacts.Count, match.ToString()));
 
-				SyncContact(match, sync);
-			}
-		}
-		public static void SyncContact(ContactMatch match, Synchronizer sync)
-		{
+
+                SyncContact(match, sync);
+            }
+        }
+        public static void SyncContact(ContactMatch match, Synchronizer sync)
+        {
             Outlook.ContactItem outlookContactItem = match.OutlookContact != null ? match.OutlookContact.GetOriginalItemFromOutlook() : null;
-            
+
             try
             {
                 if (match.GoogleContact == null && match.OutlookContact != null)
@@ -567,7 +567,7 @@ namespace GoContactSyncMod
                     //no google contact                               
                     string googleContactId = match.OutlookContact.UserProperties.GoogleContactId;
                     if (!string.IsNullOrEmpty(googleContactId))
-                    {                        
+                    {
                         //Redundant check if exist, but in case an error occurred in MatchContacts
                         Contact matchingGoogleContact = sync.GetGoogleContactById(googleContactId);
                         if (matchingGoogleContact == null)
@@ -575,7 +575,7 @@ namespace GoContactSyncMod
                             if (sync.SyncOption == SyncOption.OutlookToGoogleOnly || !sync.SyncDelete)
                                 return;
                             else if (!sync.PromptDelete)
-                                 sync.DeleteOutlookResolution = DeleteResolution.DeleteOutlookAlways;
+                                sync.DeleteOutlookResolution = DeleteResolution.DeleteOutlookAlways;
                             else if (sync.DeleteOutlookResolution != DeleteResolution.DeleteOutlookAlways &&
                                      sync.DeleteOutlookResolution != DeleteResolution.KeepOutlookAlways)
                             {
@@ -634,7 +634,7 @@ namespace GoContactSyncMod
                             }
                         }
                         switch (sync.DeleteGoogleResolution)
-                        {                           
+                        {
                             case DeleteResolution.KeepGoogle:
                             case DeleteResolution.KeepGoogleAlways:
                                 ContactPropertiesUtils.ResetGoogleOutlookContactId(sync.SyncProfile, match.GoogleContact);
@@ -646,7 +646,7 @@ namespace GoContactSyncMod
                                 return;
                             default:
                                 throw new ApplicationException("Cancelled");
-                        }                        
+                        }
 
                     }
 
@@ -847,8 +847,8 @@ namespace GoContactSyncMod
                     outlookContactItem = null;
                 }
             }
-                
-		}
+
+        }
 
         private static PhoneNumber FindPhone(string number, ExtensionCollection<PhoneNumber> phones)
         {
@@ -869,32 +869,32 @@ namespace GoContactSyncMod
             return null;
         }
 
-		private static EMail FindEmail(string address, ExtensionCollection<EMail> emails)
-		{
-			if (string.IsNullOrEmpty(address))
-				return null;
+        private static EMail FindEmail(string address, ExtensionCollection<EMail> emails)
+        {
+            if (string.IsNullOrEmpty(address))
+                return null;
 
-			foreach (EMail email in emails)
-			{
-				if (address.Equals(email.Address, StringComparison.InvariantCultureIgnoreCase))
-				{
-					return email;
-				}
-			}
+            foreach (EMail email in emails)
+            {
+                if (address.Equals(email.Address, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return email;
+                }
+            }
 
-			return null;
-		}       
+            return null;
+        }
 
 
-		/// <summary>
-		/// Adds new Google Groups to the Google account.
-		/// </summary>
-		/// <param name="sync"></param>
+        /// <summary>
+        /// Adds new Google Groups to the Google account.
+        /// </summary>
+        /// <param name="sync"></param>
         public static void SyncGroups(Synchronizer sync)
         {
             foreach (ContactMatch match in sync.Contacts)
             {
-				if (match.OutlookContact != null && !string.IsNullOrEmpty(match.OutlookContact.Categories))
+                if (match.OutlookContact != null && !string.IsNullOrEmpty(match.OutlookContact.Categories))
                 {
                     string[] cats = Utilities.GetOutlookGroups(match.OutlookContact.Categories);
                     Group g;
@@ -906,13 +906,13 @@ namespace GoContactSyncMod
                             // create group                            
                             g = sync.CreateGroup(cat);
                             g = sync.SaveGoogleGroup(g);
-                            sync.GoogleGroups.Add(g);                            
+                            sync.GoogleGroups.Add(g);
                         }
                     }
                 }
             }
         }
-	}
+    }
 
     //internal class List<ContactMatch> : List<ContactMatch>
     //{
@@ -973,17 +973,17 @@ namespace GoContactSyncMod
             //LastGoogleContact = googleContact;
         }
 
-        
-        public override string  ToString()
+
+        public override string ToString()
         {
- 	        if (OutlookContact != null)
+            if (OutlookContact != null)
                 return GetName(OutlookContact);
             else if (GoogleContact != null)
                 return GetName(GoogleContact);
             else
-                return string.Empty;            
+                return string.Empty;
         }
-        
+
 
         public static string GetName(OutlookContactInfo outlookContact)
         {
@@ -997,8 +997,8 @@ namespace GoContactSyncMod
 
             return name;
         }
-       
-        
+
+
         public static string GetName(Contact googleContact)
         {
             string name = googleContact.Title;
@@ -1029,7 +1029,7 @@ namespace GoContactSyncMod
             if (!string.IsNullOrEmpty(outlookContact.Department))
                 summary += "Department: " + outlookContact.Department + "\r\n";
             if (!string.IsNullOrEmpty(outlookContact.JobTitle))
-                summary += "JobTitle: " + outlookContact.JobTitle + "\r\n";           
+                summary += "JobTitle: " + outlookContact.JobTitle + "\r\n";
             if (!string.IsNullOrEmpty(outlookContact.Email1Address))
                 summary += "Email1: " + outlookContact.Email1Address + "\r\n";
             if (!string.IsNullOrEmpty(outlookContact.Email2Address))
@@ -1134,6 +1134,6 @@ namespace GoContactSyncMod
         }
     }
 
-    
-    		
+
+
 }

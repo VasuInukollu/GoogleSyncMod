@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Outlook = Microsoft.Office.Interop.Outlook;
-
 using System.Runtime.InteropServices;
-using Google.Apis.Calendar;
 using Google.Apis.Calendar.v3.Data;
 
 namespace GoContactSyncMod
@@ -42,7 +40,7 @@ namespace GoContactSyncMod
             #region Match first all outlookAppointments by sync id
             for (int i = 1; i <= sync.OutlookAppointments.Count; i++)
             {
-                Outlook.AppointmentItem ola = null;               
+                Outlook.AppointmentItem ola = null;
 
                 try
                 {
@@ -66,16 +64,16 @@ namespace GoContactSyncMod
                         //sync.SkippedCountNotMatches++;
                         continue;
                     }
-                    else if (Synchronizer.MonthsInPast > 0 && 
+                    else if (Synchronizer.MonthsInPast > 0 &&
                              (ola.IsRecurring && ola.GetRecurrencePattern().PatternEndDate < DateTime.Now.AddMonths(-Synchronizer.MonthsInPast) ||
                              !ola.IsRecurring && ola.End < DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) ||
-                        Synchronizer.MonthsInFuture > 0 && 
+                        Synchronizer.MonthsInFuture > 0 &&
                              (ola.IsRecurring && ola.GetRecurrencePattern().PatternStartDate > DateTime.Now.AddMonths(Synchronizer.MonthsInFuture) ||
                              !ola.IsRecurring && ola.Start > DateTime.Now.AddMonths(Synchronizer.MonthsInFuture)))
                     {
-                        Logger.Log("Skipping Outlook appointment because it is out of months range to sync:" + ola.Subject + " - " + ola.Start, EventType.Debug);                       
+                        Logger.Log("Skipping Outlook appointment because it is out of months range to sync:" + ola.Subject + " - " + ola.Start, EventType.Debug);
                         continue;
-                    }                   
+                    }
                     //else if (ola.Subject != "Business Trip")
                     //{//Only for debugging purposes, please comment if not needed
                     //    Logger.Log("Skipping Outlook appointment because of DEBUGGING:" + ola.Subject + " - " + ola.Start, EventType.Error);
@@ -99,7 +97,7 @@ namespace GoContactSyncMod
                 //{
 
                 if (NotificationReceived != null)
-                    NotificationReceived(String.Format("Matching appointment {0} of {1} by id: {2} ...", i, sync.OutlookAppointments.Count, ola.Subject));
+                    NotificationReceived(string.Format("Matching appointment {0} of {1} by id: {2} ...", i, sync.OutlookAppointments.Count, ola.Subject));
 
                 // Create our own info object to go into collections/lists, so we can free the Outlook objects and not run out of resources / exceed policy limits.
                 //OutlookAppointmentInfo olci = new OutlookAppointmentInfo(ola, sync);
@@ -115,7 +113,7 @@ namespace GoContactSyncMod
                         Event foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
                         var match = new AppointmentMatch(ola, null);
 
-                        
+
 
                         if (foundAppointment != null && !foundAppointment.Status.Equals("cancelled"))
                         {
@@ -133,17 +131,17 @@ namespace GoContactSyncMod
                                     foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
                                 }
                                 else
-                                    foundAppointment = null;                                
+                                    foundAppointment = null;
                             }
 
 
                         }
                         else
                         {
-                        
-                            OutlookAppointmentsWithoutSyncId.Add(ola);                        
+
+                            OutlookAppointmentsWithoutSyncId.Add(ola);
                         }
-                      
+
                     }
                     else
                         OutlookAppointmentsWithoutSyncId.Add(ola);
@@ -154,7 +152,7 @@ namespace GoContactSyncMod
                         Marshal.ReleaseComObject(idProp);
                     Marshal.ReleaseComObject(userProperties);
                 }
-                
+
 
             }
             #endregion
@@ -165,7 +163,7 @@ namespace GoContactSyncMod
                 Outlook.AppointmentItem ola = OutlookAppointmentsWithoutSyncId[i];
 
                 if (NotificationReceived != null)
-                    NotificationReceived(String.Format("Matching appointment {0} of {1} by unique properties: {2} ...", i + 1, OutlookAppointmentsWithoutSyncId.Count, ola.Subject));
+                    NotificationReceived(string.Format("Matching appointment {0} of {1} by unique properties: {2} ...", i + 1, OutlookAppointmentsWithoutSyncId.Count, ola.Subject));
 
                 //no match found by id => match by subject/title
                 //create a default match pair with just outlook appointment.
@@ -177,8 +175,8 @@ namespace GoContactSyncMod
                     var googleAppointment = sync.GoogleAppointments[j];
                     // only match if there is a appointment targetBody, else
                     // a matching Google appointment will be created at each sync                
-                    if (!googleAppointment.Status.Equals("cancelled") && ola.Subject == googleAppointment.Summary && googleAppointment.Start.DateTime != null && ola.Start == googleAppointment.Start.DateTime)                         
-                    {                        
+                    if (!googleAppointment.Status.Equals("cancelled") && ola.Subject == googleAppointment.Summary && googleAppointment.Start.DateTime != null && ola.Start == googleAppointment.Start.DateTime)
+                    {
                         match.AddGoogleAppointment(googleAppointment);
                         sync.GoogleAppointments.Remove(googleAppointment);
 
@@ -208,22 +206,22 @@ namespace GoContactSyncMod
             }
             #endregion
 
-            
+
             //for each Google appointment that's left (they will be nonmatched) create a new match pair without outlook appointment. 
             for (int i = 0; i < sync.GoogleAppointments.Count; i++)
-            {                
+            {
                 var googleAppointment = sync.GoogleAppointments[i];
 
                 //For debugging:
                 //if (googleAppointment.Summary == "Flex Pilot - Latest Status")
                 //    throw new Exception("Debugging: Flex Pilot - Latest Status");
 
-               
+
 
                 if (NotificationReceived != null)
-                    NotificationReceived(String.Format("Adding new Google appointment {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleAppointments.Count, googleAppointment.Summary));
+                    NotificationReceived(string.Format("Adding new Google appointment {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleAppointments.Count, googleAppointment.Summary));
 
-                
+
                 if (googleAppointment.RecurringEventId != null)
                 {
                     sync.SkippedCountNotMatches++;
@@ -259,7 +257,7 @@ namespace GoContactSyncMod
             for (int i = 0; i < googleAppointmentExceptions.Count; i++)
             {
                 var googleAppointment = googleAppointmentExceptions[i];
-                NotificationReceived?.Invoke(String.Format("Adding Google appointment exception {0} of {1} : {2} ...", i + 1, googleAppointmentExceptions.Count, googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment)));
+                NotificationReceived?.Invoke(string.Format("Adding Google appointment exception {0} of {1} : {2} ...", i + 1, googleAppointmentExceptions.Count, googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment)));
 
                 //Search for original recurrent event in matches
                 //AtomId atomId = new AtomId(googleAppointment.Id.AbsoluteUri.Substring(0, googleAppointment.Id.AbsoluteUri.LastIndexOf("/") + 1) + googleAppointment.RecurringEventId);
@@ -297,7 +295,7 @@ namespace GoContactSyncMod
                         name = match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start;
                     else if (match.GoogleAppointment != null)
                         name = match.GoogleAppointment.Summary + " - " + Synchronizer.GetTime(match.GoogleAppointment);
-                    NotificationReceived(String.Format("Syncing appointment {0} of {1}: {2} ...", i + 1, sync.Appointments.Count, name));
+                    NotificationReceived(string.Format("Syncing appointment {0} of {1}: {2} ...", i + 1, sync.Appointments.Count, name));
                 }
 
                 SyncAppointment(match, sync);
@@ -321,59 +319,59 @@ namespace GoContactSyncMod
                     //    )
                     //{
 
-                        //Redundant check if exist, but in case an error occurred in MatchAppointments or not all appointments have been loaded (e.g. because months before/after constraint)
-                        Event matchingGoogleAppointment = null;
-                        if (sync.AllGoogleAppointments != null)
-                            matchingGoogleAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
-                        else
-                            matchingGoogleAppointment = sync.LoadGoogleAppointments(googleAppointmentId, 0, 0, null, null);
-                        if (matchingGoogleAppointment == null)
-                        {                            
-                            if (sync.SyncOption == SyncOption.OutlookToGoogleOnly || !sync.SyncDelete)
-                                return;
-                            else if (!sync.PromptDelete && match.OutlookAppointment.Recipients.Count == 0)
-                                sync.DeleteOutlookResolution = DeleteResolution.DeleteOutlookAlways;
-                            else if (sync.DeleteOutlookResolution != DeleteResolution.DeleteOutlookAlways &&
-                                     sync.DeleteOutlookResolution != DeleteResolution.KeepOutlookAlways)
+                    //Redundant check if exist, but in case an error occurred in MatchAppointments or not all appointments have been loaded (e.g. because months before/after constraint)
+                    Event matchingGoogleAppointment = null;
+                    if (sync.AllGoogleAppointments != null)
+                        matchingGoogleAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
+                    else
+                        matchingGoogleAppointment = sync.LoadGoogleAppointments(googleAppointmentId, 0, 0, null, null);
+                    if (matchingGoogleAppointment == null)
+                    {
+                        if (sync.SyncOption == SyncOption.OutlookToGoogleOnly || !sync.SyncDelete)
+                            return;
+                        else if (!sync.PromptDelete && match.OutlookAppointment.Recipients.Count == 0)
+                            sync.DeleteOutlookResolution = DeleteResolution.DeleteOutlookAlways;
+                        else if (sync.DeleteOutlookResolution != DeleteResolution.DeleteOutlookAlways &&
+                                 sync.DeleteOutlookResolution != DeleteResolution.KeepOutlookAlways)
+                        {
+                            using (var r = new ConflictResolver())
                             {
-                                using (var r = new ConflictResolver())
-                                {
-                                    sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookAppointment);
-                                }
+                                sync.DeleteOutlookResolution = r.ResolveDelete(match.OutlookAppointment);
                             }
-                            switch (sync.DeleteOutlookResolution)
-                            {
-                                case DeleteResolution.KeepOutlook:
-                                case DeleteResolution.KeepOutlookAlways:
+                        }
+                        switch (sync.DeleteOutlookResolution)
+                        {
+                            case DeleteResolution.KeepOutlook:
+                            case DeleteResolution.KeepOutlookAlways:
+                                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(sync, match.OutlookAppointment);
+                                break;
+                            case DeleteResolution.DeleteOutlook:
+                            case DeleteResolution.DeleteOutlookAlways:
+
+                                if (match.OutlookAppointment.Recipients.Count > 1)
+                                {
+                                    //ToDo:Maybe find as better way, e.g. to ask the user, if he wants to overwrite the invalid appointment                                
+                                    Logger.Log("Outlook Appointment not deleted, because multiple participants found,  invitation maybe NOT sent by Google: " + match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start, EventType.Information);
                                     AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(sync, match.OutlookAppointment);
                                     break;
-                                case DeleteResolution.DeleteOutlook:
-                                case DeleteResolution.DeleteOutlookAlways:
-                                    
-                                    if (match.OutlookAppointment.Recipients.Count > 1)
-                                    {
-                                        //ToDo:Maybe find as better way, e.g. to ask the user, if he wants to overwrite the invalid appointment                                
-                                        Logger.Log("Outlook Appointment not deleted, because multiple participants found,  invitation maybe NOT sent by Google: " + match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start, EventType.Information);
-                                        AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(sync, match.OutlookAppointment);
-                                        break;
-                                    }
-                                    else
-                                        //Avoid recreating a GoogleAppointment already existing
-                                        //==> Delete this OutlookAppointment instead if previous match existed but no match exists anymore
-                                        return;
-                                default:
-                                    throw new ApplicationException("Cancelled");
-                            }
+                                }
+                                else
+                                    //Avoid recreating a GoogleAppointment already existing
+                                    //==> Delete this OutlookAppointment instead if previous match existed but no match exists anymore
+                                    return;
+                            default:
+                                throw new ApplicationException("Cancelled");
                         }
-                        else
-                        {
-                            sync.SkippedCount++;
-                            match.GoogleAppointment = matchingGoogleAppointment;
-                            Logger.Log("Outlook Appointment not deleted, because still existing on Google side, maybe because months restriction: " + match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start, EventType.Information);
-                            return;
-                        }
-
                     }
+                    else
+                    {
+                        sync.SkippedCount++;
+                        match.GoogleAppointment = matchingGoogleAppointment;
+                        Logger.Log("Outlook Appointment not deleted, because still existing on Google side, maybe because months restriction: " + match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start, EventType.Information);
+                        return;
+                    }
+
+                }
                 //}
 
                 if (sync.SyncOption == SyncOption.GoogleToOutlookOnly)
@@ -392,7 +390,7 @@ namespace GoContactSyncMod
             else if (match.OutlookAppointment == null && match.GoogleAppointment != null)
             {
                 //no Outlook appointment                               
-                string outlookAppointmenttId = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile,match.GoogleAppointment);
+                string outlookAppointmenttId = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, match.GoogleAppointment);
                 if (!string.IsNullOrEmpty(outlookAppointmenttId))
                 {
                     if (sync.SyncOption == SyncOption.GoogleToOutlookOnly || !sync.SyncDelete)
@@ -411,7 +409,7 @@ namespace GoContactSyncMod
                     {
                         case DeleteResolution.KeepGoogle:
                         case DeleteResolution.KeepGoogleAlways:
-                            AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(sync.SyncProfile,match.GoogleAppointment);
+                            AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(sync.SyncProfile, match.GoogleAppointment);
                             break;
                         case DeleteResolution.DeleteGoogle:
                         case DeleteResolution.DeleteGoogleAlways:
@@ -439,7 +437,7 @@ namespace GoContactSyncMod
             else if (match.OutlookAppointment != null && match.GoogleAppointment != null)
             {
                 //ToDo: Check how to overcome appointment recurrences, which need more than 60 seconds to update and therefore get updated again and again because of time tolerance 60 seconds violated again and again
-                
+
 
                 //merge appointment details                
 
@@ -469,7 +467,7 @@ namespace GoContactSyncMod
                             Outlook.AppointmentItem outlookRecurrenceException = null;
                             try
                             {
-                                 var slaveRecurrence = match.OutlookAppointment.GetRecurrencePattern();
+                                var slaveRecurrence = match.OutlookAppointment.GetRecurrencePattern();
                                 if (googleAppointment.OriginalStartTime != null && !string.IsNullOrEmpty(googleAppointment.OriginalStartTime.Date))
                                     outlookRecurrenceException = slaveRecurrence.GetOccurrence(DateTime.Parse(googleAppointment.OriginalStartTime.Date));
                                 else if (googleAppointment.OriginalStartTime != null && googleAppointment.OriginalStartTime.DateTime != null)
@@ -648,7 +646,7 @@ namespace GoContactSyncMod
             //}
             //}
 
-        }        
+        }
     }
 
 

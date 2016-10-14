@@ -33,6 +33,6 @@ using System;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("3.10.6.*")]
-[assembly: AssemblyFileVersion("3.10.6")]
+[assembly: AssemblyVersion("3.10.7.*")]
+[assembly: AssemblyFileVersion("3.10.7")]
 [assembly: NeutralResourcesLanguageAttribute("en-US")]

@@ -19,9 +19,9 @@ namespace GoContactSyncMod
         #region Extern Functions Declaration
 
         [return: MarshalAs(UnmanagedType.Bool)]
-        [DllImport("user32", SetLastError=true, CharSet = CharSet.Unicode)]
+        [DllImport("user32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
-        [DllImport("user32", SetLastError=true, CharSet = CharSet.Unicode)]
+        [DllImport("user32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern int RegisterWindowMessage(string message);
 
         /*

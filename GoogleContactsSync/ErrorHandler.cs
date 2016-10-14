@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Globalization;
 
@@ -32,13 +31,13 @@ namespace GoContactSyncMod
             //save user culture
             CultureInfo oldCI = Thread.CurrentThread.CurrentCulture;
             //set culture to english for exception messages
-            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture ("en-US");
-            Thread.CurrentThread.CurrentUICulture=new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
             Logger.Log(ex.Message, EventType.Error);
 
             Logger.Log(ex, EventType.Debug);
-           
+
             //AppendSyncConsoleText(Logger.GetText());
             Logger.Log("Sync failed.", EventType.Error);
 
@@ -53,7 +52,7 @@ namespace GoContactSyncMod
                  */
             }
             catch (Exception exc)
-            {               
+            {
                 // this can fail if form was disposed or not created yet, so catch the exception - balloon is not that important to risk followup error
                 Logger.Log("Error showing Balloon: " + exc.Message, EventType.Error);
             }
@@ -61,7 +60,7 @@ namespace GoContactSyncMod
             using (ErrorDialog errorDialog = new ErrorDialog())
             {
                 await errorDialog.setErrorText(ex);
-                errorDialog.ShowDialog ();
+                errorDialog.ShowDialog();
             }
 
             //set user culture

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Google.GData.Contacts;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Google.GData.Extensions;
 using System.Collections;
@@ -35,7 +33,7 @@ namespace GoContactSyncMod
         {
             // check if exists
             bool found = false;
-            foreach (Google.GData.Extensions.ExtendedProperty p in googleContact.ExtendedProperties)
+            foreach (var p in googleContact.ExtendedProperties)
             {
                 if (p.Name == "gos:oid:" + syncProfile + "")
                 {
@@ -46,7 +44,7 @@ namespace GoContactSyncMod
             }
             if (!found)
             {
-                Google.GData.Extensions.ExtendedProperty prop = new ExtendedProperty(outlookContactId, "gos:oid:" + syncProfile + "");
+                var prop = new ExtendedProperty(outlookContactId, "gos:oid:" + syncProfile + "");
                 prop.Value = outlookContactId;
                 googleContact.ExtendedProperties.Add(prop);
             }
@@ -54,7 +52,7 @@ namespace GoContactSyncMod
         public static string GetGoogleOutlookContactId(string syncProfile, Contact googleContact)
         {
             // get extended prop
-            foreach (Google.GData.Extensions.ExtendedProperty p in googleContact.ExtendedProperties)
+            foreach (var p in googleContact.ExtendedProperties)
             {
                 if (p.Name == "gos:oid:" + syncProfile + "")
                     return (string)p.Value;
@@ -64,7 +62,7 @@ namespace GoContactSyncMod
         public static void ResetGoogleOutlookContactId(string syncProfile, Contact googleContact)
         {
             // get extended prop
-            foreach (Google.GData.Extensions.ExtendedProperty p in googleContact.ExtendedProperties)
+            foreach (var p in googleContact.ExtendedProperties)
             {
                 if (p.Name == "gos:oid:" + syncProfile + "")
                 {
@@ -304,7 +302,7 @@ namespace GoContactSyncMod
                                         {
                                             Logger.Log(string.Format("Unsupported AddressEntryUserType {0} for contact '{1}'.", addressEntry.AddressEntryUserType, outlookContactItem.FileAs), EventType.Debug);
                                         }
-                                    }                                    
+                                    }
                                     finally
                                     {
                                         Marshal.ReleaseComObject(addressEntry);

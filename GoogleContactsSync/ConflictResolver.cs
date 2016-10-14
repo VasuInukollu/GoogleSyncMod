@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Google.Contacts;
 using Google.Documents;
-using System.Reflection;
-using Google.Apis.Calendar;
 using Google.Apis.Calendar.v3.Data;
 
 namespace GoContactSyncMod
@@ -17,7 +14,7 @@ namespace GoContactSyncMod
         {
             _form = new ConflictResolverForm();
         }
-        
+
 
         #region IConflictResolver Members
 
@@ -38,7 +35,7 @@ namespace GoContactSyncMod
                     "Both the Outlook Contact and the Google Contact \"" + name +
                     "\" have been changed. Choose which you would like to keep.";
             }
-            
+
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
             if (match.OutlookContact != null)
@@ -61,7 +58,7 @@ namespace GoContactSyncMod
 
             if (match.GoogleContact != null)
                 _form.GoogleItemTextBox.Text = ContactMatch.GetSummary(match.GoogleContact);
-           
+
 
             return Resolve();
         }
@@ -77,7 +74,7 @@ namespace GoContactSyncMod
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
-            
+
             Microsoft.Office.Interop.Outlook.ContactItem item = outlookContact.GetOriginalItemFromOutlook();
             try
             {
@@ -92,13 +89,13 @@ namespace GoContactSyncMod
                 }
             }
 
-            
+
 
             _form.GoogleComboBox.DataSource = googleContacts;
             _form.GoogleComboBox.Visible = true;
             _form.AllCheckBox.Visible = false;
             _form.skip.Text = "Keep both";
-            
+
 
             ConflictResolution res = Resolve();
             googleContact = _form.GoogleComboBox.SelectedItem as Contact;
@@ -114,7 +111,7 @@ namespace GoContactSyncMod
             _form.Text = "Google Contact deleted";
             _form.messageLabel.Text =
                 "Google Contact \"" + name +
-                "\" doesn't exist anymore. Do you want to delete it also on Outlook side?";            
+                "\" doesn't exist anymore. Do you want to delete it also on Outlook side?";
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
@@ -130,8 +127,8 @@ namespace GoContactSyncMod
                     System.Runtime.InteropServices.Marshal.ReleaseComObject(item);
                     item = null;
                 }
-            }       
-            
+            }
+
             _form.keepOutlook.Text = "Keep Outlook";
             _form.keepGoogle.Text = "Delete Outlook";
             _form.skip.Enabled = false;
@@ -146,7 +143,7 @@ namespace GoContactSyncMod
             _form.Text = "Outlook Contact deleted";
             _form.messageLabel.Text =
                 "Outlook Contact \"" + name +
-                "\" doesn't exist anymore. Do you want to delete it also on Google side?";                       
+                "\" doesn't exist anymore. Do you want to delete it also on Google side?";
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
@@ -159,7 +156,7 @@ namespace GoContactSyncMod
             return ResolveDeletedOutlook();
         }
 
-        
+
 
         private ConflictResolution Resolve()
         {
@@ -184,7 +181,7 @@ namespace GoContactSyncMod
         {
 
             switch (SettingsForm.Instance.ShowConflictDialog(_form))
-            {              
+            {
                 case System.Windows.Forms.DialogResult.No:
                     // google wins
                     return _form.AllCheckBox.Checked ? DeleteResolution.DeleteGoogleAlways : DeleteResolution.DeleteGoogle;
@@ -200,7 +197,7 @@ namespace GoContactSyncMod
         {
 
             switch (SettingsForm.Instance.ShowConflictDialog(_form))
-            {               
+            {
                 case System.Windows.Forms.DialogResult.No:
                     // google wins
                     return _form.AllCheckBox.Checked ? DeleteResolution.DeleteOutlookAlways : DeleteResolution.DeleteOutlook;
@@ -266,15 +263,15 @@ namespace GoContactSyncMod
                 "Both the Outlook Note and the Google Note \"" + name +
                 "\" have been changed. Choose which you would like to keep.";
             }
-            
 
-           
-            
+
+
+
 
             return Resolve();
         }
         public DeleteResolution ResolveDelete(Microsoft.Office.Interop.Outlook.NoteItem outlookNote)
-        {            
+        {
 
             _form.Text = "Google note deleted";
             _form.messageLabel.Text =
@@ -283,7 +280,7 @@ namespace GoContactSyncMod
 
             _form.OutlookItemTextBox.Text = outlookNote.Body;
             _form.GoogleItemTextBox.Text = string.Empty;
-            
+
             _form.keepOutlook.Text = "Keep Outlook";
             _form.keepGoogle.Text = "Delete Outlook";
             _form.skip.Enabled = false;
@@ -317,13 +314,13 @@ namespace GoContactSyncMod
             _form.GoogleItemTextBox.Text = string.Empty;
             if (outlookAppointment != null)
             {
-                name = outlookAppointment.Subject + " - " + outlookAppointment.Start;                
+                name = outlookAppointment.Subject + " - " + outlookAppointment.Start;
                 _form.OutlookItemTextBox.Text += outlookAppointment.Body;
             }
 
             if (googleAppointment != null)
             {
-                name = googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);                
+                name = googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
                 _form.GoogleItemTextBox.Text += googleAppointment.Description;
             }
 
@@ -376,12 +373,12 @@ namespace GoContactSyncMod
 
         public ConflictResolution Resolve(string message, Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment, Event googleAppointment, Synchronizer sync)
         {
-            return Resolve(message, outlookAppointment, googleAppointment, sync, true, false);        
+            return Resolve(message, outlookAppointment, googleAppointment, sync, true, false);
         }
 
         public ConflictResolution Resolve(string message, Event googleAppointment, Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment, Synchronizer sync)
         {
-            return Resolve(message, outlookAppointment, googleAppointment, sync, false, true);           
+            return Resolve(message, outlookAppointment, googleAppointment, sync, false, true);
         }
 
         public DeleteResolution ResolveDelete(Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment)
@@ -392,9 +389,9 @@ namespace GoContactSyncMod
                 "Google appointment \"" + outlookAppointment.Subject + " - " + outlookAppointment.Start +
                 "\" doesn't exist anymore. Do you want to delete it also on Outlook side?";
 
-            _form.GoogleItemTextBox.Text = String.Empty;            
+            _form.GoogleItemTextBox.Text = string.Empty;
             _form.OutlookItemTextBox.Text += outlookAppointment.Body;
-            
+
 
 
             _form.keepOutlook.Text = "Keep Outlook";
@@ -412,7 +409,7 @@ namespace GoContactSyncMod
                 "Outlook appointment \"" + googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment) +
                 "\" doesn't exist anymore. Do you want to delete it also on Google side?";
 
-            _form.OutlookItemTextBox.Text = String.Empty;            
+            _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text += googleAppointment.Description;
 
 

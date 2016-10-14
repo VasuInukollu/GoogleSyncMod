@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Text.RegularExpressions;
@@ -51,24 +47,24 @@ namespace GoContactSyncMod
             {
                 bool userNameIsValid = Regex.IsMatch(UserName.Text, @"^(?'id'[a-z0-9\\\/\@\'\%\._\+\s\-]+)$", RegexOptions.IgnoreCase);
                 bool passwordIsValid = !string.IsNullOrEmpty(Password.Text.Trim());
-                bool AddressIsValid  = Regex.IsMatch(Address.Text, @"^(?'url'[\w\d#@%;$()~_?\-\\\.&]+)$", RegexOptions.IgnoreCase);
-                bool PortIsValid     = Regex.IsMatch(Port.Text, @"^(?'port'[0-9]{2,6})$", RegexOptions.IgnoreCase);
+                bool AddressIsValid = Regex.IsMatch(Address.Text, @"^(?'url'[\w\d#@%;$()~_?\-\\\.&]+)$", RegexOptions.IgnoreCase);
+                bool PortIsValid = Regex.IsMatch(Port.Text, @"^(?'port'[0-9]{2,6})$", RegexOptions.IgnoreCase);
 
                 setBgColor(UserName, userNameIsValid);
                 setBgColor(Password, passwordIsValid);
-                setBgColor(Address,  AddressIsValid);
-                setBgColor(Port,     PortIsValid);
+                setBgColor(Address, AddressIsValid);
+                setBgColor(Port, PortIsValid);
                 return (userNameIsValid && passwordIsValid || !Authorization.Checked) && AddressIsValid && PortIsValid || SystemProxy.Checked;
             }
         }
 
         private void FormSettings()
         {
-            Address.Enabled       = CustomProxy.Checked;
-            Port.Enabled          = CustomProxy.Checked;
-            Authorization.Enabled = CustomProxy.Checked; 
-            UserName.Enabled      = CustomProxy.Checked && Authorization.Checked;
-            Password.Enabled      = CustomProxy.Checked && Authorization.Checked;
+            Address.Enabled = CustomProxy.Checked;
+            Port.Enabled = CustomProxy.Checked;
+            Authorization.Enabled = CustomProxy.Checked;
+            UserName.Enabled = CustomProxy.Checked && Authorization.Checked;
+            Password.Enabled = CustomProxy.Checked && Authorization.Checked;
 
             bool isValid = ValidCredentials;
         }
@@ -84,7 +80,7 @@ namespace GoContactSyncMod
                         myProxy = new System.Net.WebProxy(Address.Text, Convert.ToInt16(Port.Text));
                     myProxy.BypassProxyOnLocal = true;
                     myProxy.UseDefaultCredentials = true;
-                                        
+
                     if (Authorization.Checked)
                     {
                         myProxy.Credentials = new System.Net.NetworkCredential(UserName.Text, Password.Text);
@@ -123,7 +119,7 @@ namespace GoContactSyncMod
 
             if (regKeyAppRoot.GetValue("ProxyUsage") != null)
             {
-                if (Convert.ToBoolean (regKeyAppRoot.GetValue("ProxyUsage")))
+                if (Convert.ToBoolean(regKeyAppRoot.GetValue("ProxyUsage")))
                 {
                     CustomProxy.Checked = true;
                     SystemProxy.Checked = !CustomProxy.Checked;
@@ -134,9 +130,9 @@ namespace GoContactSyncMod
                     if (regKeyAppRoot.GetValue("ProxyPort") != null)
                         Port.Text = (string)regKeyAppRoot.GetValue("ProxyPort");
 
-                    if (Convert.ToBoolean (regKeyAppRoot.GetValue("ProxyAuth"))) 
+                    if (Convert.ToBoolean(regKeyAppRoot.GetValue("ProxyAuth")))
                     {
-                         Authorization.Checked = true;
+                        Authorization.Checked = true;
 
                         if (regKeyAppRoot.GetValue("ProxyUsername") != null)
                         {
@@ -153,7 +149,8 @@ namespace GoContactSyncMod
         }
         public void ClearSettings()
         {
-            if (!cbUseGlobalSettings.Checked) {
+            if (!cbUseGlobalSettings.Checked)
+            {
                 SystemProxy.Checked = true;
                 CustomProxy.Checked = Authorization.Checked = !SystemProxy.Checked;
                 Address.Text = Port.Text = UserName.Text = Password.Text;
@@ -180,7 +177,7 @@ namespace GoContactSyncMod
                 }
 
                 regKeyAppRoot.SetValue("ProxyAuth", Authorization.Checked);
-                if (Authorization.Checked) 
+                if (Authorization.Checked)
                 {
                     if (!string.IsNullOrEmpty(UserName.Text))
                     {
@@ -202,7 +199,7 @@ namespace GoContactSyncMod
 
         private void okButton_Click(object sender, EventArgs e)
         {
-            if (!ValidCredentials) 
+            if (!ValidCredentials)
                 return;
 #if !debug
             SaveSettings(null);

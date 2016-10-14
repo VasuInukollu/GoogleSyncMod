@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using Google.GData.Extensions;
 using System.Collections;
 using Google.Documents;
 using System.Runtime.InteropServices;
@@ -260,19 +258,19 @@ namespace GoContactSyncMod
                 if (syncProfile != null)
                     syncProfile = syncProfile.Replace(c, '_');
             }
-            
+
 
             //Only for backward compliance with version before 3.5.9 (before syncProfile can be changed)
             CopyNoteFiles(syncProfile);
 
-            fileName = Logger.Folder + (string.IsNullOrEmpty(syncProfile)?string.Empty:"\\" + syncProfile) + "\\" + fileName;
+            fileName = Logger.Folder + (string.IsNullOrEmpty(syncProfile) ? string.Empty : "\\" + syncProfile) + "\\" + fileName;
             return fileName;
         }
 
         private static void CopyNoteFiles(string syncProfile)
         {
             if (!string.IsNullOrEmpty(syncProfile))
-            {               
+            {
                 foreach (char c in System.IO.Path.GetInvalidFileNameChars())
                 {
                     syncProfile = syncProfile.Replace(c, '_');
@@ -326,13 +324,13 @@ namespace GoContactSyncMod
             try
             {
                 filestream = new FileStream(fileName, FileMode.OpenOrCreate);
-                
+
                 using (var writer = new StreamWriter(filestream))
                 {
                     filestream = null;
                     writer.Write(body);
                 }
-                
+
             }
             catch (Exception e)
             {
@@ -347,7 +345,7 @@ namespace GoContactSyncMod
             return fileName;
         }
 
-        public static void DeleteNoteFiles(string syncProfile)        
+        public static void DeleteNoteFiles(string syncProfile)
         {
             //Only for backward compliance with version before 3.5.9 (before syncProfile can be changed)
             CopyNoteFiles(syncProfile);
@@ -358,6 +356,6 @@ namespace GoContactSyncMod
                 File.Delete(file);
         }
 
-                
+
     }
 }

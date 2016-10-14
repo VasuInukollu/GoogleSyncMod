@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography;
@@ -203,7 +202,7 @@ namespace GoContactSyncMod
             int j = 0;
             for (int i = 0; i < bytes.Length; i++)
             {
-                hex = new String(new Char[] { newString[j], newString[j + 1] });
+                hex = new string(new Char[] { newString[j], newString[j + 1] });
                 bytes[i] = HexToByte(hex);
                 j = j + 2;
             }

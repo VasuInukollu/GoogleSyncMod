@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
 using System.Net;
 using System.IO;
 using Google.GData.Contacts;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using System.Threading;
 using System.Collections.ObjectModel;
 using Google.Contacts;
 
@@ -137,7 +134,7 @@ namespace GoContactSyncMod
                         a.SaveAsFile(tempPhotoPath);
 
                         return Image.FromFile(tempPhotoPath);
-                        
+
                     }
                 }
                 return null;
@@ -419,7 +416,7 @@ namespace GoContactSyncMod
         {
             get
             {
-                return _folderName + (_isDefaultFolder ? " (Default)" : String.Empty);
+                return _folderName + (_isDefaultFolder ? " (Default)" : string.Empty);
             }
         }
 
@@ -567,7 +564,7 @@ namespace GoContactSyncMod
         {
             get
             {
-                return _folderName + (_isDefaultFolder ? " (Default)" : String.Empty);
+                return _folderName + (_isDefaultFolder ? " (Default)" : string.Empty);
             }
         }
 

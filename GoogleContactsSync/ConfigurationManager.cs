@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using Microsoft.Win32;
 using System.Windows.Forms;
 
@@ -104,11 +99,12 @@ namespace GoContactSyncMod
 
         private void btDel_Click(object sender, EventArgs e)
         {
-            if (0 >= lbProfiles.CheckedItems.Count) 
-            {  
-                 MessageBox.Show("You don`t select any profile. Deletion imposble.", "Delete profile");
-            } else if (DialogResult.Yes == MessageBox.Show("Do you sure to delete selection ?", "Delete profile",
-                                                    MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+            if (0 >= lbProfiles.CheckedItems.Count)
+            {
+                MessageBox.Show("You don`t select any profile. Deletion imposble.", "Delete profile");
+            }
+            else if (DialogResult.Yes == MessageBox.Show("Do you sure to delete selection ?", "Delete profile",
+                                                  MessageBoxButtons.YesNo, MessageBoxIcon.Question))
             {
                 foreach (object itemChecked in lbProfiles.CheckedItems)
                 {

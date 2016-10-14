@@ -176,7 +176,7 @@ namespace GoContactSyncMod
             if (ContactsRequest == null && SyncContacts || DocumentsRequest == null && SyncNotes || EventRequest == null & SyncAppointments)
             {
                 //OAuth2 for all services
-                List<String> scopes = new List<string>();
+                List<string> scopes = new List<string>();
 
                 //Contacts-Scope
                 scopes.Add("https://www.google.com/m8/feeds");
@@ -442,7 +442,7 @@ namespace GoContactSyncMod
                         throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                     }
                     else
-                       Thread.Sleep(1000 * 10 * (i + 1));
+                        Thread.Sleep(1000 * 10 * (i + 1));
                 }
                 catch (InvalidCastException ex)
                 {
@@ -521,7 +521,7 @@ namespace GoContactSyncMod
                         Logger.Log("1st try OK", EventType.Debug);
                     }
                     catch (Exception e1)
-                    { 
+                    {
                         Logger.Log(e1, EventType.Debug);
                         try
                         {
@@ -1881,7 +1881,7 @@ namespace GoContactSyncMod
                         Logger.Log("Outlook default time zone: " + TimeZoneInfo.Local.Id, EventType.Information);
                         Logger.Log("Google default time zone: " + SyncAppointmentsGoogleTimeZone, EventType.Information);
                         if (string.IsNullOrEmpty(Timezone))
-                        {                  
+                        {
                             TimeZoneChanges?.Invoke(SyncAppointmentsGoogleTimeZone);
                             Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
                         }
@@ -2145,7 +2145,7 @@ namespace GoContactSyncMod
                     {
                         ErrorCount++;
                         SyncedCount--;
-                        string message = String.Format("Failed to synchronize appointment: {0}:\n{1}", match.OutlookAppointment != null ? match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start + ")" : match.GoogleAppointment.Summary + " - " + GetTime(match.GoogleAppointment), ex.Message);
+                        string message = string.Format("Failed to synchronize appointment: {0}:\n{1}", match.OutlookAppointment != null ? match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start + ")" : match.GoogleAppointment.Summary + " - " + GetTime(match.GoogleAppointment), ex.Message);
                         Exception newEx = new Exception(message, ex);
                         ErrorEncountered("Error", newEx, EventType.Error);
                     }
@@ -2310,7 +2310,7 @@ namespace GoContactSyncMod
                     {
                         ErrorCount++;
                         SyncedCount--;
-                        string message = String.Format("Failed to synchronize contact: {0}. \nPlease check the contact, if any Email already exists on Google contacts side or if there is too much or invalid data in the notes field. \nIf the problem persists, please try recreating the contact or report the error on OutlookForge:\n{1}", match.OutlookContact != null ? match.OutlookContact.FileAs : match.GoogleContact.Title, ex.Message);
+                        string message = string.Format("Failed to synchronize contact: {0}. \nPlease check the contact, if any Email already exists on Google contacts side or if there is too much or invalid data in the notes field. \nIf the problem persists, please try recreating the contact or report the error on OutlookForge:\n{1}", match.OutlookContact != null ? match.OutlookContact.FileAs : match.GoogleContact.Title, ex.Message);
                         Exception newEx = new Exception(message, ex);
                         ErrorEncountered("Error", newEx, EventType.Error);
                     }
@@ -2334,7 +2334,7 @@ namespace GoContactSyncMod
                     {
                         ErrorCount++;
                         SyncedCount--;
-                        string message = String.Format("Failed to synchronize note: {0}.", match.OutlookNote.Subject);
+                        string message = string.Format("Failed to synchronize note: {0}.", match.OutlookNote.Subject);
                         Exception newEx = new Exception(message, ex);
                         ErrorEncountered("Error", newEx, EventType.Error);
                     }
@@ -3123,7 +3123,7 @@ namespace GoContactSyncMod
                     if (e != null)
                         responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleContact);
-                    string newEx = String.Format("Error saving NEW Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
+                    string newEx = string.Format("Error saving NEW Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
                 }
             }
@@ -3140,13 +3140,34 @@ namespace GoContactSyncMod
                     foreach (UserDefinedField userDefinedField in googleContact.ContactEntry.UserDefinedFields)
                     {
                         fieldCount++;
-                        if (String.IsNullOrEmpty(userDefinedField.Key))
+                        if (string.IsNullOrEmpty(userDefinedField.Key))
                         {
                             userDefinedField.Key = "UserField" + fieldCount.ToString();
                         }
                     }
 
-                    //TODO: this will fail if original contact had an empty name or rpimary email address.
+
+                    /*
+                    foreach (var p in googleContact.ExtendedProperties)
+                    {
+                        if (p.Name == "gos:oid:" + syncProfile + "")
+                        {
+                            // remove 
+                            googleContact.ExtendedProperties.Remove(p);
+                            return;
+                        }
+                    }*/
+
+                    /* TODO (obelix30) how to handle empty extended property?
+                     * https://sourceforge.net/p/googlesyncmod/support-requests/513/
+                     * <gd:extendedProperty name="GCon" xmlns="null">
+                     * <gd:extendedProperty name="GCon"/>
+                    var prop = new ExtendedProperty("", "GCon");
+                    prop.Value = "";
+                    googleContact.ExtendedProperties.Add(prop);
+                    */
+
+                    //TODO: this will fail if original contact had an empty name or primary email address.
                     Contact updated = ContactsRequest.Update(googleContact);
                     return updated;
                 }
@@ -3157,7 +3178,7 @@ namespace GoContactSyncMod
                     if (e != null)
                         responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleContact);
-                    string newEx = String.Format("Error saving EXISTING Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
+                    string newEx = string.Format("Error saving EXISTING Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
                 }
             }
@@ -3182,7 +3203,7 @@ namespace GoContactSyncMod
                 }
                 catch (Exception ex)
                 {
-                    string newEx = String.Format("Error saving NEW Google appointment: {0}. \n{1}", googleAppointment.Summary + " - " + GetTime(googleAppointment), ex.Message);
+                    string newEx = string.Format("Error saving NEW Google appointment: {0}. \n{1}", googleAppointment.Summary + " - " + GetTime(googleAppointment), ex.Message);
                     throw new ApplicationException(newEx, ex);
                 }
             }
@@ -3251,7 +3272,7 @@ namespace GoContactSyncMod
                     if (e != null)
                         responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleNote);
-                    string newEx = String.Format("Error saving NEW Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
+                    string newEx = string.Format("Error saving NEW Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
                 }
             }
@@ -3273,7 +3294,7 @@ namespace GoContactSyncMod
                     if (e != null)
                         responseString = EscapeXml(e.ResponseString);
                     string xml = GetXml(googleNote);
-                    string newEx = String.Format("Error saving EXISTING Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
+                    string newEx = string.Format("Error saving EXISTING Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
                 }
             }
@@ -3478,7 +3499,7 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     Logger.Log(ex, EventType.Debug);
-                    Logger.Log("Group dump: " + group.ToString (), EventType.Debug);
+                    Logger.Log("Group dump: " + group.ToString(), EventType.Debug);
                     throw;
                 }
             }
@@ -3526,7 +3547,7 @@ namespace GoContactSyncMod
         public void UpdateNote(Outlook.NoteItem master, Document slave)
         {
             if (!string.IsNullOrEmpty(master.Subject))
-                slave.Title = master.Subject.Replace(":", String.Empty);
+                slave.Title = master.Subject.Replace(":", string.Empty);
 
             string fileName = NotePropertiesUtils.CreateNoteFile(master.EntryID, master.Body, SyncProfile);
 

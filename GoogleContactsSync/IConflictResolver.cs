@@ -1,10 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
-using Google.GData.Contacts;
-using Google.GData.Client;
-using Google.GData.Extensions;
-using Outlook = Microsoft.Office.Interop.Outlook;
 using Google.Contacts;
 using Google.Documents;
 
@@ -32,7 +26,7 @@ namespace GoContactSyncMod
 
         DeleteResolution ResolveDelete(Microsoft.Office.Interop.Outlook.NoteItem outlookNote);
 
-        
+
     }
 
     internal enum ConflictResolution
@@ -57,5 +51,5 @@ namespace GoContactSyncMod
         DeleteGoogleAlways,
         KeepOutlookAlways,
         KeepGoogleAlways
-    }    
+    }
 }

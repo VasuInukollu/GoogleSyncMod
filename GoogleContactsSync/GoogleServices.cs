@@ -1,6 +1,7 @@
 ﻿using System;
 using Google.Apis.Services;
-using Google.Apis.Calendar.v3;using Google.Apis.Http;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Http;
 using Google.Apis.Util;
 using Google.Apis.Requests;
 using System.Net;
@@ -100,21 +101,21 @@ namespace GoContactSyncMod
             {
                 if (!args.SupportsRetry || _backoff.MaxNumOfRetries < args.CurrentFailedTry)
                     return false;
-   
+
                 if (IsTransientError(args.Response.StatusCode, _service.DeserializeError(args.Response).Result))
                 {
                     var delay = _backoff.GetNextBackOff(args.CurrentFailedTry);
                     if (delay > _maxTimeSpan || delay < TimeSpan.Zero)
                         return false;
-                   
+
                     await Task.Delay(delay, args.CancellationToken);
-                    Logger.Log("Back-Off waited "+ delay.TotalMilliseconds + "ms before next retry...", EventType.Debug);
+                    Logger.Log("Back-Off waited " + delay.TotalMilliseconds + "ms before next retry...", EventType.Debug);
 
                     return true;
                 }
 
                 return false;
-            }    
+            }
         }
     }
 }

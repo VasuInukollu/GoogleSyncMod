@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Google.GData.Client;
 using Google.GData.Contacts;
 using Google.GData.Extensions;
 using Outlook = Microsoft.Office.Interop.Outlook;
@@ -9,17 +6,17 @@ using Google.Contacts;
 
 namespace GoContactSyncMod
 {
-    
-	internal static class ContactSync
-	{
+
+    internal static class ContactSync
+    {
         internal static DateTime outlookDateNone = new DateTime(4501, 1, 1);
         private const string relSpouse = "spouse";
         private const string relChild = "child";
         private const string relManager = "manager";
         private const string relAssistant = "assistant";
-        
+
         private const string relAnniversary = "anniversary";
-        
+
         private const string relHomePage = "home-page";
 
         public static void SetAddresses(Outlook.ContactItem source, Contact destination)
@@ -70,25 +67,25 @@ namespace GoContactSyncMod
             }
         }
 
-		public static void SetIMs(Outlook.ContactItem source, Contact destination)
-		{
+        public static void SetIMs(Outlook.ContactItem source, Contact destination)
+        {
             destination.IMs.Clear();
 
-			if (!string.IsNullOrEmpty(source.IMAddress))
-			{
-				//IMAddress are expected to be in form of ([Protocol]: [Address]; [Protocol]: [Address])
-				string[] imsRaw = source.IMAddress.Split(';');
-				foreach (string imRaw in imsRaw)
-				{
-					string[] imDetails = imRaw.Trim().Split(':');
-					IMAddress im = new IMAddress();
-					if (imDetails.Length == 1)
-						im.Address = imDetails[0].Trim();
-					else
-					{
-						im.Protocol = imDetails[0].Trim();
-						im.Address = imDetails[1].Trim();
-					}
+            if (!string.IsNullOrEmpty(source.IMAddress))
+            {
+                //IMAddress are expected to be in form of ([Protocol]: [Address]; [Protocol]: [Address])
+                string[] imsRaw = source.IMAddress.Split(';');
+                foreach (string imRaw in imsRaw)
+                {
+                    string[] imDetails = imRaw.Trim().Split(':');
+                    IMAddress im = new IMAddress();
+                    if (imDetails.Length == 1)
+                        im.Address = imDetails[0].Trim();
+                    else
+                    {
+                        im.Protocol = imDetails[0].Trim();
+                        im.Address = imDetails[1].Trim();
+                    }
 
                     //Only add the im Address if not empty (to avoid Google exception "address" empty)
                     if (!string.IsNullOrEmpty(im.Address))
@@ -97,12 +94,12 @@ namespace GoContactSyncMod
                         im.Rel = ContactsRelationships.IsHome;
                         destination.IMs.Add(im);
                     }
-				}
-			}
-		}
+                }
+            }
+        }
 
-		public static void SetEmails(Outlook.ContactItem source, Contact destination)
-		{
+        public static void SetEmails(Outlook.ContactItem source, Contact destination)
+        {
             destination.Emails.Clear();
 
             string email = ContactPropertiesUtils.GetOutlookEmailAddress1(source);
@@ -110,10 +107,10 @@ namespace GoContactSyncMod
 
             email = ContactPropertiesUtils.GetOutlookEmailAddress2(source);
             AddEmail(destination, email, source.Email2DisplayName, ContactsRelationships.IsHome);
-            
+
             email = ContactPropertiesUtils.GetOutlookEmailAddress3(source);
-            AddEmail(destination, email, source.Email3DisplayName, ContactsRelationships.IsOther);            
-		}
+            AddEmail(destination, email, source.Email3DisplayName, ContactsRelationships.IsOther);
+        }
 
         private static void AddEmail(Contact destination, string email, string label, string relationship)
         {
@@ -130,8 +127,8 @@ namespace GoContactSyncMod
             }
         }
 
-		public static void SetPhoneNumbers(Outlook.ContactItem source, Contact destination)
-		{
+        public static void SetPhoneNumbers(Outlook.ContactItem source, Contact destination)
+        {
 
             destination.Phonenumbers.Clear();
 
@@ -172,28 +169,28 @@ namespace GoContactSyncMod
                 //}
                 //else
                 //{
-                    PhoneNumber phoneNumber = new PhoneNumber(source.PrimaryTelephoneNumber);
-                    phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-                    phoneNumber.Rel = ContactsRelationships.IsMain;
-                    destination.Phonenumbers.Add(phoneNumber);
+                PhoneNumber phoneNumber = new PhoneNumber(source.PrimaryTelephoneNumber);
+                phoneNumber.Primary = destination.Phonenumbers.Count == 0;
+                phoneNumber.Rel = ContactsRelationships.IsMain;
+                destination.Phonenumbers.Add(phoneNumber);
                 //}
             }
 
-			if (!string.IsNullOrEmpty(source.MobileTelephoneNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.MobileTelephoneNumber);
+            if (!string.IsNullOrEmpty(source.MobileTelephoneNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.MobileTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsMobile;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+                phoneNumber.Rel = ContactsRelationships.IsMobile;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
-			if (!string.IsNullOrEmpty(source.HomeTelephoneNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.HomeTelephoneNumber);
+            if (!string.IsNullOrEmpty(source.HomeTelephoneNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.HomeTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsHome;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+                phoneNumber.Rel = ContactsRelationships.IsHome;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
             if (!string.IsNullOrEmpty(source.Home2TelephoneNumber))
             {
@@ -203,45 +200,45 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-			if (!string.IsNullOrEmpty(source.BusinessTelephoneNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.BusinessTelephoneNumber);
+            if (!string.IsNullOrEmpty(source.BusinessTelephoneNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.BusinessTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsWork;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+                phoneNumber.Rel = ContactsRelationships.IsWork;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
-			if (!string.IsNullOrEmpty(source.Business2TelephoneNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.Business2TelephoneNumber);
-				phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsWork;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+            if (!string.IsNullOrEmpty(source.Business2TelephoneNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.Business2TelephoneNumber);
+                phoneNumber.Primary = destination.Phonenumbers.Count == 0;
+                phoneNumber.Rel = ContactsRelationships.IsWork;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
-			if (!string.IsNullOrEmpty(source.HomeFaxNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.HomeFaxNumber);
-				phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsHomeFax;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+            if (!string.IsNullOrEmpty(source.HomeFaxNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.HomeFaxNumber);
+                phoneNumber.Primary = destination.Phonenumbers.Count == 0;
+                phoneNumber.Rel = ContactsRelationships.IsHomeFax;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
-			if (!string.IsNullOrEmpty(source.BusinessFaxNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.BusinessFaxNumber);
-				phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsWorkFax;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+            if (!string.IsNullOrEmpty(source.BusinessFaxNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.BusinessFaxNumber);
+                phoneNumber.Primary = destination.Phonenumbers.Count == 0;
+                phoneNumber.Rel = ContactsRelationships.IsWorkFax;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
-			if (!string.IsNullOrEmpty(source.OtherTelephoneNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.OtherTelephoneNumber);
-				phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsOther;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+            if (!string.IsNullOrEmpty(source.OtherTelephoneNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.OtherTelephoneNumber);
+                phoneNumber.Primary = destination.Phonenumbers.Count == 0;
+                phoneNumber.Rel = ContactsRelationships.IsOther;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
             //ToDo: Currently IsSatellite is returned as invalid Rel value
             //if (!string.IsNullOrEmpty(source.RadioTelephoneNumber))
@@ -252,21 +249,21 @@ namespace GoContactSyncMod
             //    destination.Phonenumbers.Add(phoneNumber);
             //}
 
-			if (!string.IsNullOrEmpty(source.PagerNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.PagerNumber);
-				phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsPager;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+            if (!string.IsNullOrEmpty(source.PagerNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.PagerNumber);
+                phoneNumber.Primary = destination.Phonenumbers.Count == 0;
+                phoneNumber.Rel = ContactsRelationships.IsPager;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
-			if (!string.IsNullOrEmpty(source.CarTelephoneNumber))
-			{
-				PhoneNumber phoneNumber = new PhoneNumber(source.CarTelephoneNumber);
-				phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-				phoneNumber.Rel = ContactsRelationships.IsCar;
-				destination.Phonenumbers.Add(phoneNumber);
-			}
+            if (!string.IsNullOrEmpty(source.CarTelephoneNumber))
+            {
+                PhoneNumber phoneNumber = new PhoneNumber(source.CarTelephoneNumber);
+                phoneNumber.Primary = destination.Phonenumbers.Count == 0;
+                phoneNumber.Rel = ContactsRelationships.IsCar;
+                destination.Phonenumbers.Add(phoneNumber);
+            }
 
             if (!string.IsNullOrEmpty(source.AssistantTelephoneNumber))
             {
@@ -274,44 +271,44 @@ namespace GoContactSyncMod
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
                 phoneNumber.Rel = ContactsRelationships.IsAssistant;
                 destination.Phonenumbers.Add(phoneNumber);
-            }    
+            }
 
-		}
+        }
 
-		public static void SetCompanies(Outlook.ContactItem source, Contact destination)
-		{
+        public static void SetCompanies(Outlook.ContactItem source, Contact destination)
+        {
             destination.Organizations.Clear();
 
-			if (!string.IsNullOrEmpty(source.Companies))
-			{
-				//Companies are expected to be in form of "[Company]; [Company]".
-				string[] companiesRaw = source.Companies.Split(';');
-				foreach (string companyRaw in companiesRaw)
-				{
-					Organization company = new Organization();
+            if (!string.IsNullOrEmpty(source.Companies))
+            {
+                //Companies are expected to be in form of "[Company]; [Company]".
+                string[] companiesRaw = source.Companies.Split(';');
+                foreach (string companyRaw in companiesRaw)
+                {
+                    Organization company = new Organization();
                     company.Name = (destination.Organizations.Count == 0) ? source.CompanyName : null;
-                    company.Title = (destination.Organizations.Count == 0)? source.JobTitle : null;
+                    company.Title = (destination.Organizations.Count == 0) ? source.JobTitle : null;
                     company.Department = (destination.Organizations.Count == 0) ? source.Department : null;
-					company.Primary = destination.Organizations.Count == 0;
-					company.Rel = ContactsRelationships.IsWork;
-					destination.Organizations.Add(company);
-				}
-			}
+                    company.Primary = destination.Organizations.Count == 0;
+                    company.Rel = ContactsRelationships.IsWork;
+                    destination.Organizations.Add(company);
+                }
+            }
 
-			if (destination.Organizations.Count == 0 && (!string.IsNullOrEmpty(source.CompanyName) || !string.IsNullOrEmpty(source.JobTitle) || !string.IsNullOrEmpty(source.Department)))
-			{
-				Organization company = new Organization();
-				company.Name = source.CompanyName;
+            if (destination.Organizations.Count == 0 && (!string.IsNullOrEmpty(source.CompanyName) || !string.IsNullOrEmpty(source.JobTitle) || !string.IsNullOrEmpty(source.Department)))
+            {
+                Organization company = new Organization();
+                company.Name = source.CompanyName;
                 company.Title = source.JobTitle;
                 company.Department = source.Department;
-				company.Primary = true;
-				company.Rel = ContactsRelationships.IsWork;
-				destination.Organizations.Add(company);
-			}
-		}
+                company.Primary = true;
+                company.Rel = ContactsRelationships.IsWork;
+                destination.Organizations.Add(company);
+            }
+        }
 
-		public static void SetPhoneNumber(PhoneNumber phone, Outlook.ContactItem destination)
-		{
+        public static void SetPhoneNumber(PhoneNumber phone, Outlook.ContactItem destination)
+        {
             //if (phone.Primary)
             if (phone.Rel == ContactsRelationships.IsMain)
                 destination.PrimaryTelephoneNumber = phone.Value;
@@ -330,37 +327,37 @@ namespace GoContactSyncMod
                     destination.Business2TelephoneNumber = phone.Value;
             }
             else if (phone.Rel == ContactsRelationships.IsMobile)
-			{
-				destination.MobileTelephoneNumber = phone.Value;
-				//destination.PrimaryTelephoneNumber = phone.Value;
-			}
-			else if (phone.Rel == ContactsRelationships.IsWorkFax)
-				destination.BusinessFaxNumber = phone.Value;
-			else if (phone.Rel == ContactsRelationships.IsHomeFax)
-				destination.HomeFaxNumber = phone.Value;
+            {
+                destination.MobileTelephoneNumber = phone.Value;
+                //destination.PrimaryTelephoneNumber = phone.Value;
+            }
+            else if (phone.Rel == ContactsRelationships.IsWorkFax)
+                destination.BusinessFaxNumber = phone.Value;
+            else if (phone.Rel == ContactsRelationships.IsHomeFax)
+                destination.HomeFaxNumber = phone.Value;
             else if (phone.Rel == ContactsRelationships.IsPager)
-				destination.PagerNumber = phone.Value;
+                destination.PagerNumber = phone.Value;
             //else if (phone.Rel == ContactsRelationships.IsSatellite)
             //    destination.RadioTelephoneNumber = phone.Value;
-			else if (phone.Rel == ContactsRelationships.IsOther)
-				destination.OtherTelephoneNumber = phone.Value;
-			else if (phone.Rel == ContactsRelationships.IsCar)
-				destination.CarTelephoneNumber = phone.Value;
+            else if (phone.Rel == ContactsRelationships.IsOther)
+                destination.OtherTelephoneNumber = phone.Value;
+            else if (phone.Rel == ContactsRelationships.IsCar)
+                destination.CarTelephoneNumber = phone.Value;
             else if (phone.Rel == ContactsRelationships.IsAssistant)
                 destination.AssistantTelephoneNumber = phone.Value;
             //else if (phone.Rel == ContactsRelationships.IsVoip)
             //    destination.Business2TelephoneNumber = phone.Value;   
             //else no phone category matches 
-		}
+        }
 
-		public static void SetPostalAddress(StructuredPostalAddress address, Outlook.ContactItem destination)
-		{
-			if (address.Rel == ContactsRelationships.IsHome)
-			{
-                destination.HomeAddressStreet=address.Street;
-                destination.HomeAddressCity=address.City;
+        public static void SetPostalAddress(StructuredPostalAddress address, Outlook.ContactItem destination)
+        {
+            if (address.Rel == ContactsRelationships.IsHome)
+            {
+                destination.HomeAddressStreet = address.Street;
+                destination.HomeAddressCity = address.City;
                 destination.HomeAddressPostalCode = address.Postcode;
-                destination.HomeAddressCountry=address.Country;
+                destination.HomeAddressCountry = address.Country;
                 destination.HomeAddressState = address.Region;
                 destination.HomeAddressPostOfficeBox = address.Pobox;
 
@@ -376,10 +373,10 @@ namespace GoContactSyncMod
                     destination.HomeAddress = destination.HomeAddress + "\r\n" + address.Country;
 
                 if (address.Primary)
-					destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olHome;
-			}
-			else if (address.Rel == ContactsRelationships.IsWork)
-			{
+                    destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olHome;
+            }
+            else if (address.Rel == ContactsRelationships.IsWork)
+            {
                 destination.BusinessAddressStreet = address.Street;
                 destination.BusinessAddressCity = address.City;
                 destination.BusinessAddressPostalCode = address.Postcode;
@@ -399,10 +396,10 @@ namespace GoContactSyncMod
                     destination.BusinessAddress = destination.BusinessAddress + "\r\n" + address.Country;
 
                 if (address.Primary)
-					destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olBusiness;
-			}
-			else if (address.Rel == ContactsRelationships.IsOther)
-			{
+                    destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olBusiness;
+            }
+            else if (address.Rel == ContactsRelationships.IsOther)
+            {
                 destination.OtherAddressStreet = address.Street;
                 destination.OtherAddressCity = address.City;
                 destination.OtherAddressPostalCode = address.Postcode;
@@ -422,16 +419,16 @@ namespace GoContactSyncMod
                     destination.OtherAddress = destination.OtherAddress + "\r\n" + address.Country;
 
                 if (address.Primary)
-					destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olOther;
-			}
-		}
+                    destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olOther;
+            }
+        }
 
         /// <summary>
         /// Updates Google contact from Outlook (but without groups/categories)
         /// </summary>
 	    public static void UpdateContact(Outlook.ContactItem master, Contact slave, bool useFileAs)
-		{
-			//// if no email or number, contact will be updated at each sync
+        {
+            //// if no email or number, contact will be updated at each sync
             //if (string.IsNullOrEmpty(master.Email1Address) && string.IsNullOrEmpty(master.PrimaryTelephoneNumber))
             //{
             //    if (slave.Emails.Count > 0)
@@ -462,11 +459,11 @@ namespace GoContactSyncMod
                 else if (!string.IsNullOrEmpty(master.Email1Address))
                     slave.Title = master.Email1Address;
             }
-			
+
             #endregion Title/FileAs
 
             #region Name
-            Name name = new Name();                        
+            Name name = new Name();
 
             name.NamePrefix = master.Title;
             name.GivenName = master.FirstName;
@@ -480,13 +477,13 @@ namespace GoContactSyncMod
                 if (useFileAs)
                     name.FullName = master.FileAs;
                 else
-                {                    
+                {
                     name.FullName = OutlookContactInfo.GetTitleFirstLastAndSuffix(master);
                     if (!string.IsNullOrEmpty(name.FullName))
                         name.FullName = name.FullName.Trim().Replace("  ", " ");
                 }
             }
-            
+
             slave.Name = name;
             #endregion Name
 
@@ -497,7 +494,7 @@ namespace GoContactSyncMod
                     slave.ContactEntry.Birthday = null;
                 else
                     slave.ContactEntry.Birthday = master.Birthday.ToString("yyyy-MM-dd");
-            }            
+            }
             catch (Exception ex)
             {
                 Logger.Log("Birthday couldn't be updated from Outlook to Google for '" + master.FileAs + "': " + ex.Message, EventType.Error);
@@ -519,15 +516,15 @@ namespace GoContactSyncMod
                 }
             }
 
-			SetEmails(master, slave);
+            SetEmails(master, slave);
 
-			SetAddresses(master, slave);
-			
-			SetPhoneNumbers(master, slave);
-			
-			SetCompanies(master, slave);
+            SetAddresses(master, slave);
 
-			SetIMs(master, slave);
+            SetPhoneNumbers(master, slave);
+
+            SetCompanies(master, slave);
+
+            SetIMs(master, slave);
 
             #region anniversary
             //First remove anniversary
@@ -548,7 +545,7 @@ namespace GoContactSyncMod
                     ev.Relation = relAnniversary;
                     ev.When = new When();
                     ev.When.AllDay = true;
-                    ev.When.StartTime = master.Anniversary.Date;            
+                    ev.When.StartTime = master.Anniversary.Date;
                     slave.ContactEntry.Events.Add(ev);
                 }
             }
@@ -560,26 +557,26 @@ namespace GoContactSyncMod
 
             #region relations (spouse, child, manager and assistant)
             //First remove spouse, child, manager and assistant
-            for (int i=slave.ContactEntry.Relations.Count-1; i>=0;i--)
+            for (int i = slave.ContactEntry.Relations.Count - 1; i >= 0; i--)
             {
                 Relation rel = slave.ContactEntry.Relations[i];
                 if (rel.Rel != null && (rel.Rel.Equals(relSpouse) || rel.Rel.Equals(relChild) || rel.Rel.Equals(relManager) || rel.Rel.Equals(relAssistant)))
                     slave.ContactEntry.Relations.RemoveAt(i);
             }
             //Then add spouse again if existing
-            if (!string.IsNullOrEmpty(master.Spouse))        
+            if (!string.IsNullOrEmpty(master.Spouse))
             {
                 Relation rel = new Relation();
                 rel.Rel = relSpouse;
-                rel.Value = master.Spouse;                
+                rel.Value = master.Spouse;
                 slave.ContactEntry.Relations.Add(rel);
             }
             //Then add children again if existing
-            if (!string.IsNullOrEmpty(master.Children))               
+            if (!string.IsNullOrEmpty(master.Children))
             {
                 Relation rel = new Relation();
                 rel.Rel = relChild;
-                rel.Value = master.Children;                
+                rel.Value = master.Children;
                 slave.ContactEntry.Relations.Add(rel);
             }
             //Then add manager again if existing
@@ -620,18 +617,18 @@ namespace GoContactSyncMod
                 slave.Content = System.Security.SecurityElement.Escape(master.Body);
             else
                 slave.Content = null;
-		}
+        }
 
         /// <summary>
         /// Updates Outlook contact from Google (but without groups/categories)
         /// </summary>
 		public static void UpdateContact(Contact master, Outlook.ContactItem slave, bool useFileAs)
-		{
-			//// if no email or number, contact will be updated at each sync
-			//if (master.Emails.Count == 0 && master.Phonenumbers.Count == 0)
+        {
+            //// if no email or number, contact will be updated at each sync
+            //if (master.Emails.Count == 0 && master.Phonenumbers.Count == 0)
             //    return;
 
-            
+
 
             #region Name
             slave.Title = master.Name.NamePrefix;
@@ -640,7 +637,7 @@ namespace GoContactSyncMod
             slave.LastName = master.Name.FamilyName;
             slave.Suffix = master.Name.NameSuffix;
             if (string.IsNullOrEmpty(slave.FullName)) //The Outlook fullName is automatically set, so don't assign it from Google, unless the structured properties were empty
-                slave.FullName = master.Name.FullName;           
+                slave.FullName = master.Name.FullName;
 
             #endregion Name
 
@@ -658,7 +655,7 @@ namespace GoContactSyncMod
             }
             if (string.IsNullOrEmpty(slave.FileAs))
             {
-                if (!String.IsNullOrEmpty(slave.Email1Address))
+                if (!string.IsNullOrEmpty(slave.Email1Address))
                 {
                     string emailAddress = ContactPropertiesUtils.GetOutlookEmailAddress1(slave);
                     Logger.Log("Google Contact '" + master.Summary + "' has neither name nor email address. Setting email address of Outlook contact: " + emailAddress, EventType.Warning);
@@ -709,9 +706,9 @@ namespace GoContactSyncMod
                 if (!string.IsNullOrEmpty(slave.Language))
                     slave.Language = slave.Language.TrimEnd(';');
             }
- 
-            
-			SetEmails(master, slave);
+
+
+            SetEmails(master, slave);
 
             #region phones
             //First delete the destination phone numbers
@@ -728,10 +725,10 @@ namespace GoContactSyncMod
             slave.OtherTelephoneNumber = string.Empty;
             slave.CarTelephoneNumber = string.Empty;
             slave.AssistantTelephoneNumber = string.Empty;
-            
-			foreach (PhoneNumber phone in master.Phonenumbers)
-			{                
-				SetPhoneNumber(phone, slave);
+
+            foreach (PhoneNumber phone in master.Phonenumbers)
+            {
+                SetPhoneNumber(phone, slave);
             }
 
             //ToDo: Temporary cleanup algorithm to get rid of duplicate primary phone numbers
@@ -800,9 +797,9 @@ namespace GoContactSyncMod
             slave.OtherAddressPostOfficeBox = string.Empty;
 
             slave.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olNone;
-			foreach (StructuredPostalAddress address in master.PostalAddresses)
-			{
-				SetPostalAddress(address, slave);
+            foreach (StructuredPostalAddress address in master.PostalAddresses)
+            {
+                SetPostalAddress(address, slave);
             }
             #endregion addresses
 
@@ -811,34 +808,34 @@ namespace GoContactSyncMod
             slave.CompanyName = string.Empty;
             slave.JobTitle = string.Empty;
             slave.Department = string.Empty;
-			foreach (Organization company in master.Organizations)
-			{
-				if (string.IsNullOrEmpty(company.Name) && string.IsNullOrEmpty(company.Title) && string.IsNullOrEmpty(company.Department))
-					continue;
+            foreach (Organization company in master.Organizations)
+            {
+                if (string.IsNullOrEmpty(company.Name) && string.IsNullOrEmpty(company.Title) && string.IsNullOrEmpty(company.Department))
+                    continue;
 
-				if (company.Primary || company.Equals(master.Organizations[0]))
+                if (company.Primary || company.Equals(master.Organizations[0]))
                 {//Per default copy the first company, but if there is a primary existing, use the primary
-					slave.CompanyName = company.Name;
+                    slave.CompanyName = company.Name;
                     slave.JobTitle = company.Title;
                     slave.Department = company.Department;
                 }
-				if (!string.IsNullOrEmpty(slave.Companies))
-					slave.Companies += "; ";
-				slave.Companies += company.Name;
-			}
+                if (!string.IsNullOrEmpty(slave.Companies))
+                    slave.Companies += "; ";
+                slave.Companies += company.Name;
+            }
             #endregion companies
 
             #region IM
             slave.IMAddress = string.Empty;
-			foreach (IMAddress im in master.IMs)
-			{
-				if (!string.IsNullOrEmpty(slave.IMAddress))
-					slave.IMAddress += "; ";
-				if (!string.IsNullOrEmpty(im.Protocol) && !im.Protocol.Equals("None", StringComparison.InvariantCultureIgnoreCase))
-					slave.IMAddress += im.Protocol + ": " + im.Address;
+            foreach (IMAddress im in master.IMs)
+            {
+                if (!string.IsNullOrEmpty(slave.IMAddress))
+                    slave.IMAddress += "; ";
+                if (!string.IsNullOrEmpty(im.Protocol) && !im.Protocol.Equals("None", StringComparison.InvariantCultureIgnoreCase))
+                    slave.IMAddress += im.Protocol + ": " + im.Address;
                 else
-				    slave.IMAddress += im.Address;
-			}        
+                    slave.IMAddress += im.Address;
+            }
             #endregion IM
 
             #region anniversary
@@ -884,11 +881,11 @@ namespace GoContactSyncMod
 
             slave.WebPage = string.Empty;
             foreach (Website website in master.ContactEntry.Websites)
-            {               
+            {
                 if (website.Primary || website.Equals(master.ContactEntry.Websites[0]))
                 {//Per default copy the first website, but if there is a primary existing, use the primary
-                    slave.WebPage = master.ContactEntry.Websites[0].Href; 
-                }               
+                    slave.WebPage = master.ContactEntry.Websites[0].Href;
+                }
             }
 
             try
@@ -910,8 +907,8 @@ namespace GoContactSyncMod
                         slave.Body = master.Content;
                     }
                     else
-                    { 
-                        Logger.Log("Outlook contact notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.FileAs, EventType.Warning); 
+                    {
+                        Logger.Log("Outlook contact notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.FileAs, EventType.Warning);
                     }
                 }
             }
@@ -919,18 +916,18 @@ namespace GoContactSyncMod
             {
                 Logger.Log("Error when converting RTF to plain text, updating Google Contact '" + slave.FileAs + "' notes to Outlook without RTF check: " + e.Message, EventType.Debug);
                 slave.Body = master.Content;
-            }                                 
-		}
+            }
+        }
 
-		public static void SetEmails(Contact source, Outlook.ContactItem destination)
-		{           
+        public static void SetEmails(Contact source, Outlook.ContactItem destination)
+        {
 
             if (source.Emails.Count > 0)
             {
                 //only sync, if Email changed
                 if (destination.Email1Address != source.Emails[0].Address)
                 {
-                    destination.Email1Address = source.Emails[0].Address;                    
+                    destination.Email1Address = source.Emails[0].Address;
                 }
 
                 if (!string.IsNullOrEmpty(source.Emails[0].Label) && destination.Email1DisplayName != source.Emails[0].Label)
@@ -949,7 +946,7 @@ namespace GoContactSyncMod
                 //only sync, if Email changed
                 if (destination.Email2Address != source.Emails[1].Address)
                 {
-                    destination.Email2Address = source.Emails[1].Address;                    
+                    destination.Email2Address = source.Emails[1].Address;
                 }
 
                 if (!string.IsNullOrEmpty(source.Emails[1].Label) && destination.Email2DisplayName != source.Emails[1].Label)
@@ -968,7 +965,7 @@ namespace GoContactSyncMod
                 //only sync, if Email changed
                 if (destination.Email3Address != source.Emails[2].Address)
                 {
-                    destination.Email3Address = source.Emails[2].Address;                    
+                    destination.Email3Address = source.Emails[2].Address;
                 }
 
                 if (!string.IsNullOrEmpty(source.Emails[2].Label) && destination.Email3DisplayName != source.Emails[2].Label)
@@ -981,8 +978,8 @@ namespace GoContactSyncMod
                 destination.Email3Address = string.Empty;
                 destination.Email3DisplayName = string.Empty;
             }
-            
-		}
 
-	}
+        }
+
+    }
 }

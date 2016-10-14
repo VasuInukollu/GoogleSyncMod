@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace GoContactSyncMod
 {
- 
+
     [global::System.Serializable]
     public class DuplicateDataException : Exception
     {

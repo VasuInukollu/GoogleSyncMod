@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using System.Collections.ObjectModel;
@@ -51,7 +47,7 @@ namespace GoContactSyncMod
                 fields.Add(new CPField("Email", ContactPropertiesUtils.GetOutlookEmailAddress1(outlookContact), new PointF(0, index * height)));
                 index++;
             }
-            
+
             // resize to fit
             this.Height = (index + 1) * height;
         }
