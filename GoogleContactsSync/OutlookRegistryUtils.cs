@@ -70,12 +70,20 @@ namespace GoContactSyncMod
             RegistryKey interfaceKey = Registry.ClassesRoot.OpenSubKey(interfaceVersion, false);
             if (interfaceKey != null)
             {
-                String typeLib = interfaceKey.GetValue(string.Empty).ToString();
+                string typeLib = interfaceKey.GetValue(string.Empty).ToString();
                 if (typeLib != "{00062FFF-0000-0000-C000-000000000046}")
                     return "Your registry " + interfaceKey.ToString() + " points to TypeLib " + typeLib + " and should to {00062FFF-0000-0000-C000-000000000046}" + registryVersion + ".\r\nPlease read FAQ and fix your Office installation";
-                String version = interfaceKey.GetValue("Version").ToString();
-                if (version != registryVersion)
-                    return "Your registry " + interfaceKey.ToString() + " points to version " + version + " and your Outlook is installed with version " + registryVersion + ".\r\nPlease read FAQ and fix your Office installation";
+                var versionObj = interfaceKey.GetValue("Version");
+                if (versionObj != null)
+                {
+                    string version = versionObj.ToString();
+                    if (version != registryVersion)
+                        return "Your registry " + interfaceKey.ToString() + " points to version " + version + " and your Outlook is installed with version " + registryVersion + ".\r\nPlease read FAQ and fix your Office installation";
+                }
+                else
+                {
+                    return "There is no Version key in registry " + interfaceKey.ToString() + ".\r\nPlease read FAQ and fix your Office installation";
+                }
             }
             else
             {
@@ -89,20 +97,20 @@ namespace GoContactSyncMod
                 RegistryKey mainKey = Registry.ClassesRoot.OpenSubKey(RegKey + "win32", false);
                 if (mainKey != null)
                 {
-                    String path = mainKey.GetValue(string.Empty).ToString();
+                    string path = mainKey.GetValue(string.Empty).ToString();
                     if (!File.Exists(path))
                         return "Your registry " + mainKey.ToString() + " points to file " + path + " and this file does not exist.\r\nPlease read FAQ and fix your Office installation";
                 }
                 mainKey = Registry.ClassesRoot.OpenSubKey(RegKey + "win64", false);
                 if (mainKey != null)
                 {
-                    String path = mainKey.GetValue(string.Empty).ToString();
+                    string path = mainKey.GetValue(string.Empty).ToString();
                     if (!File.Exists(path))
                         return "Your registry " + mainKey.ToString() + " points to file " + path + " and this file does not exist.\r\nPlease read FAQ and fix your Office installation";
                 }
 
                 mainKey = Registry.ClassesRoot.OpenSubKey(@"TypeLib\{00062FFF-0000-0000-C000-000000000046}\", false);
-                String[] keys = mainKey.GetSubKeyNames();
+                string[] keys = mainKey.GetSubKeyNames();
                 if (keys.Length > 1)
                 {
                     string allKeys = "";
