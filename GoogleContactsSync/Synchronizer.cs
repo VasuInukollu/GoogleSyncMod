@@ -271,6 +271,7 @@ namespace GoContactSyncMod
                         }
                         else
                         {
+                            bool found = false;
                             foreach (var calendar in calendarList)
                             {
                                 if (calendar.Id == SyncAppointmentsGoogleFolder)
@@ -278,8 +279,14 @@ namespace GoContactSyncMod
                                     SyncAppointmentsGoogleTimeZone = calendar.TimeZone;
                                     if (string.IsNullOrEmpty(SyncAppointmentsGoogleTimeZone))
                                         Logger.Log("Empty Google time zone for calendar" + calendar.Id, EventType.Debug);
+                                    else
+                                        found = true;
                                     break;
                                 }
+                            }
+                            if (!found)
+                            {
+                                Logger.Log("Cannot find calendar, id is " + SyncAppointmentsGoogleFolder, EventType.Warning);
                             }
                         }
 
@@ -1884,6 +1891,11 @@ namespace GoContactSyncMod
                         {
                             TimeZoneChanges?.Invoke(SyncAppointmentsGoogleTimeZone);
                             Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
+                        }
+                        else if (string.IsNullOrEmpty(SyncAppointmentsGoogleTimeZone))
+                        {
+                            //Timezone was set, but some users do not have time zone set in Google
+                            SyncAppointmentsGoogleTimeZone = Timezone;
                         }
                         MappingBetweenTimeZonesRequired = false;
                         if (TimeZoneInfo.Local.Id != AppointmentSync.IanaToWindows(SyncAppointmentsGoogleTimeZone))
