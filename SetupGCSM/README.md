@@ -1,10 +1,22 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.7] - 15.10.2016 
+
+### SVN commits
+
+**r711 - r724:
+- UPDATE: Update NuGet packages to latest version. 
+- FIX: Some users have emty time zone at Google, in such situation try to use what is set in GUI [bug #878]
+- FIX: Do not throw exception in case there is problem with registry
+- FIX: Layout changes for high DPI setups
+- FIX: Handle situation when Outlook folder is invalid, logon to Outlook using default folders
+- FIX: Handle situation when previously selected Outlook folder became invalid (for example was deleted in Outlook)
+
 ## Version [3.10.6] - 07.10.2016 
 
 ### SVN commits
 
-**r704 - r708:
+**r704 - r710:
 
 - FIX: Logon to MAPI in case of exception [bug #871]
 - FIX: Select the first item in folder combo [bug #871]
