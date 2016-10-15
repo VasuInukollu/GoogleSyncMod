@@ -929,16 +929,14 @@ namespace GoContactSyncMod
             // 
             // syncConsole
             // 
-            this.syncConsole.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.syncConsole.BackColor = System.Drawing.SystemColors.Info;
-            this.syncConsole.Location = new System.Drawing.Point(5, 33);
+            this.syncConsole.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.syncConsole.Location = new System.Drawing.Point(3, 16);
             this.syncConsole.Multiline = true;
             this.syncConsole.Name = "syncConsole";
             this.syncConsole.ReadOnly = true;
             this.syncConsole.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.syncConsole.Size = new System.Drawing.Size(439, 527);
+            this.syncConsole.Size = new System.Drawing.Size(443, 548);
             this.syncConsole.TabIndex = 1;
             this.toolTip.SetToolTip(this.syncConsole, "This window shows information\r\n from the last sync.");
             // 
