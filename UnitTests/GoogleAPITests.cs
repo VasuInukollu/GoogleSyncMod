@@ -445,7 +445,7 @@ namespace GoContactSyncMod.UnitTests
             e1.End.DateTime = new DateTime(1970, 10, 14, 11, 0, 0);
             e1.Start.TimeZone = "Europe/Warsaw";
             e1.End.TimeZone = "Europe/Warsaw";
-            e1.Recurrence = new List<String>();
+            e1.Recurrence = new List<string>();
             e1.Recurrence.Add("RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10");
 
             Assert.AreEqual("1970-10-14T08:00:00.000Z", e1.Start.DateTimeRaw);
@@ -460,7 +460,7 @@ namespace GoContactSyncMod.UnitTests
             e2.End.DateTime = new DateTime(2000, 10, 14, 11, 0, 0);
             e2.Start.TimeZone = "Europe/Warsaw";
             e2.End.TimeZone = "Europe/Warsaw";
-            e2.Recurrence = new List<String>();
+            e2.Recurrence = new List<string>();
             e2.Recurrence.Add("RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10");
 
             Assert.AreEqual("2000-10-14T08:00:00.000Z", e2.Start.DateTimeRaw);
