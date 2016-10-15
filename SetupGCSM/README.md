@@ -5,6 +5,7 @@
 ### SVN commits
 
 **r711 - r724:
+
 - UPDATE: Update NuGet packages to latest version. 
 - FIX: Some users have emty time zone at Google, in such situation try to use what is set in GUI [bug #878]
 - FIX: Do not throw exception in case there is problem with registry
