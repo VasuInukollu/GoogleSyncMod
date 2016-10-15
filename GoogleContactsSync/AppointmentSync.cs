@@ -5,6 +5,7 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 using Google.Apis.Calendar.v3.Data;
 using System.Linq;
 using NodaTime;
+using System.Runtime.InteropServices;
 
 namespace GoContactSyncMod
 {
@@ -154,20 +155,56 @@ namespace GoContactSyncMod
             {
                 //Outlook always has TZ set, even if TZ is the same as default one
                 //Google could have TZ empty, if it is equal to default one
-                if (master.StartTimeZone != null && !string.IsNullOrEmpty(master.StartTimeZone.ID))
+                Outlook.TimeZone outlook_start_tz = null;
+                try
                 {
-                    var google_tz = WindowsToIana(master.StartTimeZone.ID);
+                    outlook_start_tz = master.StartTimeZone;
+                    if (outlook_start_tz != null)
+                    {
+                        if (!string.IsNullOrEmpty(outlook_start_tz.ID))
+                        {
+                            var google_tz = WindowsToIana(outlook_start_tz.ID);
 
-                    if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
-                        slave.Start.TimeZone = google_tz;
+                            if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                                slave.Start.TimeZone = google_tz;
+                        }
+                    }
+                }
+                catch (AccessViolationException ex)
+                {
+                    Logger.Log("Access violation (sz) for " + master.Subject, EventType.Warning);
+                    Logger.Log(ex, EventType.Debug);
+                }
+                finally
+                {
+                    if (outlook_start_tz != null)
+                        Marshal.ReleaseComObject(outlook_start_tz);
                 }
 
-                if (master.EndTimeZone != null && !string.IsNullOrEmpty(master.EndTimeZone.ID))
+                Outlook.TimeZone outlook_end_tz = null;
+                try
                 {
-                    var google_tz = WindowsToIana(master.EndTimeZone.ID);
+                    outlook_end_tz = master.EndTimeZone;
+                    if (outlook_end_tz != null)
+                    {
+                        if (!string.IsNullOrEmpty(outlook_end_tz.ID))
+                        {
+                            var google_tz = WindowsToIana(outlook_end_tz.ID);
 
-                    if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
-                        slave.End.TimeZone = google_tz;
+                            if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                                slave.End.TimeZone = google_tz;
+                        }
+                    }
+                }
+                catch (AccessViolationException ex)
+                {
+                    Logger.Log("Access violation (ez) for " + master.Subject, EventType.Warning);
+                    Logger.Log(ex, EventType.Debug);
+                }
+                finally
+                {
+                    if (outlook_end_tz != null)
+                        Marshal.ReleaseComObject(outlook_end_tz);
                 }
 
                 slave.Start.Date = null;
