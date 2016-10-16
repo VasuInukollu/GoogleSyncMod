@@ -278,7 +278,7 @@ namespace GoContactSyncMod
                                 {
                                     SyncAppointmentsGoogleTimeZone = calendar.TimeZone;
                                     if (string.IsNullOrEmpty(SyncAppointmentsGoogleTimeZone))
-                                        Logger.Log("Empty Google time zone for calendar" + calendar.Id, EventType.Debug);
+                                        Logger.Log("Empty Google time zone for calendar " + calendar.Id, EventType.Debug);
                                     else
                                         found = true;
                                     break;
@@ -287,6 +287,19 @@ namespace GoContactSyncMod
                             if (!found)
                             {
                                 Logger.Log("Cannot find calendar, id is " + SyncAppointmentsGoogleFolder, EventType.Warning);
+
+                                Logger.Log("Listing calendars:", EventType.Debug);
+                                foreach (var calendar in calendarList)
+                                {
+                                    if (calendar.Primary != null && calendar.Primary.Value)
+                                    {
+                                        Logger.Log("Id (primary): " + calendar.Id, EventType.Debug);
+                                    }
+                                    else
+                                    {
+                                        Logger.Log("Id: " + calendar.Id, EventType.Debug);
+                                    }
+                                }
                             }
                         }
 
