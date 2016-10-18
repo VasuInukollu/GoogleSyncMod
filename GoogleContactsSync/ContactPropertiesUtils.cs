@@ -89,16 +89,26 @@ namespace GoContactSyncMod
             Outlook.UserProperties userProperties = outlookContact.UserProperties;
             try
             {
-                Outlook.UserProperty prop = userProperties[sync.OutlookPropertyNameId];
-                if (prop == null)
-                    prop = userProperties.Add(sync.OutlookPropertyNameId, Outlook.OlUserPropertyType.olText, true);
+                Outlook.UserProperty prop = null;
+
                 try
                 {
+                    prop = userProperties[sync.OutlookPropertyNameId];
+                    if (prop == null)
+                        prop = userProperties.Add(sync.OutlookPropertyNameId, Outlook.OlUserPropertyType.olText, true);
+                
                     prop.Value = googleContact.ContactEntry.Id.Uri.Content;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex, EventType.Debug);
+                    Logger.Log("sync.OutlookPropertyNameId: " + sync.OutlookPropertyNameId, EventType.Debug);
+                    throw;
                 }
                 finally
                 {
-                    Marshal.ReleaseComObject(prop);
+                    if (prop != null)
+                        Marshal.ReleaseComObject(prop);
                 }
             }
             finally
