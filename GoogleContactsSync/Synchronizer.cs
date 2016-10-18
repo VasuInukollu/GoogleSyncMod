@@ -514,15 +514,13 @@ namespace GoContactSyncMod
             //Just try to access the outlookNamespace to check, if it is still accessible, throws COMException, if not reachable 
             try
             {
-                try
+                if (string.IsNullOrEmpty(SyncContactsFolder))
                 {
                     _outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderContacts);
                 }
-                catch (Exception e3)
+                else
                 {
-                    Logger.Log("Failed to get default folder for contacts", EventType.Debug);
-                    Logger.Log(e3, EventType.Debug);
-                    _outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
+                    _outlookNamespace.GetFolderFromID(SyncContactsFolder);
                 }
             }
             catch (COMException ex)
