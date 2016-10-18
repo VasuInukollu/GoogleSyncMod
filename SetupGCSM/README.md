@@ -1,10 +1,21 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.8] - 18.10.2016 
+
+### SVN commits
+
+**r727 - r736:
+
+- UPDATE: Update NuGet packages to latest version. 
+- FIX: Add more logging for exceptions during accessing user properties [bug #651]
+- FIX: Additional check to avoid access violation [bug #567]
+- FIX: Fixed regression from 3.10.7, logon to MAPI using selected folder not default one.
+
 ## Version [3.10.7] - 15.10.2016 
 
 ### SVN commits
 
-**r711 - r724:
+**r711 - r726:
 
 - UPDATE: Update NuGet packages to latest version. 
 - FIX: Some users have emty time zone at Google, in such situation try to use what is set in GUI [bug #878]
@@ -17,7 +28,7 @@
 
 ### SVN commits
 
-**r704 - r710:
+**r705 - r710:
 
 - FIX: Logon to MAPI in case of exception [bug #871]
 - FIX: Select the first item in folder combo [bug #871]
@@ -26,7 +37,7 @@
 
 ### SVN commits
 
-**r695 - r703:
+**r695 - r704:
 
 - FIX: Add more logging [bugs #871, #877, #878, #879]
 - FIX: Improved logging for COMExceptions [bug #871]
