@@ -1649,7 +1649,7 @@ namespace GoContactSyncMod.UnitTests
             DateTime end = DateTime.Now;
             TimeSpan time = end - start;
             Console.WriteLine("Synced " + c + " contacts to google in " + time.TotalSeconds + " s ("
-                + ((float)time.TotalSeconds / (float)c) + " s per contact)");
+                + ((float)time.TotalSeconds / c) + " s per contact)");
 
             // received: Synced 50 contacts to google in 30.137 s (0.60274 s per contact)
         }       
@@ -1692,7 +1692,7 @@ namespace GoContactSyncMod.UnitTests
             googleContact.Content = outlookContact.Body;
 
             Uri feedUri = new Uri(ContactsQuery.CreateContactsUri("default"));
-            Contact createdEntry = ((Contact)sync.ContactsRequest.Insert(feedUri, googleContact));
+            Contact createdEntry = sync.ContactsRequest.Insert(feedUri, googleContact);
             
             ContactPropertiesUtils.SetOutlookGoogleContactId(sync, outlookContact, createdEntry);
             match.GoogleContact = createdEntry;
@@ -1738,7 +1738,7 @@ namespace GoContactSyncMod.UnitTests
             googleContact.Content = outlookContact.Body;
 
             Uri feedUri = new Uri(ContactsQuery.CreateContactsUri("default"));
-            Contact createdEntry = (Contact)sync.ContactsRequest.Insert(feedUri, googleContact);
+            Contact createdEntry = sync.ContactsRequest.Insert(feedUri, googleContact);
 
             ContactPropertiesUtils.SetOutlookGoogleContactId(sync, outlookContact, createdEntry);
             match.GoogleContact = createdEntry;
@@ -1784,7 +1784,7 @@ namespace GoContactSyncMod.UnitTests
             //googleContact.Content.Content = outlookContact.Body;
 
             Uri feedUri = new Uri(ContactsQuery.CreateContactsUri("default"));
-            Contact createdEntry = (Contact)sync.ContactsRequest.Insert(feedUri, googleContact);
+            Contact createdEntry = sync.ContactsRequest.Insert(feedUri, googleContact);
 
             ContactPropertiesUtils.SetOutlookGoogleContactId(sync, outlookContact, createdEntry);
             match.GoogleContact = createdEntry;

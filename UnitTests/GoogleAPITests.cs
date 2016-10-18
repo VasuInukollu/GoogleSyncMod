@@ -517,7 +517,7 @@ namespace GoContactSyncMod.UnitTests
 
             Logger.Log("Updated Google note", EventType.Information);
 
-            System.IO.File.Delete(e.UserState as string);
+            File.Delete(e.UserState as string);
         }
 
         private static void DeleteTestNote(DocumentsRequest service)

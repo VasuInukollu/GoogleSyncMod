@@ -443,7 +443,7 @@ namespace GoContactSyncMod.UnitTests
             Assert.IsNull(match.OutlookNote);
 
             // reset matches
-            System.IO.File.Delete(NotePropertiesUtils.GetFileName(match.GoogleNote.Id, sync.SyncProfile));
+            File.Delete(NotePropertiesUtils.GetFileName(match.GoogleNote.Id, sync.SyncProfile));
             //Not, because NULL: sync.ResetMatch(match.OutlookNote.GetOriginalItemFromOutlook(sync));
             
             // load same Note match
@@ -504,7 +504,7 @@ namespace GoContactSyncMod.UnitTests
             Assert.IsNotNull(match.OutlookNote);
             Assert.IsNotNull(match.GoogleNote);
 
-            System.IO.File.Delete(NotePropertiesUtils.GetFileName(outlookNote.EntryID, sync.SyncProfile));
+            File.Delete(NotePropertiesUtils.GetFileName(outlookNote.EntryID, sync.SyncProfile));
             outlookNote.Delete();            
         }
 
