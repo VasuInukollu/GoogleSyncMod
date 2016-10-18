@@ -107,7 +107,7 @@ namespace GoContactSyncMod
 
         private void ErrorDialog_FormClosed(object sender, FormClosedEventArgs e)
         {
-            this.Visible = false;
+            Visible = false;
         }
     }
 }

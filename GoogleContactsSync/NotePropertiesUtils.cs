@@ -252,7 +252,7 @@ namespace GoContactSyncMod
             string fileName = "Note_" + Id + ".txt";
 
 
-            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            foreach (char c in Path.GetInvalidFileNameChars())
             {
                 fileName = fileName.Replace(c, '_');
                 if (syncProfile != null)
@@ -271,7 +271,7 @@ namespace GoContactSyncMod
         {
             if (!string.IsNullOrEmpty(syncProfile))
             {
-                foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                foreach (char c in Path.GetInvalidFileNameChars())
                 {
                     syncProfile = syncProfile.Replace(c, '_');
                 }
@@ -294,10 +294,10 @@ namespace GoContactSyncMod
         public static string GetBody(Synchronizer sync, Document entry)
         {
             string body = null;
-            System.IO.StreamReader reader = null;
+            StreamReader reader = null;
             try
             {
-                reader = new System.IO.StreamReader(sync.DocumentsRequest.Download(entry, Document.DownloadType.txt));
+                reader = new StreamReader(sync.DocumentsRequest.Download(entry, Document.DownloadType.txt));
                 body = reader.ReadToEnd();
             }
             finally
@@ -310,7 +310,7 @@ namespace GoContactSyncMod
 
         public static bool NoteFileExists(string Id, string syncProfile)
         {
-            if (System.IO.File.Exists(GetFileName(Id, syncProfile)))
+            if (File.Exists(GetFileName(Id, syncProfile)))
                 return true;
 
             return false;
@@ -318,7 +318,7 @@ namespace GoContactSyncMod
 
         public static string CreateNoteFile(string Id, string body, string syncProfile)
         {
-            string fileName = NotePropertiesUtils.GetFileName(Id, syncProfile);
+            string fileName = GetFileName(Id, syncProfile);
 
             FileStream filestream = null;
             try

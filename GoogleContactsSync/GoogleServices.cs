@@ -24,7 +24,7 @@ namespace GoContactSyncMod
             {
                 initializer.DefaultExponentialBackOffPolicy = ExponentialBackOffPolicy.None;
                 service = new CalendarService(initializer);
-                var backOffHandler = new GoogleServices.BackoffHandler(service, new ExponentialBackOff());
+                var backOffHandler = new BackoffHandler(service, new ExponentialBackOff());
                 service.HttpClient.MessageHandler.AddUnsuccessfulResponseHandler(backOffHandler);
                 return service;
             }
@@ -43,10 +43,10 @@ namespace GoContactSyncMod
         /// <returns>If error is transient.</returns>
         public static bool IsTransientError(HttpStatusCode statusCode, RequestError reqError)
         {
-            if ((int)statusCode >= (int)System.Net.HttpStatusCode.InternalServerError)
+            if ((int)statusCode >= (int)HttpStatusCode.InternalServerError)
                 return true;
 
-            if (statusCode == System.Net.HttpStatusCode.Forbidden)
+            if (statusCode == HttpStatusCode.Forbidden)
             {
                 if (reqError.Errors[0].Reason == "rateLimitExceeded")
                     return true;

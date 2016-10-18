@@ -96,8 +96,7 @@ namespace GoContactSyncMod
                 //try
                 //{
 
-                if (NotificationReceived != null)
-                    NotificationReceived(string.Format("Matching appointment {0} of {1} by id: {2} ...", i, sync.OutlookAppointments.Count, ola.Subject));
+                NotificationReceived?.Invoke(string.Format("Matching appointment {0} of {1} by id: {2} ...", i, sync.OutlookAppointments.Count, ola.Subject));
 
                 // Create our own info object to go into collections/lists, so we can free the Outlook objects and not run out of resources / exceed policy limits.
                 //OutlookAppointmentInfo olci = new OutlookAppointmentInfo(ola, sync);
@@ -162,8 +161,7 @@ namespace GoContactSyncMod
             {
                 Outlook.AppointmentItem ola = OutlookAppointmentsWithoutSyncId[i];
 
-                if (NotificationReceived != null)
-                    NotificationReceived(string.Format("Matching appointment {0} of {1} by unique properties: {2} ...", i + 1, OutlookAppointmentsWithoutSyncId.Count, ola.Subject));
+                NotificationReceived?.Invoke(string.Format("Matching appointment {0} of {1} by unique properties: {2} ...", i + 1, OutlookAppointmentsWithoutSyncId.Count, ola.Subject));
 
                 //no match found by id => match by subject/title
                 //create a default match pair with just outlook appointment.
@@ -218,8 +216,7 @@ namespace GoContactSyncMod
 
 
 
-                if (NotificationReceived != null)
-                    NotificationReceived(string.Format("Adding new Google appointment {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleAppointments.Count, googleAppointment.Summary));
+                NotificationReceived?.Invoke(string.Format("Adding new Google appointment {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleAppointments.Count, googleAppointment.Summary));
 
 
                 if (googleAppointment.RecurringEventId != null)

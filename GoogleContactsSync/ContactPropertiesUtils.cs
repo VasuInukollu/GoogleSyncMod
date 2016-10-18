@@ -55,7 +55,7 @@ namespace GoContactSyncMod
             foreach (var p in googleContact.ExtendedProperties)
             {
                 if (p.Name == "gos:oid:" + syncProfile + "")
-                    return (string)p.Value;
+                    return p.Value;
             }
             return null;
         }

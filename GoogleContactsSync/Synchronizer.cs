@@ -313,16 +313,16 @@ namespace GoContactSyncMod
                 }
             }
 
-            Synchronizer.UserName = username;
+            UserName = username;
 
-            int maxUserIdLength = Synchronizer.OutlookUserPropertyMaxLength - (Synchronizer.OutlookUserPropertyTemplate.Length - 3 + 2);//-3 = to remove {0}, +2 = to add length for "id" or "up"
+            int maxUserIdLength = OutlookUserPropertyMaxLength - (OutlookUserPropertyTemplate.Length - 3 + 2);//-3 = to remove {0}, +2 = to add length for "id" or "up"
             string userId = username;
             if (userId.Length > maxUserIdLength)
                 userId = userId.GetHashCode().ToString("X"); //if a user id would overflow UserProperty name, then use that user id hash code as id.
             //Remove characters not allowed for Outlook user property names: []_#
             userId = userId.Replace("#", "").Replace("[", "").Replace("]", "").Replace("_", "");
 
-            OutlookPropertyPrefix = string.Format(Synchronizer.OutlookUserPropertyTemplate, userId);
+            OutlookPropertyPrefix = string.Format(OutlookUserPropertyTemplate, userId);
         }
 
 
@@ -338,7 +338,7 @@ namespace GoContactSyncMod
             catch (Exception e)
             {
 
-                if (!(e is COMException) && !(e is System.InvalidCastException))
+                if (!(e is COMException) && !(e is InvalidCastException))
                     throw;
 
                 try
@@ -376,7 +376,7 @@ namespace GoContactSyncMod
                     // First try to get the running application in case Outlook is already started
                     try
                     {
-                        OutlookApplication = Marshal.GetActiveObject("Outlook.Application") as Microsoft.Office.Interop.Outlook.Application;
+                        OutlookApplication = Marshal.GetActiveObject("Outlook.Application") as Outlook.Application;
                         break;  //Exit the for loop, if creating outlook application was successful
                     }
                     catch (COMException ex)
@@ -403,7 +403,7 @@ namespace GoContactSyncMod
                             throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                         }
                         else
-                            System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
+                            Thread.Sleep(1000 * 10 * (i + 1));
                     }
                 }
                 catch (COMException ex)
@@ -419,7 +419,7 @@ namespace GoContactSyncMod
                         throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
                     }
                     else
-                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
+                        Thread.Sleep(1000 * 10 * (i + 1));
                 }
                 catch (InvalidCastException ex)
                 {
@@ -434,7 +434,7 @@ namespace GoContactSyncMod
                         throw new NotSupportedException("Could not create instance of 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and retry.", ex);
                     }
                     else
-                        System.Threading.Thread.Sleep(1000 * 10 * (i + 1));
+                        Thread.Sleep(1000 * 10 * (i + 1));
                 }
             }
         }
@@ -754,7 +754,7 @@ namespace GoContactSyncMod
                             ret = a;
                     }
                     query.StartIndex += query.NumberToRetrieve;
-                    feed = ContactsRequest.Get<Contact>(feed, FeedRequestType.Next);
+                    feed = ContactsRequest.Get(feed, FeedRequestType.Next);
 
                 }
 
@@ -764,7 +764,7 @@ namespace GoContactSyncMod
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, ex);
             }
-            catch (System.NullReferenceException ex)
+            catch (NullReferenceException ex)
             {
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
@@ -794,7 +794,7 @@ namespace GoContactSyncMod
                         GoogleGroups.Add(a);
                     }
                     query.StartIndex += query.NumberToRetrieve;
-                    feed = ContactsRequest.Get<Group>(feed, FeedRequestType.Next);
+                    feed = ContactsRequest.Get(feed, FeedRequestType.Next);
 
                 }
 
@@ -807,7 +807,7 @@ namespace GoContactSyncMod
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, ex);
             }
-            catch (System.NullReferenceException ex)
+            catch (NullReferenceException ex)
             {
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
@@ -869,7 +869,7 @@ namespace GoContactSyncMod
                         }
                     }
                     query.StartIndex += query.NumberToRetrieve;
-                    feed = DocumentsRequest.Get<Document>(feed, FeedRequestType.Next);
+                    feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
 
                 }
 
@@ -879,7 +879,7 @@ namespace GoContactSyncMod
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, ex);
             }
-            catch (System.NullReferenceException ex)
+            catch (NullReferenceException ex)
             {
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
@@ -1030,7 +1030,7 @@ namespace GoContactSyncMod
             {
                 throw new GDataRequestException(message, ex);
             }
-            catch (System.NullReferenceException ex)
+            catch (NullReferenceException ex)
             {
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
             }
@@ -1192,7 +1192,7 @@ namespace GoContactSyncMod
             {
                 throw new GDataRequestException(message, ex);
             }
-            catch (System.NullReferenceException ex)
+            catch (NullReferenceException ex)
             {
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
             }
@@ -1267,7 +1267,7 @@ namespace GoContactSyncMod
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, ex);
             }
-            catch (System.NullReferenceException ex)
+            catch (NullReferenceException ex)
             {
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
@@ -1313,12 +1313,12 @@ namespace GoContactSyncMod
                         if (!isEmpty)
                             break;
                         query.StartIndex += query.NumberToRetrieve;
-                        feed = DocumentsRequest.Get<Document>(feed, FeedRequestType.Next);
+                        feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
                     }
 
                     if (isEmpty)
                     {
-                        DocumentsRequest.Delete(new Uri(Google.GData.Documents.DocumentsListQuery.documentsBaseUri + "/" + categoryFolder.ResourceId), categoryFolder.ETag);
+                        DocumentsRequest.Delete(new Uri(DocumentsListQuery.documentsBaseUri + "/" + categoryFolder.ResourceId), categoryFolder.ETag);
                         Logger.Log("Deleted empty Google category folder: " + categoryFolder.Title, EventType.Information);
                     }
 
@@ -1347,7 +1347,7 @@ namespace GoContactSyncMod
                     categoryFolders.Add(a);
                 }
                 query.StartIndex += query.NumberToRetrieve;
-                feed = DocumentsRequest.Get<Document>(feed, FeedRequestType.Next);
+                feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
 
             }
 
@@ -1400,7 +1400,7 @@ namespace GoContactSyncMod
                     }
                 }
                 query.StartIndex += query.NumberToRetrieve;
-                feed = DocumentsRequest.Get<Document>(feed, FeedRequestType.Next);
+                feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
             }
             return ret;
         }
@@ -1920,7 +1920,7 @@ namespace GoContactSyncMod
                     }
 
 #if debug
-                    this.DebugContacts();
+                    DebugContacts();
 #endif
 
                     if (SyncContacts)
@@ -2223,7 +2223,7 @@ namespace GoContactSyncMod
             }
             else if (match.GoogleAppointment == null && match.OutlookAppointment != null)
             {
-                if (match.OutlookAppointment.ItemProperties[this.OutlookPropertyNameId] != null)
+                if (match.OutlookAppointment.ItemProperties[OutlookPropertyNameId] != null)
                 {
                     string name = match.OutlookAppointment.Subject;
                     if (_syncOption == SyncOption.OutlookToGoogleOnly)
@@ -2501,7 +2501,7 @@ namespace GoContactSyncMod
             }
             else if (match.GoogleNote == null && match.OutlookNote != null)
             {
-                if (match.OutlookNote.ItemProperties[this.OutlookPropertyNameId] != null)
+                if (match.OutlookNote.ItemProperties[OutlookPropertyNameId] != null)
                 {
                     string name = match.OutlookNote.Subject;
                     if (_syncOption == SyncOption.OutlookToGoogleOnly)
@@ -2569,7 +2569,7 @@ namespace GoContactSyncMod
                     else
                     {
                         // peer outlook note was deleted, delete google note
-                        DocumentsRequest.Delete(new Uri(Google.GData.Documents.DocumentsListQuery.documentsBaseUri + "/" + match.GoogleNote.ResourceId), match.GoogleNote.ETag);
+                        DocumentsRequest.Delete(new Uri(DocumentsListQuery.documentsBaseUri + "/" + match.GoogleNote.ResourceId), match.GoogleNote.ETag);
                         //DocumentsRequest.Service.Delete(match.GoogleNote.DocumentEntry); //ToDo: Currently, the Delete only removes the Notes label from the document but keeps the document in the root folder, therefore I use the URI Delete above for now: "https://docs.google.com/feeds/default/private/full"
                         //DocumentsRequest.Delete(match.GoogleNote);
 
@@ -2608,7 +2608,7 @@ namespace GoContactSyncMod
             if (slave.Creator != null && !AppointmentSync.IsOrganizer(slave.Creator.Email)) // && AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(this.SyncProfile, slave) != null)
             {
                 //ToDo:Maybe find as better way, e.g. to ask the user, if he wants to overwrite the invalid appointment   
-                switch (this.SyncOption)
+                switch (SyncOption)
                 {
                     case SyncOption.MergeGoogleWins:
                     case SyncOption.GoogleToOutlookOnly:
@@ -2755,7 +2755,7 @@ namespace GoContactSyncMod
             if (slave.Recipients.Count > 1 && AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, slave) != null)
             {
                 //ToDo:Maybe find as better way, e.g. to ask the user, if he wants to overwrite the invalid appointment   
-                switch (this.SyncOption)
+                switch (SyncOption)
                 {
                     case SyncOption.MergeOutlookWins:
                     case SyncOption.OutlookToGoogleOnly:
@@ -3244,7 +3244,7 @@ namespace GoContactSyncMod
                 catch (Exception ex)
                 {
                     string error = "Error saving EXISTING Google appointment: ";
-                    error += googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
+                    error += googleAppointment.Summary + " - " + GetTime(googleAppointment);
                     error += " - Creator: " + (googleAppointment.Creator != null ? googleAppointment.Creator.Email : "null");
                     error += " - Organizer: " + (googleAppointment.Organizer != null ? googleAppointment.Organizer.Email : "null");
                     error += ". \n" + ex.Message;
@@ -3408,7 +3408,7 @@ namespace GoContactSyncMod
                                     ErrorHandler.Handle(new Exception("Photo of contact " + match.GoogleContact.Title + "couldn't be saved after 5 tries, maybe Google found its own photo and doesn't allow updating it", ex));
                                 else
                                 {
-                                    System.Threading.Thread.Sleep(1000);
+                                    Thread.Sleep(1000);
                                     //LoadGoogleContact again to get latest ETag
                                     //match.GoogleContact = LoadGoogleContacts(match.GoogleContact.AtomEntry.Id);
                                     match.GoogleContact = SaveGoogleContact(match.GoogleContact);

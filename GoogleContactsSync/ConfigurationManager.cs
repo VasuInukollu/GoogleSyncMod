@@ -60,7 +60,7 @@ namespace GoContactSyncMod
 
         private void btClose_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void btAdd_Click(object sender, EventArgs e)

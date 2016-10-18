@@ -202,7 +202,7 @@ namespace GoContactSyncMod
             int j = 0;
             for (int i = 0; i < bytes.Length; i++)
             {
-                hex = new string(new Char[] { newString[j], newString[j + 1] });
+                hex = new string(new char[] { newString[j], newString[j + 1] });
                 bytes[i] = HexToByte(hex);
                 j = j + 2;
             }
@@ -244,12 +244,12 @@ namespace GoContactSyncMod
         /// </summary>
         /// <param name="c">Character to test</param>
         /// <returns>true if hex digit, false if not</returns>
-        public static bool IsHexDigit(Char c)
+        public static bool IsHexDigit(char c)
         {
             int numChar;
             int numA = Convert.ToInt32('A');
             int num1 = Convert.ToInt32('0');
-            c = Char.ToUpper(c);
+            c = char.ToUpper(c);
             numChar = Convert.ToInt32(c);
             if (numChar >= numA && numChar < (numA + 6))
                 return true;

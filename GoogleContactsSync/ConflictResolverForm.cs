@@ -18,7 +18,7 @@ namespace GoContactSyncMod
 
         private void ConflictResolverForm_Shown(object sender, EventArgs e)
         {
-            SettingsForm.Instance.ShowBalloonToolTip(this.Text, messageLabel.Text, ToolTipIcon.Warning, 5000, true);
+            SettingsForm.Instance.ShowBalloonToolTip(Text, messageLabel.Text, ToolTipIcon.Warning, 5000, true);
 
         }
     }

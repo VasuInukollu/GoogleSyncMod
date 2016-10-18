@@ -41,31 +41,31 @@ namespace GoContactSyncMod
 
         public OutlookContactInfo(ContactItem item, Synchronizer sync)
         {
-            this.UserProperties = new UserPropertiesHolder();
-            this.Update(item, sync);
+            UserProperties = new UserPropertiesHolder();
+            Update(item, sync);
         }
         #endregion
 
         internal void Update(ContactItem outlookContactItem, Synchronizer sync)
         {
-            this.EntryID = outlookContactItem.EntryID;
-            this.FileAs = outlookContactItem.FileAs;
-            this.FullName = outlookContactItem.FullName;
-            this.Email1Address = ContactPropertiesUtils.GetOutlookEmailAddress1(outlookContactItem);
-            this.MobileTelephoneNumber = outlookContactItem.MobileTelephoneNumber;
-            this.Categories = outlookContactItem.Categories;
-            this.LastModificationTime = outlookContactItem.LastModificationTime;
-            this.Company = outlookContactItem.CompanyName;
-            this.TitleFirstLastAndSuffix = GetTitleFirstLastAndSuffix(outlookContactItem);
+            EntryID = outlookContactItem.EntryID;
+            FileAs = outlookContactItem.FileAs;
+            FullName = outlookContactItem.FullName;
+            Email1Address = ContactPropertiesUtils.GetOutlookEmailAddress1(outlookContactItem);
+            MobileTelephoneNumber = outlookContactItem.MobileTelephoneNumber;
+            Categories = outlookContactItem.Categories;
+            LastModificationTime = outlookContactItem.LastModificationTime;
+            Company = outlookContactItem.CompanyName;
+            TitleFirstLastAndSuffix = GetTitleFirstLastAndSuffix(outlookContactItem);
 
             UserProperties userProperties = outlookContactItem.UserProperties;
             UserProperty prop = userProperties[sync.OutlookPropertyNameId];
-            this.UserProperties.GoogleContactId = prop != null ? string.Copy((string)prop.Value) : null;
+            UserProperties.GoogleContactId = prop != null ? string.Copy((string)prop.Value) : null;
             if (prop != null)
                 Marshal.ReleaseComObject(prop);
 
             prop = userProperties[sync.OutlookPropertyNameSynced];
-            this.UserProperties.LastSync = prop != null ? (DateTime)prop.Value : (DateTime?)null;
+            UserProperties.LastSync = prop != null ? (DateTime)prop.Value : (DateTime?)null;
             if (prop != null)
                 Marshal.ReleaseComObject(prop);
 
@@ -74,10 +74,10 @@ namespace GoContactSyncMod
 
         internal ContactItem GetOriginalItemFromOutlook()
         {
-            if (this.EntryID == null)
+            if (EntryID == null)
                 throw new ApplicationException("OutlookContactInfo cannot re-create the ContactItem from Outlook because EntryID is null, suggesting that this OutlookContactInfo was not created from an existing Outook contact.");
 
-            ContactItem outlookContactItem = Synchronizer.OutlookNameSpace.GetItemFromID(this.EntryID) as ContactItem;
+            ContactItem outlookContactItem = Synchronizer.OutlookNameSpace.GetItemFromID(EntryID) as ContactItem;
             if (outlookContactItem == null)
                 throw new ApplicationException("OutlookContactInfo cannot re-create the ContactItem from Outlook because there is no Outlook entry with this EntryID, suggesting that the existing Outook contact may have been deleted.");
 

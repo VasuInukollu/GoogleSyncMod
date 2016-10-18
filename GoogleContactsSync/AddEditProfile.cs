@@ -6,7 +6,7 @@ namespace GoContactSyncMod
     {
         public string ProfileName
         {
-            get { return this.tbProfileName.Text; }
+            get { return tbProfileName.Text; }
         }
 
         public AddEditProfileForm()
@@ -19,10 +19,10 @@ namespace GoContactSyncMod
             InitializeComponent();
 
             if (!string.IsNullOrEmpty(title))
-                this.Text = title;
+                Text = title;
 
             if (!string.IsNullOrEmpty(profileName))
-                this.tbProfileName.Text = profileName;
+                tbProfileName.Text = profileName;
         }
 
     }

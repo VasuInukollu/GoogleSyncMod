@@ -194,7 +194,7 @@ namespace GoContactSyncMod
         {
             if (!ValidCredentials)
                 SystemProxy.Checked = true;
-            this.Hide();
+            Hide();
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -205,7 +205,7 @@ namespace GoContactSyncMod
             SaveSettings(null);
 #endif
             ProxySet();
-            this.Hide();
+            Hide();
         }
 
     }

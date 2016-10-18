@@ -49,7 +49,7 @@ namespace GoContactSyncMod
             }
 
             // resize to fit
-            this.Height = (index + 1) * height;
+            Height = (index + 1) * height;
         }
 
         private void ContactPreview_Paint(object sender, PaintEventArgs e)

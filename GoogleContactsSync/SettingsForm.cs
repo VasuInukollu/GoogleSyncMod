@@ -21,7 +21,7 @@ namespace GoContactSyncMod
         #region Singleton Definition
 
         private static volatile SettingsForm instance;
-        private static object syncRoot = new Object();
+        private static object syncRoot = new object();
 
         public static SettingsForm Instance
         {
@@ -116,7 +116,7 @@ namespace GoContactSyncMod
 
         public DialogResult ShowDialog(string text)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 return (DialogResult)Invoke(new DialogHandler(ShowDialog), new object[] { text });
             }
@@ -128,25 +128,25 @@ namespace GoContactSyncMod
 
         }
 
-        private Icon IconError = GoContactSyncMod.Properties.Resources.sync_error;
-        private Icon Icon0 = GoContactSyncMod.Properties.Resources.sync;
-        private Icon Icon30 = GoContactSyncMod.Properties.Resources.sync_30;
-        private Icon Icon60 = GoContactSyncMod.Properties.Resources.sync_60;
-        private Icon Icon90 = GoContactSyncMod.Properties.Resources.sync_90;
-        private Icon Icon120 = GoContactSyncMod.Properties.Resources.sync_120;
-        private Icon Icon150 = GoContactSyncMod.Properties.Resources.sync_150;
-        private Icon Icon180 = GoContactSyncMod.Properties.Resources.sync_180;
-        private Icon Icon210 = GoContactSyncMod.Properties.Resources.sync_210;
-        private Icon Icon240 = GoContactSyncMod.Properties.Resources.sync_240;
-        private Icon Icon270 = GoContactSyncMod.Properties.Resources.sync_270;
-        private Icon Icon300 = GoContactSyncMod.Properties.Resources.sync_300;
-        private Icon Icon330 = GoContactSyncMod.Properties.Resources.sync_330;
+        private Icon IconError = Properties.Resources.sync_error;
+        private Icon Icon0 = Properties.Resources.sync;
+        private Icon Icon30 = Properties.Resources.sync_30;
+        private Icon Icon60 = Properties.Resources.sync_60;
+        private Icon Icon90 = Properties.Resources.sync_90;
+        private Icon Icon120 = Properties.Resources.sync_120;
+        private Icon Icon150 = Properties.Resources.sync_150;
+        private Icon Icon180 = Properties.Resources.sync_180;
+        private Icon Icon210 = Properties.Resources.sync_210;
+        private Icon Icon240 = Properties.Resources.sync_240;
+        private Icon Icon270 = Properties.Resources.sync_270;
+        private Icon Icon300 = Properties.Resources.sync_300;
+        private Icon Icon330 = Properties.Resources.sync_330;
 
         private SettingsForm()
         {
             /* Cannot set Font in designer as there is automatic sorting and Font will be set after AutoScaleDimensions
              * This will prevent application to work correctly with high DPI systems. */
-            Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            Font = new Font("Verdana", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
 
             cancellationTokenSource = new CancellationTokenSource();
             InitializeComponent();
@@ -160,13 +160,13 @@ namespace GoContactSyncMod
             PopulateSyncOptionBox();
 
             //temporary remove the listener to avoid to load the settings twice, because it is set from SettingsForm.Designer.cs
-            this.cmbSyncProfile.SelectedIndexChanged -= new System.EventHandler(this.cmbSyncProfile_SelectedIndexChanged);
+            cmbSyncProfile.SelectedIndexChanged -= new EventHandler(cmbSyncProfile_SelectedIndexChanged);
             if (fillSyncProfileItems())
                 LoadSettings(cmbSyncProfile.Text);
             else
                 LoadSettings(null);
             //enable the listener
-            this.cmbSyncProfile.SelectedIndexChanged += new System.EventHandler(this.cmbSyncProfile_SelectedIndexChanged);
+            cmbSyncProfile.SelectedIndexChanged += new EventHandler(cmbSyncProfile_SelectedIndexChanged);
 
             TimerSwitch(true);
             lastSyncLabel.Text = "Not synced";
@@ -204,7 +204,7 @@ namespace GoContactSyncMod
         }
         private void fillSyncFolderItems()
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 Invoke(new InvokeCallback(fillSyncFolderItems));
             }
@@ -213,16 +213,16 @@ namespace GoContactSyncMod
 
                 lock (syncRoot)
                 {
-                    if (this.contactFoldersComboBox.DataSource == null || /*this.noteFoldersComboBox.DataSource == null ||*/ this.appointmentFoldersComboBox.DataSource == null || this.appointmentGoogleFoldersComboBox.DataSource == null && btSyncAppointments.Checked ||
-                        this.contactFoldersComboBox.Items.Count == 0 || /*this.noteFoldersComboBox.Items.Count == 0 ||*/ this.appointmentFoldersComboBox.Items.Count == 0 || this.appointmentGoogleFoldersComboBox.Items.Count == 0 && btSyncAppointments.Checked)
+                    if (contactFoldersComboBox.DataSource == null || /*this.noteFoldersComboBox.DataSource == null ||*/ appointmentFoldersComboBox.DataSource == null || appointmentGoogleFoldersComboBox.DataSource == null && btSyncAppointments.Checked ||
+                        contactFoldersComboBox.Items.Count == 0 || /*this.noteFoldersComboBox.Items.Count == 0 ||*/ appointmentFoldersComboBox.Items.Count == 0 || appointmentGoogleFoldersComboBox.Items.Count == 0 && btSyncAppointments.Checked)
                     {//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                         Logger.Log("Loading Outlook folders...", EventType.Information);
 
-                        this.contactFoldersComboBox.Visible = this.btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
+                        contactFoldersComboBox.Visible = btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
                         //this.noteFoldersComboBox.Visible = btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                        this.labelTimezone.Visible = this.labelMonthsPast.Visible = this.labelMonthsFuture.Visible = btSyncAppointments.Checked;
-                        this.appointmentFoldersComboBox.Visible = this.appointmentGoogleFoldersComboBox.Visible = this.futureMonthInterval.Visible = this.pastMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = this.btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
-                        this.cmbSyncProfile.Visible = true;
+                        labelTimezone.Visible = labelMonthsPast.Visible = labelMonthsFuture.Visible = btSyncAppointments.Checked;
+                        appointmentFoldersComboBox.Visible = appointmentGoogleFoldersComboBox.Visible = futureMonthInterval.Visible = pastMonthInterval.Visible = appointmentTimezonesComboBox.Visible = btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
+                        cmbSyncProfile.Visible = true;
 
                         string defaultText = "    --- Select an Outlook folder ---";
                         ArrayList outlookContactFolders = new ArrayList();
@@ -234,12 +234,12 @@ namespace GoContactSyncMod
                             Cursor = Cursors.WaitCursor;
                             SuspendLayout();
 
-                            this.contactFoldersComboBox.BeginUpdate();
+                            contactFoldersComboBox.BeginUpdate();
                             //this.noteFoldersComboBox.BeginUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                            this.appointmentFoldersComboBox.BeginUpdate();
-                            this.contactFoldersComboBox.DataSource = null;
+                            appointmentFoldersComboBox.BeginUpdate();
+                            contactFoldersComboBox.DataSource = null;
                             //this.noteFoldersComboBox.DataSource = null;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                            this.appointmentFoldersComboBox.DataSource = null;
+                            appointmentFoldersComboBox.DataSource = null;
                             //this.contactFoldersComboBox.Items.Clear();
 
                             Microsoft.Office.Interop.Outlook.Folders folders = Synchronizer.OutlookNameSpace.Folders;
@@ -260,9 +260,9 @@ namespace GoContactSyncMod
                             {
                                 outlookContactFolders.Sort();
                                 outlookContactFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
-                                this.contactFoldersComboBox.DataSource = outlookContactFolders;
-                                this.contactFoldersComboBox.DisplayMember = "DisplayName";
-                                this.contactFoldersComboBox.ValueMember = "FolderID";
+                                contactFoldersComboBox.DataSource = outlookContactFolders;
+                                contactFoldersComboBox.DisplayMember = "DisplayName";
+                                contactFoldersComboBox.ValueMember = "FolderID";
                             }
 
 
@@ -280,18 +280,18 @@ namespace GoContactSyncMod
                             {
                                 outlookAppointmentFolders.Sort();
                                 outlookAppointmentFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
-                                this.appointmentFoldersComboBox.DataSource = outlookAppointmentFolders;
-                                this.appointmentFoldersComboBox.DisplayMember = "DisplayName";
-                                this.appointmentFoldersComboBox.ValueMember = "FolderID";
+                                appointmentFoldersComboBox.DataSource = outlookAppointmentFolders;
+                                appointmentFoldersComboBox.DisplayMember = "DisplayName";
+                                appointmentFoldersComboBox.ValueMember = "FolderID";
                             }
 
-                            this.contactFoldersComboBox.EndUpdate();
+                            contactFoldersComboBox.EndUpdate();
                             //this.noteFoldersComboBox.EndUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                            this.appointmentFoldersComboBox.EndUpdate();
+                            appointmentFoldersComboBox.EndUpdate();
 
-                            this.contactFoldersComboBox.SelectedValue = defaultText;
+                            contactFoldersComboBox.SelectedValue = defaultText;
                             //this.noteFoldersComboBox.SelectedValue = defaultText;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                            this.appointmentFoldersComboBox.SelectedValue = defaultText;
+                            appointmentFoldersComboBox.SelectedValue = defaultText;
 
                             //this.contactFoldersComboBox.SelectedValue = "";
                             //this.noteFoldersComboBox.SelectedValue = "";
@@ -301,7 +301,7 @@ namespace GoContactSyncMod
                             foreach (OutlookFolder folder in contactFoldersComboBox.Items)
                                 if (folder.IsDefaultFolder)
                                 {
-                                    this.contactFoldersComboBox.SelectedValue = folder.FolderID;
+                                    contactFoldersComboBox.SelectedValue = folder.FolderID;
                                     break;
                                 }
 
@@ -318,7 +318,7 @@ namespace GoContactSyncMod
                             foreach (OutlookFolder folder in appointmentFoldersComboBox.Items)
                                 if (folder.IsDefaultFolder)
                                 {
-                                    this.appointmentFoldersComboBox.SelectedItem = folder;
+                                    appointmentFoldersComboBox.SelectedItem = folder;
                                     break;
                                 }
 
@@ -408,7 +408,7 @@ namespace GoContactSyncMod
             }
 
             if (SyncProfile == null)
-                SyncProfile = "Default_" + System.Environment.MachineName;
+                SyncProfile = "Default_" + Environment.MachineName;
 
             if (cmbSyncProfile.Items.Count == 1)
                 cmbSyncProfile.Items.Add(SyncProfile);
@@ -453,7 +453,7 @@ namespace GoContactSyncMod
             //}
 
             //temporary remove listener
-            this.autoSyncCheckBox.CheckedChanged -= new System.EventHandler(this.autoSyncCheckBox_CheckedChanged);
+            autoSyncCheckBox.CheckedChanged -= new EventHandler(autoSyncCheckBox_CheckedChanged);
 
             ReadRegistryIntoCheckBox(autoSyncCheckBox, regKeyAppRoot.GetValue(RegistryAutoSync));
             ReadRegistryIntoNumber(autoSyncInterval, regKeyAppRoot.GetValue(RegistryAutoSyncInterval));
@@ -495,7 +495,7 @@ namespace GoContactSyncMod
                     lastSync = new DateTime(Convert.ToInt64(regKeyAppRoot.GetValue(RegistryLastSync)));
                     SetLastSyncText(lastSync.ToString());
                 }
-                catch (System.FormatException ex)
+                catch (FormatException ex)
                 {
                     Logger.Log("LastSyncDate couldn't be read from registry (" + regKeyAppRoot.GetValue(RegistryLastSync) + "): " + ex, EventType.Warning);
                 }
@@ -516,7 +516,7 @@ namespace GoContactSyncMod
             }
 
             //enable temporary disabled listener
-            this.autoSyncCheckBox.CheckedChanged += new System.EventHandler(this.autoSyncCheckBox_CheckedChanged);
+            autoSyncCheckBox.CheckedChanged += new EventHandler(autoSyncCheckBox_CheckedChanged);
         }
 
         private static void ReadRegistryIntoCheckBox(CheckBox checkbox, object registryEntry)
@@ -527,7 +527,7 @@ namespace GoContactSyncMod
                 {
                     checkbox.Checked = Convert.ToBoolean(registryEntry);
                 }
-                catch (System.FormatException ex)
+                catch (FormatException ex)
                 {
                     Logger.Log(checkbox.Name + " couldn't be read from registry (" + registryEntry + "), was kept at default (" + checkbox.Checked + "): " + ex, EventType.Warning);
 
@@ -806,10 +806,10 @@ namespace GoContactSyncMod
 
                     //only reset notes if NotesFolder changed and reset contacts if ContactsFolder changed
                     //and only reset appointments, if either OutlookAppointmentsFolder changed (without changing Google at the same time) or GoogleAppointmentsFolder changed (without changing Outlook at the same time) (not chosen before means not changed)
-                    bool syncContacts = !string.IsNullOrEmpty(oldSyncContactsFolder) && !oldSyncContactsFolder.Equals(this.syncContactsFolder) && btSyncContacts.Checked;
+                    bool syncContacts = !string.IsNullOrEmpty(oldSyncContactsFolder) && !oldSyncContactsFolder.Equals(syncContactsFolder) && btSyncContacts.Checked;
                     bool syncNotes = false; // !string.IsNullOrEmpty(oldSyncNotesFolder) && !oldSyncNotesFolder.Equals(this.syncNotesFolder) && btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                    bool syncAppointments = !string.IsNullOrEmpty(oldSyncAppointmentsFolder) && !oldSyncAppointmentsFolder.Equals(this.syncAppointmentsFolder) && btSyncAppointments.Checked;
-                    bool syncGoogleAppointments = !string.IsNullOrEmpty(this.syncAppointmentsGoogleFolder) && !this.syncAppointmentsGoogleFolder.Equals(oldSyncAppointmentsGoogleFolder) && btSyncAppointments.Checked;
+                    bool syncAppointments = !string.IsNullOrEmpty(oldSyncAppointmentsFolder) && !oldSyncAppointmentsFolder.Equals(syncAppointmentsFolder) && btSyncAppointments.Checked;
+                    bool syncGoogleAppointments = !string.IsNullOrEmpty(syncAppointmentsGoogleFolder) && !syncAppointmentsGoogleFolder.Equals(oldSyncAppointmentsGoogleFolder) && btSyncAppointments.Checked;
                     if (syncContacts || /*syncNotes ||*/ syncAppointments && !syncGoogleAppointments || !syncAppointments && syncGoogleAppointments)
                     {
                         bool r = await ResetMatches(syncContacts, syncNotes, syncAppointments);
@@ -819,17 +819,17 @@ namespace GoContactSyncMod
 
                     //Then save the Contacts and Notes Folders used at last sync
                     if (btSyncContacts.Checked)
-                        regKeyAppRoot.SetValue(RegistrySyncContactsFolder, this.syncContactsFolder);
+                        regKeyAppRoot.SetValue(RegistrySyncContactsFolder, syncContactsFolder);
                     //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                     //if (btSyncNotes.Checked)
                     //    regKeyAppRoot.SetValue(RegistrySyncNotesFolder, this.syncNotesFolder);
                     if (btSyncAppointments.Checked)
                     {
-                        regKeyAppRoot.SetValue(RegistrySyncAppointmentsFolder, this.syncAppointmentsFolder);
-                        if (string.IsNullOrEmpty(this.syncAppointmentsGoogleFolder) && !string.IsNullOrEmpty(oldSyncAppointmentsGoogleFolder))
-                            this.syncAppointmentsGoogleFolder = oldSyncAppointmentsGoogleFolder;
-                        if (!string.IsNullOrEmpty(this.syncAppointmentsGoogleFolder))
-                            regKeyAppRoot.SetValue(RegistrySyncAppointmentsGoogleFolder, this.syncAppointmentsGoogleFolder);
+                        regKeyAppRoot.SetValue(RegistrySyncAppointmentsFolder, syncAppointmentsFolder);
+                        if (string.IsNullOrEmpty(syncAppointmentsGoogleFolder) && !string.IsNullOrEmpty(oldSyncAppointmentsGoogleFolder))
+                            syncAppointmentsGoogleFolder = oldSyncAppointmentsGoogleFolder;
+                        if (!string.IsNullOrEmpty(syncAppointmentsGoogleFolder))
+                            regKeyAppRoot.SetValue(RegistrySyncAppointmentsGoogleFolder, syncAppointmentsGoogleFolder);
                     }
 
                     SetLastSyncText("Syncing...");
@@ -853,13 +853,13 @@ namespace GoContactSyncMod
                     Logger.Log("Sync started (" + SyncProfile + ").", EventType.Information);
                     //SetSyncConsoleText(Logger.GetText());
                     sync.SyncProfile = SyncProfile;
-                    Synchronizer.SyncContactsFolder = this.syncContactsFolder;
-                    Synchronizer.SyncNotesFolder = this.syncNotesFolder;
-                    Synchronizer.SyncAppointmentsFolder = this.syncAppointmentsFolder;
-                    Synchronizer.SyncAppointmentsGoogleFolder = this.syncAppointmentsGoogleFolder;
-                    Synchronizer.MonthsInPast = Convert.ToUInt16(this.pastMonthInterval.Value);
-                    Synchronizer.MonthsInFuture = Convert.ToUInt16(this.futureMonthInterval.Value);
-                    Synchronizer.Timezone = this.Timezone;
+                    Synchronizer.SyncContactsFolder = syncContactsFolder;
+                    Synchronizer.SyncNotesFolder = syncNotesFolder;
+                    Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
+                    Synchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
+                    Synchronizer.MonthsInPast = Convert.ToUInt16(pastMonthInterval.Value);
+                    Synchronizer.MonthsInFuture = Convert.ToUInt16(futureMonthInterval.Value);
+                    Synchronizer.Timezone = Timezone;
 
                     sync.SyncOption = syncOption;
                     sync.SyncDelete = btSyncDelete.Checked;
@@ -1013,7 +1013,7 @@ namespace GoContactSyncMod
                 notifyIcon.Text = (iconText).Substring(0, iconText.Length >= 63 ? 63 : iconText.Length);
 
             if (error)
-                notifyIcon.Icon = this.IconError;
+                notifyIcon.Icon = IconError;
         }
 
         void Logger_LogUpdated(string Message)
@@ -1038,7 +1038,7 @@ namespace GoContactSyncMod
             if (appointmentTimezonesComboBox.InvokeRequired)
             {
                 OnTimeZoneChangesCallback d = new OnTimeZoneChangesCallback(OnTimeZoneChanges);
-                this.Invoke(d, new object[] { timeZone });
+                Invoke(d, new object[] { timeZone });
             }
             else
             {
@@ -1067,10 +1067,10 @@ namespace GoContactSyncMod
 
         public void SetFormEnabled(bool enabled)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 SwitchHandler h = new SwitchHandler(SetFormEnabled);
-                this.Invoke(h, new object[] { enabled });
+                Invoke(h, new object[] { enabled });
             }
             else
             {
@@ -1082,10 +1082,10 @@ namespace GoContactSyncMod
         }
         public void SetLastSyncText(string text)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 TextHandler h = new TextHandler(SetLastSyncText);
-                this.Invoke(h, new object[] { text });
+                Invoke(h, new object[] { text });
             }
             else
             {
@@ -1095,10 +1095,10 @@ namespace GoContactSyncMod
 
         public void SetSyncConsoleText(string text)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 TextHandler h = new TextHandler(SetSyncConsoleText);
-                this.Invoke(h, new object[] { text });
+                Invoke(h, new object[] { text });
             }
             else
             {
@@ -1111,10 +1111,10 @@ namespace GoContactSyncMod
         }
         public void AppendSyncConsoleText(string text)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 TextHandler h = new TextHandler(AppendSyncConsoleText);
-                this.Invoke(h, new object[] { text });
+                Invoke(h, new object[] { text });
             }
             else
             {
@@ -1126,10 +1126,10 @@ namespace GoContactSyncMod
         }
         public void TimerSwitch(bool value)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 SwitchHandler h = new SwitchHandler(TimerSwitch);
-                this.Invoke(h, new object[] { value });
+                Invoke(h, new object[] { value });
             }
             else
             {
@@ -1144,7 +1144,7 @@ namespace GoContactSyncMod
 
 
 
-        protected override void WndProc(ref System.Windows.Forms.Message m)
+        protected override void WndProc(ref Message m)
         {
             //Logger.Log(m.Msg, EventType.Information);
             switch (m.Msg)
@@ -1323,7 +1323,7 @@ namespace GoContactSyncMod
             Application.DoEvents();
             try
             {
-                this.cancelButton.Enabled = false; //Cancel is only working for sync currently, not for reset
+                cancelButton.Enabled = false; //Cancel is only working for sync currently, not for reset
                 await ResetMatches(btSyncContacts.Checked, false /*btSyncNotes.Checked*/, btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             }
             catch (Exception ex)
@@ -1337,7 +1337,7 @@ namespace GoContactSyncMod
                 lastSync = DateTime.Now;
                 TimerSwitch(true);
                 SetFormEnabled(true);
-                this.hideButton.Enabled = true;
+                hideButton.Enabled = true;
                 if (sync != null)
                 {
                     sync.LogoffOutlook();
@@ -1406,7 +1406,7 @@ namespace GoContactSyncMod
                     sync.LoadAppointments();
                     sync.ResetOutlookAppointmentMatches(deleteOutlookAppointments);
                 }
-                catch (System.Threading.Tasks.TaskCanceledException)
+                catch (TaskCanceledException)
                 {
                     Logger.Log("Task cancelled by user.", EventType.Information);
                     sync.LoadAppointments();
@@ -1437,7 +1437,7 @@ namespace GoContactSyncMod
 
         public DialogResult ShowConflictDialog(ConflictResolverForm conflictResolverForm)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 return (DialogResult)Invoke(new InvokeConflict(ShowConflictDialog), new object[] { conflictResolverForm });
             }
@@ -1445,7 +1445,7 @@ namespace GoContactSyncMod
             {
                 DialogResult res = conflictResolverForm.ShowDialog(this);
 
-                notifyIcon.Icon = this.Icon0;
+                notifyIcon.Icon = Icon0;
 
                 return res;
 
@@ -1455,7 +1455,7 @@ namespace GoContactSyncMod
 
         private void ShowForm()
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 Invoke(new InvokeCallback(ShowForm));
             }
@@ -1518,7 +1518,7 @@ namespace GoContactSyncMod
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
             ShowForm();
-            this.Activate();
+            Activate();
         }
         private void toolStripMenuItem3_Click(object sender, EventArgs e)
         {
@@ -1604,22 +1604,22 @@ namespace GoContactSyncMod
 
         private void Donate_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("https://sourceforge.net/project/project_donations.php?group_id=369321");
+            Process.Start("https://sourceforge.net/project/project_donations.php?group_id=369321");
         }
 
         private void Donate_MouseEnter(object sender, EventArgs e)
         {
-            Donate.BackColor = System.Drawing.Color.LightGray;
+            Donate.BackColor = Color.LightGray;
         }
 
         private void Donate_MouseLeave(object sender, EventArgs e)
         {
-            Donate.BackColor = System.Drawing.Color.Transparent;
+            Donate.BackColor = Color.Transparent;
         }
 
         private void hideButton_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void proxySettingsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -1672,8 +1672,8 @@ namespace GoContactSyncMod
                 btSyncContacts.Checked = true;
             }
             appointmentFoldersComboBox.Visible = appointmentGoogleFoldersComboBox.Visible = btSyncAppointments.Checked;
-            this.labelTimezone.Visible = this.labelMonthsPast.Visible = this.labelMonthsFuture.Visible = this.btSyncAppointments.Checked;
-            this.pastMonthInterval.Visible = this.futureMonthInterval.Visible = this.appointmentTimezonesComboBox.Visible = btSyncAppointments.Checked;
+            labelTimezone.Visible = labelMonthsPast.Visible = labelMonthsFuture.Visible = btSyncAppointments.Checked;
+            pastMonthInterval.Visible = futureMonthInterval.Visible = appointmentTimezonesComboBox.Visible = btSyncAppointments.Checked;
             btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
         }
 
@@ -1807,7 +1807,7 @@ namespace GoContactSyncMod
             }
         }
 
-        private void SystemEvents_PowerModeSwitch(Object sender, PowerModeChangedEventArgs e)
+        private void SystemEvents_PowerModeSwitch(object sender, PowerModeChangedEventArgs e)
         {
             if (e.Mode == PowerModes.Suspend)
             {
@@ -1853,15 +1853,15 @@ namespace GoContactSyncMod
         #region syncing icon
         public void IconTimerSwitch(bool value)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 SwitchHandler h = new SwitchHandler(IconTimerSwitch);
-                this.Invoke(h, new object[] { value });
+                Invoke(h, new object[] { value });
             }
             else
             {
                 if (value) //Reset Icon to default icon as starting point for the syncing icon
-                    notifyIcon.Icon = this.Icon0;
+                    notifyIcon.Icon = Icon0;
                 iconTimer.Enabled = value;
             }
         }
@@ -1873,13 +1873,13 @@ namespace GoContactSyncMod
 
         private void showNextIcon()
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
                 IconHandler h = new IconHandler(showNextIcon);
-                this.Invoke(h, new object[] { });
+                Invoke(h, new object[] { });
             }
             else
-                this.notifyIcon.Icon = GetNextIcon(this.notifyIcon.Icon); ;
+                notifyIcon.Icon = GetNextIcon(notifyIcon.Icon); ;
         }
 
 
@@ -1940,7 +1940,7 @@ namespace GoContactSyncMod
 
         private void appointmentTimezonesComboBox_TextChanged(object sender, EventArgs e)
         {
-            this.Timezone = appointmentTimezonesComboBox.Text;
+            Timezone = appointmentTimezonesComboBox.Text;
         }
 
         private void linkLabelRevokeAuthentication_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -1965,13 +1965,13 @@ namespace GoContactSyncMod
 
         private void appointmentGoogleFoldersComboBox_Enter(object sender, EventArgs e)
         {
-            if (this.appointmentGoogleFoldersComboBox.DataSource == null ||
-                this.appointmentGoogleFoldersComboBox.Items.Count <= 1)
+            if (appointmentGoogleFoldersComboBox.DataSource == null ||
+                appointmentGoogleFoldersComboBox.Items.Count <= 1)
             {
                 Logger.Log("Loading Google Calendars...", EventType.Information);
                 ArrayList googleAppointmentFolders = new ArrayList();
 
-                this.appointmentGoogleFoldersComboBox.BeginUpdate();
+                appointmentGoogleFoldersComboBox.BeginUpdate();
                 //this.appointmentGoogleFoldersComboBox.DataSource = null;
 
                 Logger.Log("Loading Google Appointments folder...", EventType.Information);
@@ -1991,18 +1991,18 @@ namespace GoContactSyncMod
                 {
                     googleAppointmentFolders.Sort();
                     googleAppointmentFolders.Insert(0, new GoogleCalendar(defaultText, defaultText, false));
-                    this.appointmentGoogleFoldersComboBox.DataSource = googleAppointmentFolders;
-                    this.appointmentGoogleFoldersComboBox.DisplayMember = "DisplayName";
-                    this.appointmentGoogleFoldersComboBox.ValueMember = "FolderID";
+                    appointmentGoogleFoldersComboBox.DataSource = googleAppointmentFolders;
+                    appointmentGoogleFoldersComboBox.DisplayMember = "DisplayName";
+                    appointmentGoogleFoldersComboBox.ValueMember = "FolderID";
                 }
-                this.appointmentGoogleFoldersComboBox.EndUpdate();
-                this.appointmentGoogleFoldersComboBox.SelectedValue = defaultText;
+                appointmentGoogleFoldersComboBox.EndUpdate();
+                appointmentGoogleFoldersComboBox.SelectedValue = defaultText;
 
                 //Select Default Folder per Default
                 foreach (GoogleCalendar folder in appointmentGoogleFoldersComboBox.Items)
                     if (folder.IsDefaultFolder)
                     {
-                        this.appointmentGoogleFoldersComboBox.SelectedItem = folder;
+                        appointmentGoogleFoldersComboBox.SelectedItem = folder;
                         break;
                     }
                 Logger.Log("Loaded Google Calendars.", EventType.Information);
@@ -2031,7 +2031,5 @@ namespace GoContactSyncMod
             else
                 Process.Start("https://sourceforge.net/projects/googlesyncmod");
         }
-
-
     }
 }

@@ -67,8 +67,7 @@ namespace GoContactSyncMod
                 //try
                 //{
 
-                if (NotificationReceived != null)
-                    NotificationReceived(string.Format("Matching note {0} of {1} by id: {2} ...", i, sync.OutlookNotes.Count, oln.Subject));
+                NotificationReceived?.Invoke(string.Format("Matching note {0} of {1} by id: {2} ...", i, sync.OutlookNotes.Count, oln.Subject));
 
                 // Create our own info object to go into collections/lists, so we can free the Outlook objects and not run out of resources / exceed policy limits.
                 //OutlookNoteInfo olci = new OutlookNoteInfo(oln, sync);
@@ -164,8 +163,7 @@ namespace GoContactSyncMod
             {
                 Outlook.NoteItem oln = outlookNotesWithoutOutlookGoogleId[i];
 
-                if (NotificationReceived != null)
-                    NotificationReceived(string.Format("Matching note {0} of {1} by unique properties: {2} ...", i + 1, outlookNotesWithoutOutlookGoogleId.Count, oln.Subject));
+                NotificationReceived?.Invoke(string.Format("Matching note {0} of {1} by unique properties: {2} ...", i + 1, outlookNotesWithoutOutlookGoogleId.Count, oln.Subject));
 
                 //no match found by id => match by subject/title
                 //create a default match pair with just outlook note.
@@ -386,8 +384,7 @@ namespace GoContactSyncMod
             for (int i = 0; i < sync.GoogleNotes.Count; i++)
             {
                 Document entry = sync.GoogleNotes[i];
-                if (NotificationReceived != null)
-                    NotificationReceived(string.Format("Adding new Google note {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleNotes.Count, entry.Title));
+                NotificationReceived?.Invoke(string.Format("Adding new Google note {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleNotes.Count, entry.Title));
 
                 //string googleOutlookId = NotePropertiesUtils.GetGoogleOutlookNoteId(sync.SyncProfile, entry);
                 //if (!String.IsNullOrEmpty(googleOutlookId) && skippedOutlookIds.Contains(googleOutlookId))

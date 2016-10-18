@@ -373,7 +373,7 @@ namespace GoContactSyncMod
                     destination.HomeAddress = destination.HomeAddress + "\r\n" + address.Country;
 
                 if (address.Primary)
-                    destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olHome;
+                    destination.SelectedMailingAddress = Outlook.OlMailingAddress.olHome;
             }
             else if (address.Rel == ContactsRelationships.IsWork)
             {
@@ -396,7 +396,7 @@ namespace GoContactSyncMod
                     destination.BusinessAddress = destination.BusinessAddress + "\r\n" + address.Country;
 
                 if (address.Primary)
-                    destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olBusiness;
+                    destination.SelectedMailingAddress = Outlook.OlMailingAddress.olBusiness;
             }
             else if (address.Rel == ContactsRelationships.IsOther)
             {
@@ -419,7 +419,7 @@ namespace GoContactSyncMod
                     destination.OtherAddress = destination.OtherAddress + "\r\n" + address.Country;
 
                 if (address.Primary)
-                    destination.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olOther;
+                    destination.SelectedMailingAddress = Outlook.OlMailingAddress.olOther;
             }
         }
 
@@ -796,7 +796,7 @@ namespace GoContactSyncMod
             slave.OtherAddressState = string.Empty;
             slave.OtherAddressPostOfficeBox = string.Empty;
 
-            slave.SelectedMailingAddress = Microsoft.Office.Interop.Outlook.OlMailingAddress.olNone;
+            slave.SelectedMailingAddress = Outlook.OlMailingAddress.olNone;
             foreach (StructuredPostalAddress address in master.PostalAddresses)
             {
                 SetPostalAddress(address, slave);

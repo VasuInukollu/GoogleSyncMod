@@ -187,7 +187,7 @@ namespace GoContactSyncMod
             using (Bitmap bmpImage = new Bitmap(original))
             {
                 Bitmap bmpCrop = bmpImage.Clone(cropArea, bmpImage.PixelFormat);
-                return (Image)(bmpCrop);
+                return bmpCrop;
             }
         }
 
