@@ -437,31 +437,41 @@ namespace GoContactSyncMod.UnitTests
 
             #endregion
 
-            var e1 = new Google.Apis.Calendar.v3.Data.Event();
-            e1.Summary = "Birthday1";
-            e1.Start = new EventDateTime();
-            e1.End = new EventDateTime();
-            e1.Start.DateTime = new DateTime(1970, 10, 14, 10, 0, 0);
-            e1.End.DateTime = new DateTime(1970, 10, 14, 11, 0, 0);
-            e1.Start.TimeZone = "Europe/Warsaw";
-            e1.End.TimeZone = "Europe/Warsaw";
-            e1.Recurrence = new List<string>();
-            e1.Recurrence.Add("RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10");
+            var e1 = new Google.Apis.Calendar.v3.Data.Event()
+            {
+                Summary = "Birthday 1",
+                Start = new EventDateTime()
+                {
+                    DateTime = new DateTime(1970, 10, 14, 10, 0, 0),
+                    TimeZone = "Europe/Warsaw"
+                },
+                End = new EventDateTime()
+                {
+                    DateTime = new DateTime(1970, 10, 14, 11, 0, 0),
+                    TimeZone = "Europe/Warsaw"
+                },
+                Recurrence = new String[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
+            };
 
             Assert.AreEqual("1970-10-14T08:00:00.000Z", e1.Start.DateTimeRaw);
             var c1 = service.Insert(e1, primaryCalendar.Id).Execute();
             Assert.AreEqual("1970-10-14T09:00:00+01:00", c1.Start.DateTimeRaw);
 
-            var e2 = new Google.Apis.Calendar.v3.Data.Event();
-            e2.Summary = "Birthday2";
-            e2.Start = new EventDateTime();
-            e2.End = new EventDateTime();
-            e2.Start.DateTime = new DateTime(2000, 10, 14, 10, 0, 0);
-            e2.End.DateTime = new DateTime(2000, 10, 14, 11, 0, 0);
-            e2.Start.TimeZone = "Europe/Warsaw";
-            e2.End.TimeZone = "Europe/Warsaw";
-            e2.Recurrence = new List<string>();
-            e2.Recurrence.Add("RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10");
+            var e2 = new Google.Apis.Calendar.v3.Data.Event()
+            {
+                Summary = "Birthday 2",
+                Start = new EventDateTime()
+                {
+                    DateTime = new DateTime(2000, 10, 14, 10, 0, 0),
+                    TimeZone = "Europe/Warsaw"
+                },
+                End = new EventDateTime()
+                {
+                    DateTime = new DateTime(2000, 10, 14, 11, 0, 0),
+                    TimeZone = "Europe/Warsaw"
+                },
+                Recurrence = new String[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
+            };
 
             Assert.AreEqual("2000-10-14T08:00:00.000Z", e2.Start.DateTimeRaw);
             var c2 = service.Insert(e2, primaryCalendar.Id).Execute();
