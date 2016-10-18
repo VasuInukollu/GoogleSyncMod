@@ -892,28 +892,44 @@ namespace GoContactSyncMod
             {
                 string nonRTF;
                 if (slave.Body == null)
-                    nonRTF = string.Empty;
-                else
-                    nonRTF = Utilities.ConvertToText(slave.RTFBody as byte[]);
-
-                if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body) && !nonRTF.Equals(master.Content))
-                { //only update, if RTF text is same as plain text and is different between master and slave
-                    slave.Body = master.Content;
-                }
-                else if (!nonRTF.Equals(master.Content))
                 {
-                    if (!Synchronizer.SyncContactsForceRTF)
+                    nonRTF = string.Empty;
+                }
+                else
+                {
+                    if (slave.RTFBody != null)
                     {
+                        nonRTF = Utilities.ConvertToText(slave.RTFBody as byte[]);
+                    }
+                    else
+                    {
+                        nonRTF = string.Empty;
+                    }
+                }
+
+                if (!nonRTF.Equals(master.Content))
+                {
+
+                    if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body))
+                    { //only update, if RTF text is same as plain text and is different between master and slave
                         slave.Body = master.Content;
                     }
                     else
                     {
-                        Logger.Log("Outlook contact notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.FileAs, EventType.Warning);
+                        if (!Synchronizer.SyncContactsForceRTF)
+                        {
+                            slave.Body = master.Content;
+                        }
+                        else
+                        {
+                            Logger.Log("Outlook contact notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.FileAs, EventType.Warning);
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
+                Logger.Log(e, EventType.Debug);
                 Logger.Log("Error when converting RTF to plain text, updating Google Contact '" + slave.FileAs + "' notes to Outlook without RTF check: " + e.Message, EventType.Debug);
                 slave.Body = master.Content;
             }

@@ -324,28 +324,43 @@ namespace GoContactSyncMod
             {
                 string nonRTF;
                 if (slave.Body == null)
-                    nonRTF = string.Empty;
-                else
-                    nonRTF = Utilities.ConvertToText(slave.RTFBody as byte[]);
-
-                if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body) && !nonRTF.Equals(master.Description))
-                {  //only update, if RTF text is same as plain text and is different between master and slave
-                    slave.Body = master.Description;
-                }
-                else if (!nonRTF.Equals(master.Description))
                 {
-                    if (!Synchronizer.SyncAppointmentsForceRTF)
+                    nonRTF = string.Empty;
+                }
+                else
+                {
+                    if (slave.RTFBody != null)
                     {
+                        nonRTF = Utilities.ConvertToText(slave.RTFBody as byte[]);
+                    }
+                    else
+                    {
+                        nonRTF = string.Empty;
+                    }
+                }
+
+                if (!nonRTF.Equals(master.Description))
+                {
+                    if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body))
+                    {  //only update, if RTF text is same as plain text and is different between master and slave
                         slave.Body = master.Description;
                     }
                     else
                     {
-                        Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
+                        if (!Synchronizer.SyncAppointmentsForceRTF)
+                        {
+                            slave.Body = master.Description;
+                        }
+                        else
+                        {
+                            Logger.Log("Outlook appointment notes body not updated, because it is RTF, otherwise it will overwrite it by plain text: " + slave.Subject + " - " + slave.Start, EventType.Warning);
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
+                Logger.Log(e, EventType.Debug);
                 Logger.Log("Error when converting RTF to plain text, updating Google Appointment '" + slave.Subject + " - " + slave.Start + "' notes to Outlook without RTF check: " + e.Message, EventType.Debug);
                 slave.Body = master.Description;
             }
@@ -730,10 +745,8 @@ namespace GoContactSyncMod
                 return;
             }
 
-
             try
             {
-
                 Outlook.RecurrencePattern slaveRecurrence = slave.GetRecurrencePattern();
 
                 if (master.Start != null && !string.IsNullOrEmpty(master.Start.Date))
@@ -808,10 +821,8 @@ namespace GoContactSyncMod
 
                                     break;
                                 }
-
                                 break;
                             }
-
                         }
 
                         foreach (string part in parts)
@@ -829,7 +840,6 @@ namespace GoContactSyncMod
                                 break;
                             }
                         }
-
 
                         foreach (string part in parts)
                         {
@@ -862,7 +872,6 @@ namespace GoContactSyncMod
                                 }
                                 break;
                             }
-
                         }
 
                         foreach (string part in parts)
@@ -897,7 +906,6 @@ namespace GoContactSyncMod
                             }
                         }
 
-
                         foreach (string part in parts)
                         {
                             if (part.StartsWith(INTERVAL))
@@ -911,7 +919,6 @@ namespace GoContactSyncMod
                                 slaveRecurrence.Interval = interval;
                                 break;
                             }
-
                         }
 
                         foreach (string part in parts)
@@ -929,13 +936,7 @@ namespace GoContactSyncMod
                                 break;
                             }
                         }
-
-
-
-
-
-
-
+                        
                         foreach (string part in parts)
                         {
                             if (part.StartsWith(BYMONTHDAY))
@@ -953,22 +954,15 @@ namespace GoContactSyncMod
                                 break;
                             }
                         }
-
-
                         break;
                     }
-
                 }
-
-
             }
             catch (Exception ex)
             {
-                //ErrorHandler.Handle(ex);
+                Logger.Log(ex, EventType.Debug);
                 Logger.Log("Error updating event's BYSETPOS: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, EventType.Error);
             }
-
-
         }
 
         public static bool UpdateRecurrenceExceptions(Outlook.AppointmentItem master, Event slave, Synchronizer sync)
@@ -1014,6 +1008,7 @@ namespace GoContactSyncMod
                             catch (Exception ex)
                             {
                                 //should not happen
+                                Logger.Log(ex, EventType.Debug);
                                 Logger.Log(ex.Message, EventType.Error);
                             }
                         }
