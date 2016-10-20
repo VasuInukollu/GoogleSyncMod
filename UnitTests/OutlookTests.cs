@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using NUnit.Framework;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using System.Configuration;

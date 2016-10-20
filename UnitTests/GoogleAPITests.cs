@@ -331,7 +331,7 @@ namespace GoContactSyncMod.UnitTests
             Logger.Log("Created Google note", EventType.Information);
 
             //Wait 5 seconds to give the testcase the chance to finish
-            System.Threading.Thread.Sleep(5000);
+            Thread.Sleep(5000);
 
             //delete test note            
             DeleteTestNote(service);
@@ -354,7 +354,7 @@ namespace GoContactSyncMod.UnitTests
             #endregion
 
             //Wait 5 seconds to give the testcase the chance to finish the Async events
-            System.Threading.Thread.Sleep(5000);
+            Thread.Sleep(5000);
 
             DeleteTestNote(service);
         }
@@ -563,7 +563,7 @@ namespace GoContactSyncMod.UnitTests
             {
                 try
                 {
-                    SettingsForm.GetOutlookMAPIFolders(outlookContactFolders, outlookNoteFolders, outlookAppointmentFolders, folder);
+                    SettingsForm.GetOutlookMAPIFolders(outlookContactFolders, outlookAppointmentFolders, folder);
                 }
                 catch (Exception e)
                 {

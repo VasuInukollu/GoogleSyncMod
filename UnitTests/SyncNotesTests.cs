@@ -1,17 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using NUnit.Framework;
 using Google.GData.Client;
-using Google.GData.Extensions;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using Microsoft.Office.Interop.Outlook;
 using System.Threading;
-using System.Web;
-using System.Net;
 using System.IO;
-using System.Drawing;
-using System.Configuration;
 using Google.Documents;
 
 namespace GoContactSyncMod.UnitTests
