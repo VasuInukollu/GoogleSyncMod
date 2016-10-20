@@ -1,5 +1,14 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.9] - 21.10.2016 
+
+### SVN commits
+
+**r737 - r742:
+
+- UPDATE: Update NuGet packages to latest version. 
+- FIX: Fixed regression in selecting folders.
+
 ## Version [3.10.8] - 18.10.2016 
 
 ### SVN commits
