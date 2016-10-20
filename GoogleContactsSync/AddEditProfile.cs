@@ -24,6 +24,5 @@ namespace GoContactSyncMod
             if (!string.IsNullOrEmpty(profileName))
                 tbProfileName.Text = profileName;
         }
-
     }
 }

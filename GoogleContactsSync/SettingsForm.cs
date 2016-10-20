@@ -67,7 +67,6 @@ namespace GoContactSyncMod
         public const string RegistryUseFileAs = "UseFileAs";
         public const string RegistryLastSync = "LastSync";
         public const string RegistrySyncContactsFolder = "SyncContactsFolder";
-        public const string RegistrySyncNotesFolder = "SyncNotesFolder";
         public const string RegistrySyncAppointmentsFolder = "SyncAppointmentsFolder";
         public const string RegistrySyncAppointmentsGoogleFolder = "SyncAppointmentsGoogleFolder";
         public const string RegistrySyncProfile = "SyncProfile";
@@ -99,6 +98,8 @@ namespace GoContactSyncMod
             }
         }
 
+        private string ProfileRegistry;
+        private bool OutlookFoldersLoaded = false;
 
         private int executing; // make this static if you want this one-caller-only to
         // all objects instead of a single object
@@ -124,8 +125,6 @@ namespace GoContactSyncMod
             {
                 return MessageBox.Show(this, text, Application.ProductName, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
             }
-
-
         }
 
         private Icon IconError = Properties.Resources.sync_error;
@@ -162,9 +161,15 @@ namespace GoContactSyncMod
             //temporary remove the listener to avoid to load the settings twice, because it is set from SettingsForm.Designer.cs
             cmbSyncProfile.SelectedIndexChanged -= new EventHandler(cmbSyncProfile_SelectedIndexChanged);
             if (fillSyncProfileItems())
-                LoadSettings(cmbSyncProfile.Text);
+            {
+                ProfileRegistry = cmbSyncProfile.Text;
+            }
             else
-                LoadSettings(null);
+            {
+                ProfileRegistry = null;
+            }
+            LoadSettings(ProfileRegistry);
+
             //enable the listener
             cmbSyncProfile.SelectedIndexChanged += new EventHandler(cmbSyncProfile_SelectedIndexChanged);
 
@@ -202,6 +207,7 @@ namespace GoContactSyncMod
                 syncOptionBox.Items.Add(str);
             }
         }
+
         private void fillSyncFolderItems()
         {
             if (InvokeRequired)
@@ -210,23 +216,25 @@ namespace GoContactSyncMod
             }
             else
             {
-
                 lock (syncRoot)
                 {
-                    if (contactFoldersComboBox.DataSource == null || /*this.noteFoldersComboBox.DataSource == null ||*/ appointmentFoldersComboBox.DataSource == null || appointmentGoogleFoldersComboBox.DataSource == null && btSyncAppointments.Checked ||
-                        contactFoldersComboBox.Items.Count == 0 || /*this.noteFoldersComboBox.Items.Count == 0 ||*/ appointmentFoldersComboBox.Items.Count == 0 || appointmentGoogleFoldersComboBox.Items.Count == 0 && btSyncAppointments.Checked)
-                    {//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                    if (OutlookFoldersLoaded)
+                        return;
+                    
+                    if (contactFoldersComboBox.DataSource == null ||  appointmentFoldersComboBox.DataSource == null || 
+                        appointmentGoogleFoldersComboBox.DataSource == null && btSyncAppointments.Checked ||
+                        contactFoldersComboBox.Items.Count == 0 ||  appointmentFoldersComboBox.Items.Count == 0 || 
+                        appointmentGoogleFoldersComboBox.Items.Count == 0 && btSyncAppointments.Checked)
+                    {
                         Logger.Log("Loading Outlook folders...", EventType.Information);
 
                         contactFoldersComboBox.Visible = btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
-                        //this.noteFoldersComboBox.Visible = btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                         labelTimezone.Visible = labelMonthsPast.Visible = labelMonthsFuture.Visible = btSyncAppointments.Checked;
                         appointmentFoldersComboBox.Visible = appointmentGoogleFoldersComboBox.Visible = futureMonthInterval.Visible = pastMonthInterval.Visible = appointmentTimezonesComboBox.Visible = btSyncAppointmentsForceRTF.Visible = btSyncAppointments.Checked;
                         cmbSyncProfile.Visible = true;
 
                         string defaultText = "    --- Select an Outlook folder ---";
                         ArrayList outlookContactFolders = new ArrayList();
-                        ArrayList outlookNoteFolders = new ArrayList();
                         ArrayList outlookAppointmentFolders = new ArrayList();
 
                         try
@@ -235,28 +243,32 @@ namespace GoContactSyncMod
                             SuspendLayout();
 
                             contactFoldersComboBox.BeginUpdate();
-                            //this.noteFoldersComboBox.BeginUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                             appointmentFoldersComboBox.BeginUpdate();
                             contactFoldersComboBox.DataSource = null;
-                            //this.noteFoldersComboBox.DataSource = null;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                             appointmentFoldersComboBox.DataSource = null;
-                            //this.contactFoldersComboBox.Items.Clear();
 
-                            Microsoft.Office.Interop.Outlook.Folders folders = Synchronizer.OutlookNameSpace.Folders;
-                            foreach (Microsoft.Office.Interop.Outlook.Folder folder in folders)
+                            var folders = Synchronizer.OutlookNameSpace.Folders;
+                            for (int i = 1; i <= folders.Count; i++)
                             {
+                                Microsoft.Office.Interop.Outlook.MAPIFolder folder = null;
                                 try
                                 {
-                                    GetOutlookMAPIFolders(outlookContactFolders, outlookNoteFolders, outlookAppointmentFolders, folder);
+                                    folder = folders[i] as Microsoft.Office.Interop.Outlook.MAPIFolder;
+                                    GetOutlookMAPIFolders(outlookContactFolders, outlookAppointmentFolders, folder);
                                 }
                                 catch (Exception e)
                                 {
                                     Logger.Log(e, EventType.Debug);
                                     Logger.Log("Error getting available Outlook folders: " + e.Message, EventType.Warning);
                                 }
+                                finally
+                                {
+                                    if (folder != null)
+                                        Marshal.ReleaseComObject(folder);
+                                }
                             }
 
-                            if (outlookContactFolders != null) // && outlookContactFolders.Count > 0)
+                            if (outlookContactFolders != null)
                             {
                                 outlookContactFolders.Sort();
                                 outlookContactFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
@@ -265,18 +277,7 @@ namespace GoContactSyncMod
                                 contactFoldersComboBox.ValueMember = "FolderID";
                             }
 
-
-                            //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                            //if (outlookNoteFolders != null) // && outlookNoteFolders.Count > 0)
-                            //{
-                            //    outlookNoteFolders.Sort();
-                            //    outlookNoteFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
-                            //    this.noteFoldersComboBox.DataSource = outlookNoteFolders;
-                            //    this.noteFoldersComboBox.DisplayMember = "DisplayName";
-                            //    this.noteFoldersComboBox.ValueMember = "FolderID";
-                            //}
-
-                            if (outlookAppointmentFolders != null) // && outlookAppointmentFolders.Count > 0)
+                            if (outlookAppointmentFolders != null) 
                             {
                                 outlookAppointmentFolders.Sort();
                                 outlookAppointmentFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
@@ -286,95 +287,91 @@ namespace GoContactSyncMod
                             }
 
                             contactFoldersComboBox.EndUpdate();
-                            //this.noteFoldersComboBox.EndUpdate();//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                             appointmentFoldersComboBox.EndUpdate();
 
                             contactFoldersComboBox.SelectedValue = defaultText;
-                            //this.noteFoldersComboBox.SelectedValue = defaultText;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                             appointmentFoldersComboBox.SelectedValue = defaultText;
 
-                            //this.contactFoldersComboBox.SelectedValue = "";
-                            //this.noteFoldersComboBox.SelectedValue = "";
-                            //this.appointmentFoldersComboBox.SelectedValue = "";
-
-                            //Select Default Folder per Default
-                            foreach (OutlookFolder folder in contactFoldersComboBox.Items)
-                                if (folder.IsDefaultFolder)
+                            //If user has not yet selected any folder, select one based on Outlook default folder
+                            if (contactFoldersComboBox.SelectedIndex < 1)
+                            {
+                                foreach (OutlookFolder folder in contactFoldersComboBox.Items)
                                 {
-                                    contactFoldersComboBox.SelectedValue = folder.FolderID;
-                                    break;
+                                    if (folder.IsDefaultFolder)
+                                    {
+                                        contactFoldersComboBox.SelectedValue = folder.FolderID;
+                                        break;
+                                    }
                                 }
+                            }
 
-                            //Select Default Folder per Default
-                            //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                            //foreach (OutlookFolder folder in noteFoldersComboBox.Items)
-                            //    if (folder.IsDefaultFolder)
-                            //    {
-                            //        this.noteFoldersComboBox.SelectedItem = folder;
-                            //        break;
-                            //    }
-
-                            //Select Default Folder per Default
-                            foreach (OutlookFolder folder in appointmentFoldersComboBox.Items)
-                                if (folder.IsDefaultFolder)
+                            //If user has not yet selected any folder, select one based on Outlook default folder
+                            if (appointmentFoldersComboBox.SelectedIndex < 1)
+                            {
+                                foreach (OutlookFolder folder in appointmentFoldersComboBox.Items)
                                 {
-                                    appointmentFoldersComboBox.SelectedItem = folder;
-                                    break;
+                                    if (folder.IsDefaultFolder)
+                                    {
+                                        appointmentFoldersComboBox.SelectedItem = folder;
+                                        break;
+                                    }
                                 }
+                            }
 
                             Logger.Log("Loaded Outlook folders.", EventType.Information);
-
                         }
-
                         catch (Exception e)
                         {
                             Logger.Log(e, EventType.Debug);
                             Logger.Log("Error getting available Outlook and Google folders: " + e.Message, EventType.Warning);
-
                         }
                         finally
                         {
                             Cursor = Cursors.Default;
                             ResumeLayout();
                         }
-
-                        LoadSettingsFolders(SyncProfile);
-
-                        if ((contactFoldersComboBox.SelectedIndex == -1) && (contactFoldersComboBox.Items.Count > 0))
-                            contactFoldersComboBox.SelectedIndex = 0;
-
-                        if ((appointmentFoldersComboBox.SelectedIndex == -1) && (appointmentFoldersComboBox.Items.Count > 0))
-                            appointmentFoldersComboBox.SelectedIndex = 0;
                     }
+                    LoadSettingsFolders(ProfileRegistry);
+
+                    if ((contactFoldersComboBox.SelectedIndex == -1) && (contactFoldersComboBox.Items.Count > 0))
+                        contactFoldersComboBox.SelectedIndex = 0;
+
+                    if ((appointmentFoldersComboBox.SelectedIndex == -1) && (appointmentFoldersComboBox.Items.Count > 0))
+                        appointmentFoldersComboBox.SelectedIndex = 0;
+
+                    OutlookFoldersLoaded = true;
                 }
             }
         }
 
-        public static void GetOutlookMAPIFolders(ArrayList outlookContactFolders, ArrayList outlookNoteFolders, ArrayList outlookAppointmentFolders, Microsoft.Office.Interop.Outlook.MAPIFolder folder)
+        public static void GetOutlookMAPIFolders(ArrayList outlookContactFolders, /*ArrayList outlookNoteFolders,*/ ArrayList outlookAppointmentFolders, Microsoft.Office.Interop.Outlook.MAPIFolder folder)
         {
-            foreach (Microsoft.Office.Interop.Outlook.MAPIFolder mapi in folder.Folders)
+            for (int i = 1; i <= folder.Folders.Count; i++)
             {
-                if (mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olContactItem)
+                Microsoft.Office.Interop.Outlook.MAPIFolder mapi = null;
+                try
                 {
-                    bool isDefaultFolder = mapi.EntryID.Equals(Synchronizer.OutlookNameSpace.GetDefaultFolder(Microsoft.Office.Interop.Outlook.OlDefaultFolders.olFolderContacts).EntryID);
-                    outlookContactFolders.Add(new OutlookFolder(folder.Name + " - " + mapi.Name, mapi.EntryID, isDefaultFolder));
-                }
-                if (mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olNoteItem)
-                {
-                    bool isDefaultFolder = mapi.EntryID.Equals(Synchronizer.OutlookNameSpace.GetDefaultFolder(Microsoft.Office.Interop.Outlook.OlDefaultFolders.olFolderNotes).EntryID);
-                    outlookNoteFolders.Add(new OutlookFolder(folder.Name + " - " + mapi.Name, mapi.EntryID, isDefaultFolder));
-                }
-                if (mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olAppointmentItem)
-                {
-                    bool isDefaultFolder = mapi.EntryID.Equals(Synchronizer.OutlookNameSpace.GetDefaultFolder(Microsoft.Office.Interop.Outlook.OlDefaultFolders.olFolderCalendar).EntryID);
-                    outlookAppointmentFolders.Add(new OutlookFolder(folder.Name + " - " + mapi.Name, mapi.EntryID, isDefaultFolder));
-                }
+                    mapi = folder.Folders[i] as Microsoft.Office.Interop.Outlook.MAPIFolder;
+                    if (mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olContactItem)
+                    {
+                        bool isDefaultFolder = mapi.EntryID.Equals(Synchronizer.OutlookNameSpace.GetDefaultFolder(Microsoft.Office.Interop.Outlook.OlDefaultFolders.olFolderContacts).EntryID);
+                        outlookContactFolders.Add(new OutlookFolder(folder.Name + " - " + mapi.Name, mapi.EntryID, isDefaultFolder));
+                    }
+                    if (mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olAppointmentItem)
+                    {
+                        bool isDefaultFolder = mapi.EntryID.Equals(Synchronizer.OutlookNameSpace.GetDefaultFolder(Microsoft.Office.Interop.Outlook.OlDefaultFolders.olFolderCalendar).EntryID);
+                        outlookAppointmentFolders.Add(new OutlookFolder(folder.Name + " - " + mapi.Name, mapi.EntryID, isDefaultFolder));
+                    }
 
-                if (mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olContactItem ||
-                    mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olNoteItem ||
-                    mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olAppointmentItem)
-                    GetOutlookMAPIFolders(outlookContactFolders, outlookNoteFolders, outlookAppointmentFolders, mapi);
-
+                    if (mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olContactItem ||
+                        mapi.DefaultItemType == Microsoft.Office.Interop.Outlook.OlItemType.olAppointmentItem)
+                        GetOutlookMAPIFolders(outlookContactFolders, outlookAppointmentFolders, mapi);
+                }
+                finally
+                {
+                    if (mapi != null)
+                        Marshal.ReleaseComObject(mapi);
+                }
             }
         }
 
@@ -394,7 +391,6 @@ namespace GoContactSyncMod
             {
                 regKeyAppRoot = Registry.CurrentUser.CreateSubKey(@"Software\Webgear\GOContactSync");
             }
-
 
             bool vReturn = false;
 
@@ -421,7 +417,6 @@ namespace GoContactSyncMod
             return vReturn;
         }
 
-
         private void LoadSettings(string _profile)
         {
             Logger.Log("Loading settings from registry...", EventType.Information);
@@ -430,8 +425,6 @@ namespace GoContactSyncMod
             //only for downside compliance reasons: load old registry settings first and save them later on in new structure
             if (Registry.CurrentUser.OpenSubKey(@"Software\Webgear\GOContactSync") != null)
             {
-                //MessageBox.Show("Your settings have been deleted because of an upgrade! You simply need to reconfigure them. Thx!", Application.ProductName + " - INFORMATION",MessageBoxButtons.OK);
-                //Registry.CurrentUser.DeleteSubKeyTree(@"Software\Webgear\GOContactSync");
                 regKeyAppRoot = Registry.CurrentUser.CreateSubKey(@"Software\Webgear\GOContactSync" + (_profile != null ? ('\\' + _profile) : ""));
             }
 
@@ -443,14 +436,8 @@ namespace GoContactSyncMod
 
             if (regKeyAppRoot.GetValue(RegistryUsername) != null)
             {
-                UserName.Text = regKeyAppRoot.GetValue(RegistryUsername) as string;
-                //if (regKeyAppRoot.GetValue("Password") != null)
-                //    Password.Text = Encryption.DecryptPassword(UserName.Text, regKeyAppRoot.GetValue("Password") as string);
+                UserName.Text = regKeyAppRoot.GetValue(RegistryUsername) as string;           
             }
-            //if (regKeyAppRoot.GetValue("Password") != null)
-            //{
-            //    regKeyAppRoot.DeleteValue("Password");
-            //}
 
             //temporary remove listener
             autoSyncCheckBox.CheckedChanged -= new EventHandler(autoSyncCheckBox_CheckedChanged);
@@ -466,22 +453,7 @@ namespace GoContactSyncMod
             if (regKeyAppRoot.GetValue(RegistrySyncAppointmentsTimezone) != null)
                 appointmentTimezonesComboBox.Text = regKeyAppRoot.GetValue(RegistrySyncAppointmentsTimezone) as string;
             ReadRegistryIntoCheckBox(btSyncAppointments, regKeyAppRoot.GetValue(RegistrySyncAppointments));
-            //ReadRegistryIntoCheckBox(btSyncNotes, regKeyAppRoot.GetValue(RegistrySyncNotes));//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-            object registryEntry = regKeyAppRoot.GetValue(RegistrySyncNotes);
-            if (registryEntry != null)
-            {
-                try
-                {
-                    bool syncNotes = Convert.ToBoolean(registryEntry);
-                    if (syncNotes)
-                        Logger.Log("Notes Sync doesn't work anymore, because Google.Documents API was replaced by Google.Drive API on 21-Apr-2015 and it is not compatible. Thefore Notes Sync was removed from GCSM.", EventType.Information);
-                }
-                catch (Exception)
-                {
-                    //ignored;
-                }
-            }
-
+     
             ReadRegistryIntoCheckBox(btSyncContacts, regKeyAppRoot.GetValue(RegistrySyncContacts));
             ReadRegistryIntoCheckBox(chkUseFileAs, regKeyAppRoot.GetValue(RegistryUseFileAs));
 
@@ -500,11 +472,9 @@ namespace GoContactSyncMod
                     Logger.Log("LastSyncDate couldn't be read from registry (" + regKeyAppRoot.GetValue(RegistryLastSync) + "): " + ex, EventType.Warning);
                 }
             }
-            LoadSettingsFolders(_profile);
-
+          
             //autoSyncCheckBox_CheckedChanged(null, null);
             btSyncContacts_CheckedChanged(null, null);
-            //btSyncNotes_CheckedChanged(null, null);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
 
             _proxy.LoadSettings(_profile);
 
@@ -530,10 +500,8 @@ namespace GoContactSyncMod
                 catch (FormatException ex)
                 {
                     Logger.Log(checkbox.Name + " couldn't be read from registry (" + registryEntry + "), was kept at default (" + checkbox.Checked + "): " + ex, EventType.Warning);
-
                 }
             }
-
         }
 
         private static void ReadRegistryIntoNumber(NumericUpDown numericUpDown, object registryEntry)
@@ -558,7 +526,6 @@ namespace GoContactSyncMod
 
         private void LoadSettingsFolders(string _profile)
         {
-
             RegistryKey regKeyAppRoot = Registry.CurrentUser.CreateSubKey(AppRootKey + (_profile != null ? ('\\' + _profile) : ""));
 
             //only for downside compliance reasons: load old registry settings first and save them later on in new structure
@@ -567,22 +534,30 @@ namespace GoContactSyncMod
                 regKeyAppRoot = Registry.CurrentUser.CreateSubKey(@"Software\Webgear\GOContactSync" + (_profile != null ? ('\\' + _profile) : ""));
             }
 
-            string regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncContactsFolder) as string;
+            var regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncContactsFolder) as string;
             if (!string.IsNullOrEmpty(regKeyValueStr))
             {
-                if (contactFoldersComboBox.Items.Contains(regKeyValueStr))
-                    contactFoldersComboBox.SelectedValue = regKeyValueStr;
+                foreach (OutlookFolder i in contactFoldersComboBox.Items)
+                {
+                    if (i.FolderID == regKeyValueStr)
+                    {
+                        contactFoldersComboBox.SelectedValue = regKeyValueStr;
+                        break;
+                    }
+                }
             }
-            //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-            //regKeyValue = regKeyAppRoot.GetValue(RegistrySyncNotesFolder);
-            //if (regKeyValue != null && !string.IsNullOrEmpty(regKeyValue as string))
-            //    noteFoldersComboBox.SelectedValue = regKeyValue as string;
 
             regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncAppointmentsFolder) as string;
             if (!string.IsNullOrEmpty(regKeyValueStr))
             {
-                if (appointmentFoldersComboBox.Items.Contains(regKeyValueStr))
-                    appointmentFoldersComboBox.SelectedValue = regKeyValueStr;
+                foreach (OutlookFolder i in appointmentFoldersComboBox.Items)
+                {
+                    if (i.FolderID == regKeyValueStr)
+                    {
+                        appointmentFoldersComboBox.SelectedValue = regKeyValueStr;
+                        break;
+                    }
+                }
             }
 
             regKeyValueStr = regKeyAppRoot.GetValue(RegistrySyncAppointmentsGoogleFolder) as string;
@@ -596,7 +571,6 @@ namespace GoContactSyncMod
                     appointmentGoogleFoldersComboBox.DataSource = list;
                     appointmentGoogleFoldersComboBox.DisplayMember = "DisplayName";
                     appointmentGoogleFoldersComboBox.ValueMember = "FolderID";
-                    //this.appointmentGoogleFoldersComboBox.SelectedIndex = 0;
                     appointmentFoldersComboBox.EndUpdate();
                 }
 
@@ -632,16 +606,10 @@ namespace GoContactSyncMod
                 regKeyAppRoot.SetValue(RegistrySyncAppointmentsTimezone, appointmentTimezonesComboBox.Text);
                 regKeyAppRoot.SetValue(RegistrySyncAppointments, btSyncAppointments.Checked);
                 regKeyAppRoot.SetValue(RegistrySyncAppointmentsForceRTF, btSyncAppointmentsForceRTF.Checked);
-                // regKeyAppRoot.SetValue(RegistrySyncNotes, btSyncNotes.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
                 regKeyAppRoot.SetValue(RegistrySyncContacts, btSyncContacts.Checked);
                 regKeyAppRoot.SetValue(RegistrySyncContactsForceRTF, btSyncContactsForceRTF.Checked);
                 regKeyAppRoot.SetValue(RegistryUseFileAs, chkUseFileAs.Checked);
                 regKeyAppRoot.SetValue(RegistryLastSync, lastSync.Ticks);
-
-                //if (btSyncContacts.Checked && contactFoldersComboBox.SelectedValue != null)
-                //    regKeyAppRoot.SetValue("SyncContactsFolder", contactFoldersComboBox.SelectedValue.ToString());
-                //if (btSyncNotes.Checked && noteFoldersComboBox.SelectedValue != null)
-                //    regKeyAppRoot.SetValue("SyncNotesFolder", noteFoldersComboBox.SelectedValue.ToString());
 
                 _proxy.SaveSettings(cmbSyncProfile.Text);
             }
@@ -693,28 +661,19 @@ namespace GoContactSyncMod
             get
             {
                 bool userNameIsValid = Regex.IsMatch(UserName.Text, @"^(?'id'[a-z0-9\'\%\._\+\-]+)@(?'domain'[a-z0-9\'\%\._\+\-]+)\.(?'ext'[a-z]{2,6})$", RegexOptions.IgnoreCase);
-                //bool passwordIsValid = !string.IsNullOrEmpty(Password.Text.Trim());
                 bool syncProfileIsValid = (cmbSyncProfile.SelectedIndex > 0 && cmbSyncProfile.SelectedIndex < cmbSyncProfile.Items.Count - 1);
 
 
                 setBgColor(UserName, userNameIsValid);
-                //setBgColor(Password, passwordIsValid);
                 setBgColor(cmbSyncProfile, syncProfileIsValid);
-
-
 
                 if (!userNameIsValid)
                     toolTip.SetToolTip(UserName, "User is of wrong format, should be full Google Mail address, e.g. user@googelmail.com");
                 else
                     toolTip.SetToolTip(UserName, string.Empty);
-                //if (!passwordIsValid)
-                //    toolTip.SetToolTip(Password, "Password is empty, please provide your Google Mail password");
-                //else
-                //    toolTip.SetToolTip(Password, String.Empty);               
-
-
+                
                 return userNameIsValid &&
-                       //passwordIsValid && 
+                      
                        syncProfileIsValid;
             }
         }
@@ -771,8 +730,6 @@ namespace GoContactSyncMod
                 // wait for thread to start
                 for (int i = 0; !syncThread.IsAlive && i < 10; i++)
                     Thread.Sleep(1000);//DoNothing, until the thread was started, but only wait maximum 10 seconds
-
-
             }
             catch (Exception ex)
             {
@@ -790,27 +747,25 @@ namespace GoContactSyncMod
 
             try
             {
-
                 won = Interlocked.CompareExchange(ref executing, 1, 0) == 0;
                 if (won)
                 {
-
                     TimerSwitch(false);
 
                     //if the contacts or notes folder has changed ==> Reset matches (to not delete contacts or notes on the one or other side)                
                     RegistryKey regKeyAppRoot = Registry.CurrentUser.CreateSubKey(AppRootKey + "\\" + SyncProfile);
                     string oldSyncContactsFolder = regKeyAppRoot.GetValue(RegistrySyncContactsFolder) as string;
-                    string oldSyncNotesFolder = regKeyAppRoot.GetValue(RegistrySyncNotesFolder) as string;
+                    // string oldSyncNotesFolder = regKeyAppRoot.GetValue(RegistrySyncNotesFolder) as string;
                     string oldSyncAppointmentsFolder = regKeyAppRoot.GetValue(RegistrySyncAppointmentsFolder) as string;
                     string oldSyncAppointmentsGoogleFolder = regKeyAppRoot.GetValue(RegistrySyncAppointmentsGoogleFolder) as string;
 
                     //only reset notes if NotesFolder changed and reset contacts if ContactsFolder changed
                     //and only reset appointments, if either OutlookAppointmentsFolder changed (without changing Google at the same time) or GoogleAppointmentsFolder changed (without changing Outlook at the same time) (not chosen before means not changed)
                     bool syncContacts = !string.IsNullOrEmpty(oldSyncContactsFolder) && !oldSyncContactsFolder.Equals(syncContactsFolder) && btSyncContacts.Checked;
-                    bool syncNotes = false; // !string.IsNullOrEmpty(oldSyncNotesFolder) && !oldSyncNotesFolder.Equals(this.syncNotesFolder) && btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                    bool syncNotes = false; 
                     bool syncAppointments = !string.IsNullOrEmpty(oldSyncAppointmentsFolder) && !oldSyncAppointmentsFolder.Equals(syncAppointmentsFolder) && btSyncAppointments.Checked;
                     bool syncGoogleAppointments = !string.IsNullOrEmpty(syncAppointmentsGoogleFolder) && !syncAppointmentsGoogleFolder.Equals(oldSyncAppointmentsGoogleFolder) && btSyncAppointments.Checked;
-                    if (syncContacts || /*syncNotes ||*/ syncAppointments && !syncGoogleAppointments || !syncAppointments && syncGoogleAppointments)
+                    if (syncContacts ||  syncAppointments && !syncGoogleAppointments || !syncAppointments && syncGoogleAppointments)
                     {
                         bool r = await ResetMatches(syncContacts, syncNotes, syncAppointments);
                         if (!r)
@@ -820,9 +775,7 @@ namespace GoContactSyncMod
                     //Then save the Contacts and Notes Folders used at last sync
                     if (btSyncContacts.Checked)
                         regKeyAppRoot.SetValue(RegistrySyncContactsFolder, syncContactsFolder);
-                    //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                    //if (btSyncNotes.Checked)
-                    //    regKeyAppRoot.SetValue(RegistrySyncNotesFolder, this.syncNotesFolder);
+                    
                     if (btSyncAppointments.Checked)
                     {
                         regKeyAppRoot.SetValue(RegistrySyncAppointmentsFolder, syncAppointmentsFolder);
@@ -865,7 +818,7 @@ namespace GoContactSyncMod
                     sync.SyncDelete = btSyncDelete.Checked;
                     sync.PromptDelete = btPromptDelete.Checked && btSyncDelete.Checked;
                     sync.UseFileAs = chkUseFileAs.Checked;
-                    sync.SyncNotes = false; // btSyncNotes.Checked;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                    sync.SyncNotes = false;
                     sync.SyncContacts = btSyncContacts.Checked;
                     sync.SyncAppointments = btSyncAppointments.Checked;
                     Synchronizer.SyncAppointmentsForceRTF = btSyncAppointmentsForceRTF.Checked;
@@ -891,7 +844,6 @@ namespace GoContactSyncMod
                         ShowBalloonToolTip("Error", messageText, ToolTipIcon.Error, 5000, true);
                         return;
                     }
-
 
                     sync.LoginToGoogle(UserName.Text);
                     sync.LoginToOutlook();
@@ -960,7 +912,6 @@ namespace GoContactSyncMod
                 Logger.Log(message, EventType.Error);
                 ShowForm();
                 ShowBalloonToolTip("Error", message, ToolTipIcon.Error, 5000, true);
-
             }
             catch (Exception ex)
             {
@@ -1142,8 +1093,6 @@ namespace GoContactSyncMod
             }
         }
 
-
-
         protected override void WndProc(ref Message m)
         {
             //Logger.Log(m.Msg, EventType.Information);
@@ -1215,6 +1164,7 @@ namespace GoContactSyncMod
             }
             HideForm();
         }
+
         private void SettingsForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             try
@@ -1223,7 +1173,6 @@ namespace GoContactSyncMod
 
                 if (sync != null)
                     sync.LogoffOutlook();
-
 
                 Logger.Log("Closed application.", EventType.Information);
                 Logger.Close();
@@ -1276,14 +1225,10 @@ namespace GoContactSyncMod
         {
             if (WindowState == FormWindowState.Minimized)
                 Hide();
-
         }
 
         private void notifyIcon_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            //if (WindowState == FormWindowState.Normal)
-            //    HideForm();
-            //else
             ShowForm();
         }
 
@@ -1295,7 +1240,6 @@ namespace GoContactSyncMod
 
         private void syncTimer_Tick(object sender, EventArgs e)
         {
-
             TimeSpan syncTime = DateTime.Now - lastSync;
             TimeSpan limit = new TimeSpan(0, (int)autoSyncInterval.Value, 0);
             if (syncTime < limit)
@@ -1318,7 +1262,6 @@ namespace GoContactSyncMod
 
         private async void resetMatchesLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-
             // force deactivation to show up
             Application.DoEvents();
             try
@@ -1354,8 +1297,6 @@ namespace GoContactSyncMod
             SetLastSyncText("Resetting matches...");
             notifyIcon.Text = Application.ProductName + "\nResetting matches...";
 
-            fillSyncFolderItems();
-
             SetFormEnabled(false);
 
             if (sync == null)
@@ -1379,7 +1320,6 @@ namespace GoContactSyncMod
 
             sync.LoginToGoogle(UserName.Text);
             sync.LoginToOutlook();
-
 
             if (sync.SyncAppointments)
             {
@@ -1419,7 +1359,6 @@ namespace GoContactSyncMod
                 sync.ResetContactMatches();
             }
 
-
             if (sync.SyncNotes)
             {
                 sync.LoadNotes();
@@ -1432,7 +1371,6 @@ namespace GoContactSyncMod
             return true;
         }
 
-
         public delegate DialogResult InvokeConflict(ConflictResolverForm conflictResolverForm);
 
         public DialogResult ShowConflictDialog(ConflictResolverForm conflictResolverForm)
@@ -1444,11 +1382,8 @@ namespace GoContactSyncMod
             else
             {
                 DialogResult res = conflictResolverForm.ShowDialog(this);
-
                 notifyIcon.Icon = Icon0;
-
                 return res;
-
             }
         }
         private delegate void InvokeCallback();
@@ -1466,8 +1401,9 @@ namespace GoContactSyncMod
                 Show();
                 Activate();
                 WindowState = FormWindowState.Normal;
-                fillSyncFolderItems();
 
+                fillSyncFolderItems();
+                   
                 if (oldState != WindowState)
                     CheckVersion();
             }
@@ -1491,9 +1427,7 @@ namespace GoContactSyncMod
                         notifyIcon.BalloonTipClicked += notifyIcon_BalloonTipClickedDownloadNewVersion;
                         ShowBalloonToolTip("New version available", "Click here to download", ToolTipIcon.Info, 20000, false);
                     }
-
                     NewVersionLinkLabel.Visible = true;
-
                 }
                 finally
                 {
@@ -1597,11 +1531,6 @@ namespace GoContactSyncMod
             syncButton.Enabled = ValidCredentials && ValidSyncFolders;
         }
 
-        private void deleteDuplicatesButton_Click(object sender, EventArgs e)
-        {
-            //DeleteDuplicatesForm f = new DeleteDuplicatesForm(_sync
-        }
-
         private void Donate_Click(object sender, EventArgs e)
         {
             Process.Start("https://sourceforge.net/project/project_donations.php?group_id=369321");
@@ -1685,7 +1614,6 @@ namespace GoContactSyncMod
             {
                 using (ConfigurationManagerForm _configs = new ConfigurationManagerForm())
                 {
-
                     if (0 == comboBox.SelectedIndex && _configs != null)
                     {
                         SyncProfile = _configs.AddProfile();
@@ -1727,8 +1655,6 @@ namespace GoContactSyncMod
                 toolTip.SetToolTip(comboBox, message);
             }
             ValidateSyncButton();
-
-
         }
 
         private void noteFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -1747,8 +1673,6 @@ namespace GoContactSyncMod
             }
 
             ValidateSyncButton();
-
-
         }
 
         private void appointmentFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -1767,8 +1691,6 @@ namespace GoContactSyncMod
             }
 
             ValidateSyncButton();
-
-
         }
 
         private void appointmentGoogleFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -1787,8 +1709,6 @@ namespace GoContactSyncMod
             }
 
             ValidateSyncButton();
-
-
         }
 
         private void btSyncDelete_CheckedChanged(object sender, EventArgs e)
@@ -1882,8 +1802,6 @@ namespace GoContactSyncMod
                 notifyIcon.Icon = GetNextIcon(notifyIcon.Icon); ;
         }
 
-
-
         private Icon GetNextIcon(Icon currentIcon)
         {
             if (currentIcon == IconError) //Don't change the icon anymore, once an error occurred
@@ -1956,11 +1874,6 @@ namespace GoContactSyncMod
             {
                 Logger.Log(ex.ToString(), EventType.Error);
             }
-        }
-
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void appointmentGoogleFoldersComboBox_Enter(object sender, EventArgs e)
