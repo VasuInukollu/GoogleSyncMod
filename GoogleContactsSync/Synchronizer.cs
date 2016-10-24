@@ -3113,6 +3113,14 @@ namespace GoContactSyncMod
                         if (string.IsNullOrEmpty(userDefinedField.Key))
                         {
                             userDefinedField.Key = "UserField" + fieldCount.ToString();
+                            Logger.Log("Set key to user defined field to avoid errors: " + userDefinedField.Key, EventType.Debug);
+                        }
+
+                        //similar error with empty values
+                        if (string.IsNullOrEmpty(userDefinedField.Value))
+                        {
+                            userDefinedField.Value = userDefinedField.Key;
+                            Logger.Log("Set value to user defined field to avoid errors: " + userDefinedField.Value, EventType.Debug);
                         }
                     }
 
@@ -3135,6 +3143,22 @@ namespace GoContactSyncMod
                     prop.Value = "";
                     googleContact.ExtendedProperties.Add(prop);
                     */
+                    foreach (var p in googleContact.ExtendedProperties)
+                    {
+                        if (string.IsNullOrEmpty(p.Value))
+                        {
+                            Logger.Log("Empty value for: " + p.Name, EventType.Debug);
+                            if (p.ChildNodes != null)
+                            {
+                                Logger.Log("ChildNodes count: " + p.ChildNodes.Count, EventType.Debug);
+                            }
+                            else
+                            {
+                                p.Value = p.Name;
+                                Logger.Log("Set value to extended property to avoid errors: " + p.Name, EventType.Debug);
+                            }
+                        }
+                    }
 
                     //TODO: this will fail if original contact had an empty name or primary email address.
                     Contact updated = ContactsRequest.Update(googleContact);
