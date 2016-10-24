@@ -129,54 +129,17 @@ namespace GoContactSyncMod
 
         public static void SetPhoneNumbers(Outlook.ContactItem source, Contact destination)
         {
-
             destination.Phonenumbers.Clear();
 
-            if (!string.IsNullOrEmpty(source.PrimaryTelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.PrimaryTelephoneNumber))
             {
-                //ToDo: Temporary cleanup algorithm to get rid of duplicate primary phone numbers
-                //Can be removed once the contacts are clean for all users:
-                //if (source.PrimaryTelephoneNumber.Equals(source.MobileTelephoneNumber))
-                //{
-                //    //Reset primary TelephoneNumber because it is duplicate, and maybe even MobilePhone Number if duplicate
-                //    source.PrimaryTelephoneNumber = string.Empty;
-                //    if (source.MobileTelephoneNumber.Equals(source.HomeTelephoneNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.Home2TelephoneNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.BusinessTelephoneNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.Business2TelephoneNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.HomeFaxNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.BusinessFaxNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.OtherTelephoneNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.PagerNumber) ||
-                //        source.MobileTelephoneNumber.Equals(source.CarTelephoneNumber))
-                //    {
-                //        source.MobileTelephoneNumber = string.Empty;
-                //    }
-
-                //}
-                //else if (source.PrimaryTelephoneNumber.Equals(source.HomeTelephoneNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.Home2TelephoneNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.BusinessTelephoneNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.Business2TelephoneNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.HomeFaxNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.BusinessFaxNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.OtherTelephoneNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.PagerNumber) ||
-                //        source.PrimaryTelephoneNumber.Equals(source.CarTelephoneNumber))
-                //{
-                //    //Reset primary TelephoneNumber because it is duplicate
-                //    source.PrimaryTelephoneNumber = string.Empty;
-                //}
-                //else
-                //{
                 PhoneNumber phoneNumber = new PhoneNumber(source.PrimaryTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
                 phoneNumber.Rel = ContactsRelationships.IsMain;
                 destination.Phonenumbers.Add(phoneNumber);
-                //}
             }
 
-            if (!string.IsNullOrEmpty(source.MobileTelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.MobileTelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.MobileTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -184,7 +147,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.HomeTelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.HomeTelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.HomeTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -192,7 +155,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.Home2TelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.Home2TelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.Home2TelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -200,7 +163,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.BusinessTelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.BusinessTelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.BusinessTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -208,7 +171,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.Business2TelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.Business2TelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.Business2TelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -216,7 +179,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.HomeFaxNumber))
+            if (!string.IsNullOrWhiteSpace(source.HomeFaxNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.HomeFaxNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -224,7 +187,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.BusinessFaxNumber))
+            if (!string.IsNullOrWhiteSpace(source.BusinessFaxNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.BusinessFaxNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -232,7 +195,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.OtherTelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.OtherTelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.OtherTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -240,16 +203,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            //ToDo: Currently IsSatellite is returned as invalid Rel value
-            //if (!string.IsNullOrEmpty(source.RadioTelephoneNumber))
-            //{
-            //    PhoneNumber phoneNumber = new PhoneNumber(source.RadioTelephoneNumber);
-            //    phoneNumber.Primary = destination.Phonenumbers.Count == 0;
-            //    phoneNumber.Rel = ContactsRelationships.IsSatellite;
-            //    destination.Phonenumbers.Add(phoneNumber);
-            //}
-
-            if (!string.IsNullOrEmpty(source.PagerNumber))
+            if (!string.IsNullOrWhiteSpace(source.PagerNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.PagerNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -257,7 +211,7 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.CarTelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.CarTelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.CarTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
@@ -265,14 +219,13 @@ namespace GoContactSyncMod
                 destination.Phonenumbers.Add(phoneNumber);
             }
 
-            if (!string.IsNullOrEmpty(source.AssistantTelephoneNumber))
+            if (!string.IsNullOrWhiteSpace(source.AssistantTelephoneNumber))
             {
                 PhoneNumber phoneNumber = new PhoneNumber(source.AssistantTelephoneNumber);
                 phoneNumber.Primary = destination.Phonenumbers.Count == 0;
                 phoneNumber.Rel = ContactsRelationships.IsAssistant;
                 destination.Phonenumbers.Add(phoneNumber);
             }
-
         }
 
         public static void SetCompanies(Outlook.ContactItem source, Contact destination)
