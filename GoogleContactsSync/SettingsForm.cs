@@ -1386,6 +1386,21 @@ namespace GoContactSyncMod
                 return res;
             }
         }
+
+        public delegate DialogResult InvokeDeletePropertiesForm(DeletePropertiesForm form);
+
+        public DialogResult ShowDeletePropertiesForm(DeletePropertiesForm form)
+        {
+            if (InvokeRequired)
+            {
+                return (DialogResult)Invoke(new InvokeDeletePropertiesForm(ShowDeletePropertiesForm), new object[] { form });
+            }
+            else
+            {
+                return form.ShowDialog(this);
+            }
+        }
+
         private delegate void InvokeCallback();
 
         private void ShowForm()

@@ -1,5 +1,16 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.10] -  
+
+### SVN commits
+
+**r744 :
+
+- FIX: Handle contacts with more than 10 extended properties [bug #900]
+- FIX: Do not synchronize from Outlook phone numbers with only white spaces [bug #629]
+- FIX: Add dummy values to contact user properties or contact extended properties [bugs #634, #886]
+- UPDATE: Update NuGet packages to latest version. 
+
 ## Version [3.10.9] - 21.10.2016 
 
 ### SVN commits

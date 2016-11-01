@@ -12,6 +12,7 @@ using Google.GData.Documents;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -131,6 +132,8 @@ namespace GoContactSyncMod
         public List<NoteMatch> Notes { get; private set; }
 
         public List<AppointmentMatch> Appointments { get; private set; }
+
+        private HashSet<string> ContactExtendedPropertiesToRemove;
 
         //private string _authToken;
         //public string AuthToken
@@ -800,7 +803,6 @@ namespace GoContactSyncMod
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
             }
-
         }
 
         private void LoadGoogleNotes()
@@ -2843,8 +2845,7 @@ namespace GoContactSyncMod
 
         private static string EscapeXml(string xml)
         {
-            string encodedXml = System.Security.SecurityElement.Escape(xml);
-            return encodedXml;
+            return System.Security.SecurityElement.Escape(xml);
         }
 
         public void SaveGoogleContact(ContactMatch match)
@@ -3042,8 +3043,7 @@ namespace GoContactSyncMod
                 contact.ContactEntry.SaveToXml(ms);
                 StreamReader sr = new StreamReader(ms);
                 ms.Seek(0, SeekOrigin.Begin);
-                string xml = sr.ReadToEnd();
-                return xml;
+                return sr.ReadToEnd();
             }
         }
 
@@ -3124,45 +3124,15 @@ namespace GoContactSyncMod
                         }
                     }
 
-                    /*
-                    foreach (var p in googleContact.ExtendedProperties)
-                    {
-                        if (p.Name == "gos:oid:" + syncProfile + "")
-                        {
-                            // remove 
-                            googleContact.ExtendedProperties.Remove(p);
-                            return;
-                        }
-                    }*/
-
-                    /* TODO (obelix30) how to handle empty extended property?
-                     * https://sourceforge.net/p/googlesyncmod/support-requests/513/
-                     * <gd:extendedProperty name="GCon" xmlns="null">
-                     * <gd:extendedProperty name="GCon"/>
-                    var prop = new ExtendedProperty("", "GCon");
-                    prop.Value = "";
-                    googleContact.ExtendedProperties.Add(prop);
-                    */
-                    foreach (var p in googleContact.ExtendedProperties)
-                    {
-                        if (string.IsNullOrEmpty(p.Value))
-                        {
-                            Logger.Log("Empty value for: " + p.Name, EventType.Debug);
-                            if (p.ChildNodes != null)
-                            {
-                                Logger.Log("ChildNodes count: " + p.ChildNodes.Count, EventType.Debug);
-                            }
-                            else
-                            {
-                                p.Value = p.Name;
-                                Logger.Log("Set value to extended property to avoid errors: " + p.Name, EventType.Debug);
-                            }
-                        }
-                    }
+                    UpdateExtendedProperties(googleContact);
 
                     //TODO: this will fail if original contact had an empty name or primary email address.
                     Contact updated = ContactsRequest.Update(googleContact);
                     return updated;
+                }
+                catch (ApplicationException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -3173,6 +3143,114 @@ namespace GoContactSyncMod
                     string xml = GetXml(googleContact);
                     string newEx = string.Format("Error saving EXISTING Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
+                }
+            }
+        }
+
+        private void UpdateExtendedProperties(Contact googleContact)
+        {
+            if (ContactExtendedPropertiesToRemove != null)
+            {
+                for (var i = googleContact.ExtendedProperties.Count - 1; i >= 0; i--)
+                {
+                    var key = googleContact.ExtendedProperties[i].Name;
+                    if (ContactExtendedPropertiesToRemove.Contains(key))
+                    {
+                        Logger.Log(googleContact.Title + ": removed " + key, EventType.Debug);
+                        googleContact.ExtendedProperties.RemoveAt(i);
+                    }
+                }
+            }
+
+            foreach (var p in googleContact.ExtendedProperties)
+            {
+                if (string.IsNullOrEmpty(p.Value))
+                {
+                    Logger.Log(googleContact.Title + ": empty value for " + p.Name, EventType.Debug);
+                    if (p.ChildNodes != null)
+                    {
+                        Logger.Log(googleContact.Title + ": childNodes count " + p.ChildNodes.Count, EventType.Debug);
+                    }
+                    else
+                    {
+                        p.Value = p.Name;
+                        Logger.Log(googleContact.Title + ": set value to extended property to avoid errors " + p.Name, EventType.Debug);
+                    }
+                }
+            }
+
+            if (googleContact.ExtendedProperties.Count > 10)
+            {
+                Logger.Log(googleContact.Title + ": too many extended properties " + googleContact.ExtendedProperties.Count, EventType.Debug);
+
+                using (DeletePropertiesForm form = new DeletePropertiesForm())
+                {
+                    foreach (var p in googleContact.ExtendedProperties)
+                    {
+                        if (p.Name != "gos:oid:" + SyncProfile)
+                            form.propertiesGrid.Rows.Add(false, p.Name, p.Value);
+                    }
+
+                    if (ContactExtendedPropertiesToRemove != null)
+                    {
+                        foreach (var p in ContactExtendedPropertiesToRemove)
+                        {
+                            form.propertiesGrid.Rows.Add(true, p, "");
+                        }
+                    }
+
+                    form.propertiesGrid.Sort(form.propertiesGrid.Columns["Key"], ListSortDirection.Ascending);
+
+                    if (SettingsForm.Instance.ShowDeletePropertiesForm(form) == DialogResult.OK)
+                    {
+                        bool allCheck = form.allCheck.Checked;
+
+                        if (allCheck)
+                        {
+                            if (ContactExtendedPropertiesToRemove == null)
+                            {
+                                ContactExtendedPropertiesToRemove = new HashSet<string>();
+                            }
+                            else
+                            {
+                                ContactExtendedPropertiesToRemove.Clear();
+                            }
+                            Logger.Log(googleContact.Title + ": will clean some extended properties for all contacts.", EventType.Debug);
+                        }
+                        else if (ContactExtendedPropertiesToRemove != null)
+                        {
+                            ContactExtendedPropertiesToRemove = null;
+                            Logger.Log(googleContact.Title + ": will clean some extended properties for this contact.", EventType.Debug);
+                        }
+
+                        foreach (DataGridViewRow r in form.propertiesGrid.Rows)
+                        {
+                            if (Convert.ToBoolean(r.Cells["Selected"].Value))
+                            {
+                                var key = r.Cells["Key"].Value.ToString();
+
+                                if (allCheck)
+                                {
+                                    ContactExtendedPropertiesToRemove.Add(key);
+                                }
+
+                                for (var i = googleContact.ExtendedProperties.Count - 1; i >= 0; i--)
+                                {
+                                    if (googleContact.ExtendedProperties[i].Name == key)
+                                        googleContact.ExtendedProperties.RemoveAt(i);
+                                }
+
+                                Logger.Log("Extended property to remove: " + key, EventType.Debug);
+                            }
+                        }
+
+                        if (googleContact.ExtendedProperties.Count > 10)
+                            throw new ApplicationException("Unable to save Google contact with more than 10 properties");
+                    }
+                    else
+                    {
+                        throw new ApplicationException("Unable to save Google contact with more than 10 properties");
+                    }
                 }
             }
         }

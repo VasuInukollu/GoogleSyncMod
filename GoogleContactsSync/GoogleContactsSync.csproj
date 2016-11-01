@@ -153,8 +153,8 @@
       <HintPath>..\packages\Google.Apis.Auth.1.18.0\lib\net45\Google.Apis.Auth.PlatformServices.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Google.Apis.Calendar.v3, Version=1.17.0.654, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
-      <HintPath>..\packages\Google.Apis.Calendar.v3.1.17.0.654\lib\net45\Google.Apis.Calendar.v3.dll</HintPath>
+    <Reference Include="Google.Apis.Calendar.v3, Version=1.18.0.662, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.Calendar.v3.1.18.0.662\lib\net45\Google.Apis.Calendar.v3.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Google.Apis.Core, Version=1.18.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
@@ -262,6 +262,12 @@
     <Compile Include="AppointmentPropertiesUtils.cs" />
     <Compile Include="AppointmentsMatcher.cs" />
     <Compile Include="AppointmentSync.cs" />
+    <Compile Include="DeletePropertiesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DeletePropertiesForm.Designer.cs">
+      <DependentUpon>DeletePropertiesForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ErrorDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -300,6 +306,7 @@
     <Compile Include="DuplicateDataException.cs" />
     <Compile Include="Encryption.cs" />
     <Compile Include="ErrorHandler.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GoogleServices.cs" />
     <Compile Include="IConflictResolver.cs" />
     <Compile Include="ILogger.cs" />
@@ -350,6 +357,9 @@
     <EmbeddedResource Include="DeleteDuplicatesForm.resx">
       <SubType>Designer</SubType>
       <DependentUpon>DeleteDuplicatesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DeletePropertiesForm.resx">
+      <DependentUpon>DeletePropertiesForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ErrorDialog.resx">
       <DependentUpon>ErrorDialog.cs</DependentUpon>
