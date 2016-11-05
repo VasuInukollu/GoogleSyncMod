@@ -1,6 +1,9 @@
-﻿namespace GoContactSyncMod
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace GoContactSyncMod
 {
-    partial class DeletePropertiesForm
+    partial class DeleteTooManyPropertiesForm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +31,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DeletePropertiesForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DeleteTooManyPropertiesForm));
             this.bbOK = new System.Windows.Forms.Button();
             this.bbCancel = new System.Windows.Forms.Button();
             this.propertiesGrid = new System.Windows.Forms.DataGridView();
@@ -78,10 +81,10 @@
             this.Selected,
             this.Key,
             this.Value});
-            this.propertiesGrid.Location = new System.Drawing.Point(13, 115);
+            this.propertiesGrid.Location = new System.Drawing.Point(10, 115);
             this.propertiesGrid.Name = "propertiesGrid";
             this.propertiesGrid.RowHeadersVisible = false;
-            this.propertiesGrid.Size = new System.Drawing.Size(604, 268);
+            this.propertiesGrid.Size = new System.Drawing.Size(610, 268);
             this.propertiesGrid.TabIndex = 3;
             // 
             // Selected
@@ -111,8 +114,10 @@
             // 
             this.explanationLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.explanationLabel.AutoEllipsis = true;
             this.explanationLabel.AutoSize = true;
             this.explanationLabel.Location = new System.Drawing.Point(10, 9);
+            this.explanationLabel.MinimumSize = new System.Drawing.Size(610, 91);
             this.explanationLabel.Name = "explanationLabel";
             this.explanationLabel.Size = new System.Drawing.Size(610, 91);
             this.explanationLabel.TabIndex = 4;
@@ -122,7 +127,7 @@
             // 
             this.allCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.allCheck.AutoSize = true;
-            this.allCheck.Location = new System.Drawing.Point(13, 389);
+            this.allCheck.Location = new System.Drawing.Point(10, 389);
             this.allCheck.Name = "allCheck";
             this.allCheck.Size = new System.Drawing.Size(364, 17);
             this.allCheck.TabIndex = 5;
@@ -157,11 +162,32 @@
         #endregion
         private System.Windows.Forms.Button bbOK;
         private System.Windows.Forms.Button bbCancel;
-        public System.Windows.Forms.DataGridView propertiesGrid { get; private set; } 
         private System.Windows.Forms.DataGridViewCheckBoxColumn Selected;
         private System.Windows.Forms.DataGridViewTextBoxColumn Key;
         private System.Windows.Forms.DataGridViewTextBoxColumn Value;
-        private System.Windows.Forms.Label explanationLabel;
-        public System.Windows.Forms.CheckBox allCheck { get; private set; }
+        private System.Windows.Forms.CheckBox allCheck;
+        private System.Windows.Forms.DataGridView propertiesGrid;
+
+        public bool removeFromAll
+        {
+            get { return allCheck.Checked; }
+        }
+
+        public void AddExtendedProperty(bool selected, string name, string value)
+        {
+            propertiesGrid.Rows.Add(selected, name, value);
+        }
+
+        public void SortExtendedProperties()
+        {
+            propertiesGrid.Sort(propertiesGrid.Columns ["Key"], ListSortDirection.Ascending);
+        }
+
+        private Label explanationLabel;
+
+        public DataGridViewRowCollection extendedPropertiesRows
+        {
+            get { return propertiesGrid.Rows; }
+        }
     }
 }

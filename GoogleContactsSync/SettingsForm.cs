@@ -1387,13 +1387,41 @@ namespace GoContactSyncMod
             }
         }
 
-        public delegate DialogResult InvokeDeletePropertiesForm(DeletePropertiesForm form);
+        public delegate DialogResult InvokeDeleteTooManyPropertiesForm(DeleteTooManyPropertiesForm form);
 
-        public DialogResult ShowDeletePropertiesForm(DeletePropertiesForm form)
+        public DialogResult ShowDeleteTooManyPropertiesForm(DeleteTooManyPropertiesForm form)
         {
             if (InvokeRequired)
             {
-                return (DialogResult)Invoke(new InvokeDeletePropertiesForm(ShowDeletePropertiesForm), new object[] { form });
+                return (DialogResult)Invoke(new InvokeDeleteTooManyPropertiesForm(ShowDeleteTooManyPropertiesForm), new object[] { form });
+            }
+            else
+            {
+                return form.ShowDialog(this);
+            }
+        }
+
+        public delegate DialogResult InvokeDeleteTooBigPropertiesForm(DeleteTooBigPropertiesForm form);
+
+        public DialogResult ShowDeleteTooBigPropertiesForm(DeleteTooBigPropertiesForm form)
+        {
+            if (InvokeRequired)
+            {
+                return (DialogResult)Invoke(new InvokeDeleteTooBigPropertiesForm(ShowDeleteTooBigPropertiesForm), new object[] { form });
+            }
+            else
+            {
+                return form.ShowDialog(this);
+            }
+        }
+
+        public delegate DialogResult InvokeDeleteDuplicatedPropertiesForm(DeleteDuplicatedPropertiesForm form);
+
+        public DialogResult ShowDeleteDuplicatedPropertiesForm(DeleteDuplicatedPropertiesForm form)
+        {
+            if (InvokeRequired)
+            {
+                return (DialogResult)Invoke(new InvokeDeleteDuplicatedPropertiesForm(ShowDeleteDuplicatedPropertiesForm), new object[] { form });
             }
             else
             {

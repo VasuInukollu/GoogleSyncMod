@@ -262,11 +262,23 @@
     <Compile Include="AppointmentPropertiesUtils.cs" />
     <Compile Include="AppointmentsMatcher.cs" />
     <Compile Include="AppointmentSync.cs" />
-    <Compile Include="DeletePropertiesForm.cs">
+    <Compile Include="DeleteDuplicatedPropertiesForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DeletePropertiesForm.Designer.cs">
-      <DependentUpon>DeletePropertiesForm.cs</DependentUpon>
+    <Compile Include="DeleteDuplicatedPropertiesForm.Designer.cs">
+      <DependentUpon>DeleteDuplicatedPropertiesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DeleteTooBigPropertiesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DeleteTooBigPropertiesForm.Designer.cs">
+      <DependentUpon>DeleteTooBigPropertiesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DeleteTooManyPropertiesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DeleteTooManyPropertiesForm.Designer.cs">
+      <DependentUpon>DeleteTooManyPropertiesForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ErrorDialog.cs">
       <SubType>Form</SubType>
@@ -358,8 +370,14 @@
       <SubType>Designer</SubType>
       <DependentUpon>DeleteDuplicatesForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="DeletePropertiesForm.resx">
-      <DependentUpon>DeletePropertiesForm.cs</DependentUpon>
+    <EmbeddedResource Include="DeleteDuplicatedPropertiesForm.resx">
+      <DependentUpon>DeleteDuplicatedPropertiesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DeleteTooBigPropertiesForm.resx">
+      <DependentUpon>DeleteTooBigPropertiesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DeleteTooManyPropertiesForm.resx">
+      <DependentUpon>DeleteTooManyPropertiesForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ErrorDialog.resx">
       <DependentUpon>ErrorDialog.cs</DependentUpon>
