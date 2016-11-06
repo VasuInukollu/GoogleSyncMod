@@ -34,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>..\GoogleContactsSync\GoogleContactsSync.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -142,7 +143,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Office.Interop.Outlook, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Office.Interop.Outlook, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <HintPath>..\MicrosoftAPI\Microsoft.Office.Interop.Outlook.dll</HintPath>
@@ -177,6 +178,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GoogleAPITests.cs" />
     <Compile Include="SyncAppointmentsTests.cs" />
     <Compile Include="SyncNotesTests.cs" />
