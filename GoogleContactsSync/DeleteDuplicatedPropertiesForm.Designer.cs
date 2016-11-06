@@ -31,7 +31,7 @@ namespace GoContactSyncMod
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DeleteTooBigPropertiesForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DeleteDuplicatedPropertiesForm));
             this.bbOK = new System.Windows.Forms.Button();
             this.bbCancel = new System.Windows.Forms.Button();
             this.propertiesGrid = new System.Windows.Forms.DataGridView();
@@ -71,8 +71,8 @@ namespace GoContactSyncMod
             // 
             this.propertiesGrid.AllowUserToAddRows = false;
             this.propertiesGrid.AllowUserToDeleteRows = false;
-            this.propertiesGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.propertiesGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.propertiesGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.propertiesGrid.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
@@ -112,13 +112,13 @@ namespace GoContactSyncMod
             // 
             // explanationLabel
             // 
-            this.explanationLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.explanationLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.explanationLabel.AutoEllipsis = true;
             this.explanationLabel.AutoSize = true;
             this.explanationLabel.Location = new System.Drawing.Point(10, 9);
             this.explanationLabel.Name = "explanationLabel";
-            this.explanationLabel.Size = new System.Drawing.Size(606, 52);
+            this.explanationLabel.Size = new System.Drawing.Size(589, 52);
             this.explanationLabel.TabIndex = 4;
             this.explanationLabel.Text = resources.GetString("explanationLabel.Text");
             // 
@@ -133,7 +133,7 @@ namespace GoContactSyncMod
             this.allCheck.Text = "Remove the same extended properties from next contacts.";
             this.allCheck.UseVisualStyleBackColor = true;
             // 
-            // DeleteTooBigPropertiesForm
+            // DeleteDuplicatedPropertiesForm
             // 
             this.AcceptButton = this.bbOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
@@ -149,7 +149,7 @@ namespace GoContactSyncMod
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "DeleteTooBigPropertiesForm";
+            this.Name = "DeleteDuplicatedPropertiesForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Remove extended properties";
             ((System.ComponentModel.ISupportInitialize)(this.propertiesGrid)).EndInit();

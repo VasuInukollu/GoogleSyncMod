@@ -127,7 +127,7 @@
     <value>True</value>
   </metadata>
   <data name="explanationLabel.Text" xml:space="preserve">
-    <value>Google can store extended properties only with reasonable size.  Due to this limit GO Contact Sync Mod 
+    <value>Google cannot store duplicated keys for extended properties.  Due to this limit GO Contact Sync Mod 
 cannot save current contact. Please select which extended properties could be removed.  
 
 WARNING: removing some of properties could stop other applications to function properly. </value>
