@@ -6,6 +6,7 @@
 
 **r744 :
 
+- FIX: Added more logging [bugs #843, #897]
 - FIX: Handle contacts with duplicated extended properties [bug #655]
 - FIX: Handle contacts with too big extended properties [bug #895]
 - FIX: Handle contacts with more than 10 extended properties [bug #900]
