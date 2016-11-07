@@ -3063,16 +3063,6 @@ namespace GoContactSyncMod
             }
         }
 
-        //private static string GetXml(Google.Apis.Calendar.v3.Data.Event appointment)
-        //{
-        //    MemoryStream ms = new MemoryStream();
-        //    appointment.SaveToXml(ms);
-        //    StreamReader sr = new StreamReader(ms);
-        //    ms.Seek(0, SeekOrigin.Begin);
-        //    string xml = sr.ReadToEnd();
-        //    return xml;
-        //}
-
         /// <summary>
         /// Only save the google contact without photo update
         /// </summary>
@@ -3090,14 +3080,18 @@ namespace GoContactSyncMod
                     Contact createdEntry = ContactsRequest.Insert(feedUri, googleContact);
                     return createdEntry;
                 }
-                catch (Exception ex)
+                catch (GDataRequestException ex)
                 {
-                    string responseString = "";
-                    GDataRequestException e = ex as GDataRequestException;
-                    if (e != null)
-                        responseString = EscapeXml(e.ResponseString);
+                    Logger.Log(googleContact, EventType.Debug);
+                    string responseString = EscapeXml(ex.ResponseString);
                     string xml = GetXml(googleContact);
                     string newEx = string.Format("Error saving NEW Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
+                    throw new ApplicationException(newEx, ex);
+                }
+                catch (Exception ex)
+                {
+                    string xml = GetXml(googleContact);
+                    string newEx = string.Format("Error saving NEW Google contact:\n{0}\n{1}", ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
                 }
             }
@@ -3131,6 +3125,7 @@ namespace GoContactSyncMod
                     UpdateExtendedProperties(googleContact);
 
                     //TODO: this will fail if original contact had an empty name or primary email address.
+                    
                     Contact updated = ContactsRequest.Update(googleContact);
                     return updated;
                 }
@@ -3138,14 +3133,18 @@ namespace GoContactSyncMod
                 {
                     throw;
                 }
-                catch (Exception ex)
+                catch (GDataRequestException ex)
                 {
-                    string responseString = "";
-                    GDataRequestException e = ex as GDataRequestException;
-                    if (e != null)
-                        responseString = EscapeXml(e.ResponseString);
+                    Logger.Log(googleContact, EventType.Debug);
+                    string responseString = EscapeXml(ex.ResponseString);                   
                     string xml = GetXml(googleContact);
                     string newEx = string.Format("Error saving EXISTING Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
+                    throw new ApplicationException(newEx, ex);
+                }
+                catch (Exception ex)
+                {
+                    string xml = GetXml(googleContact);
+                    string newEx = string.Format("Error saving EXISTING Google contact:\n{0}\n{1}", ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
                 }
             }
@@ -3492,6 +3491,7 @@ namespace GoContactSyncMod
                 }
                 catch (Exception ex)
                 {
+                    Logger.Log(googleAppointment, EventType.Debug);                                
                     string newEx = string.Format("Error saving NEW Google appointment: {0}. \n{1}", googleAppointment.Summary + " - " + GetTime(googleAppointment), ex.Message);
                     throw new ApplicationException(newEx, ex);
                 }
@@ -3501,12 +3501,13 @@ namespace GoContactSyncMod
                 try
                 {
                     //contact already present in google. just update
-
                     Google.Apis.Calendar.v3.Data.Event updated = EventRequest.Update(googleAppointment, SyncAppointmentsGoogleFolder, googleAppointment.Id).Execute();
                     return updated;
                 }
                 catch (Exception ex)
                 {
+                    Logger.Log(googleAppointment, EventType.Debug);
+
                     string error = "Error saving EXISTING Google appointment: ";
                     error += googleAppointment.Summary + " - " + GetTime(googleAppointment);
                     error += " - Creator: " + (googleAppointment.Creator != null ? googleAppointment.Creator.Email : "null");
