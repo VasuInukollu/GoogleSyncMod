@@ -103,13 +103,13 @@ namespace GoContactSyncMod
             destination.Emails.Clear();
 
             string email = ContactPropertiesUtils.GetOutlookEmailAddress1(source);
-            AddEmail(destination, email, source.Email1DisplayName, ContactsRelationships.IsWork);
+            AddEmail(destination, email, null, ContactsRelationships.IsWork);
 
             email = ContactPropertiesUtils.GetOutlookEmailAddress2(source);
-            AddEmail(destination, email, source.Email2DisplayName, ContactsRelationships.IsHome);
+            AddEmail(destination, email, null, ContactsRelationships.IsHome);
 
             email = ContactPropertiesUtils.GetOutlookEmailAddress3(source);
-            AddEmail(destination, email, source.Email3DisplayName, ContactsRelationships.IsOther);
+            AddEmail(destination, email, null, ContactsRelationships.IsOther);
         }
 
         private static void AddEmail(Contact destination, string email, string label, string relationship)
