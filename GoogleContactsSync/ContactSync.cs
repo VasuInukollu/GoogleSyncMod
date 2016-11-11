@@ -572,6 +572,8 @@ namespace GoContactSyncMod
                 slave.Content = null;
         }
 
+        enum OutlookFileAsFormat { CannotDetect, CompanyAndFullName, Company, FullNameAndCompany, LastNameAndFirstName, FirstMiddleLastSuffix };
+
         /// <summary>
         /// Updates Outlook contact from Google (but without groups/categories)
         /// </summary>
@@ -581,7 +583,24 @@ namespace GoContactSyncMod
             //if (master.Emails.Count == 0 && master.Phonenumbers.Count == 0)
             //    return;
 
+            #region DetectOutlookFileAsFormat
 
+            OutlookFileAsFormat fmt = OutlookFileAsFormat.CannotDetect;
+
+            if (!string.IsNullOrEmpty(slave.FileAs))
+            {
+                if (slave.CompanyAndFullName == slave.FileAs)
+                    fmt = OutlookFileAsFormat.CompanyAndFullName;
+                else if (slave.FullNameAndCompany == slave.FileAs)
+                    fmt = OutlookFileAsFormat.FullNameAndCompany;
+                else if (slave.CompanyName == slave.FileAs)
+                    fmt = OutlookFileAsFormat.Company;
+                else if (slave.LastNameAndFirstName == slave.FileAs)
+                    fmt = OutlookFileAsFormat.LastNameAndFirstName;
+                else if (slave.Subject == slave.FileAs)
+                    fmt = OutlookFileAsFormat.FirstMiddleLastSuffix;
+            }
+            #endregion DetectOutlookFileAsFormat
 
             #region Name
             slave.Title = master.Name.NamePrefix;
@@ -595,30 +614,175 @@ namespace GoContactSyncMod
             #endregion Name
 
             #region Title/FileAs
-            if (string.IsNullOrEmpty(slave.FileAs) || useFileAs)
+
+            if (fmt == OutlookFileAsFormat.CompanyAndFullName)
             {
-                if (!string.IsNullOrEmpty(master.Name.FullName))
-                    slave.FileAs = master.Name.FullName.Replace("\r\n", "\n").Replace("\n", "\r\n"); //Replace twice to not replace a \r\n by \r\r\n. This is necessary because \r\n are saved as \n only to google and \r\n is saved on Outlook side to separate the single parts of the FullName
-                else if (!string.IsNullOrEmpty(master.Title))
-                    slave.FileAs = master.Title.Replace("\r\n", "\n").Replace("\n", "\r\n"); //Replace twice to not replace a \r\n by \r\r\n. This is necessary because \r\n are saved as \n only to google and \r\n is saved on Outlook side to separate the single parts of the FullName
-                else if (master.Organizations.Count > 0 && !string.IsNullOrEmpty(master.Organizations[0].Name))
-                    slave.FileAs = master.Organizations[0].Name;
-                else if (master.Emails.Count > 0 && !string.IsNullOrEmpty(master.Emails[0].Address))
-                    slave.FileAs = master.Emails[0].Address;
-            }
-            if (string.IsNullOrEmpty(slave.FileAs))
-            {
-                if (!string.IsNullOrEmpty(slave.Email1Address))
+                string s = string.Empty;
+
+                if (master.Organizations.Count > 0 && !string.IsNullOrEmpty(master.Organizations[0].Name))
+                    s = master.Organizations[0].Name;
+
+                if (!string.IsNullOrEmpty(master.Name.FamilyName))
                 {
-                    string emailAddress = ContactPropertiesUtils.GetOutlookEmailAddress1(slave);
-                    Logger.Log("Google Contact '" + master.Summary + "' has neither name nor email address. Setting email address of Outlook contact: " + emailAddress, EventType.Warning);
-                    master.Emails.Add(new EMail(emailAddress));
-                    slave.FileAs = master.Emails[0].Address;
+                    if (!string.IsNullOrEmpty(s))
+                        s = s + "\r\n" + master.Name.FamilyName;
+                    else
+                        s = master.Name.FamilyName;
                 }
-                else
+
+                if (!string.IsNullOrEmpty(master.Name.GivenName))
                 {
-                    Logger.Log("Google Contact '" + master.Summary + "' has neither name nor email address. Cannot merge with Outlook contact: " + slave.FileAs, EventType.Error);
-                    return;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        if (!string.IsNullOrEmpty(master.Name.FamilyName))
+                            s = s + ", " + master.Name.GivenName;
+                        else
+                            s = s + "\r\n" + master.Name.GivenName;
+                    }
+                    else
+                        s = master.Name.GivenName;
+                }
+
+                if (!string.IsNullOrEmpty(master.Name.AdditionalName))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        if (!string.IsNullOrEmpty(master.Name.GivenName))
+                            s = s + " " + master.Name.AdditionalName;
+                        else if (!string.IsNullOrEmpty(master.Name.FamilyName))
+                            s = s + " " + master.Name.AdditionalName;
+                    }
+                    else
+                        s = master.Name.AdditionalName;
+                }
+
+                slave.FileAs = s;
+            }
+            else if (fmt == OutlookFileAsFormat.Company)
+            {
+                if (master.Organizations.Count > 0 && !string.IsNullOrEmpty(master.Organizations[0].Name))
+                    slave.FileAs = master.Organizations[0].Name;
+            }
+            else if (fmt == OutlookFileAsFormat.FullNameAndCompany)
+            {
+                string s = string.Empty;
+
+                if (!string.IsNullOrEmpty(master.Name.FamilyName))
+                    s = master.Name.FamilyName;
+
+                if (!string.IsNullOrEmpty(master.Name.GivenName))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                        s = s + ", " + master.Name.GivenName;
+                    else
+                        s = master.Name.GivenName;
+                }
+
+                if (!string.IsNullOrEmpty(master.Name.AdditionalName))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        if (!string.IsNullOrEmpty(master.Name.GivenName))
+                            s = s + " " + master.Name.AdditionalName;
+                        else if (!string.IsNullOrEmpty(master.Name.FamilyName))
+                            s = s + " " + master.Name.AdditionalName;
+                    }
+                    else
+                        s = master.Name.AdditionalName;
+                }
+
+                if (master.Organizations.Count > 0 && !string.IsNullOrEmpty(master.Organizations[0].Name))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                        s = s + "\r\n" + master.Organizations[0].Name;
+                    else
+                        s = master.Organizations[0].Name;
+                }
+
+                slave.FileAs = s;
+            }
+            else if (fmt == OutlookFileAsFormat.LastNameAndFirstName)
+            {
+                string s = string.Empty;
+
+                if (!string.IsNullOrEmpty(master.Name.FamilyName))
+                    s = master.Name.FamilyName;
+
+                if (!string.IsNullOrEmpty(master.Name.GivenName))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                        s = s + ", " + master.Name.GivenName;
+                    else
+                        s = master.Name.GivenName;
+                }
+
+                if (!string.IsNullOrEmpty(master.Name.AdditionalName))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        if (!string.IsNullOrEmpty(master.Name.GivenName))
+                            s = s + " " + master.Name.AdditionalName;
+                        else if (!string.IsNullOrEmpty(master.Name.FamilyName))
+                            s = s + " " + master.Name.AdditionalName;
+                    }
+                    else
+                        s = master.Name.AdditionalName;
+                }
+
+                slave.FileAs = s;
+            }
+            else if (fmt == OutlookFileAsFormat.FirstMiddleLastSuffix)
+            {
+                string s = string.Empty;
+
+                if (!string.IsNullOrEmpty(master.Name.GivenName))
+                    s = master.Name.GivenName;
+
+                if (!string.IsNullOrEmpty(master.Name.AdditionalName))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                        s = s + " " + master.Name.AdditionalName;
+                    else
+                        s = master.Name.AdditionalName;
+                }
+
+                if (!string.IsNullOrEmpty(master.Name.FamilyName))
+                {
+                    if (!string.IsNullOrEmpty(s))
+                        s = s + " " + master.Name.FamilyName;
+                    else
+                        s = master.Name.FamilyName;
+                }
+
+                slave.FileAs = s;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(slave.FileAs) || useFileAs)
+                {
+                    if (!string.IsNullOrEmpty(master.Name.FullName))
+                        slave.FileAs = master.Name.FullName.Replace("\r\n", "\n").Replace("\n", "\r\n"); //Replace twice to not replace a \r\n by \r\r\n. This is necessary because \r\n are saved as \n only to google and \r\n is saved on Outlook side to separate the single parts of the FullName
+                    else if (!string.IsNullOrEmpty(master.Title))
+                        slave.FileAs = master.Title.Replace("\r\n", "\n").Replace("\n", "\r\n"); //Replace twice to not replace a \r\n by \r\r\n. This is necessary because \r\n are saved as \n only to google and \r\n is saved on Outlook side to separate the single parts of the FullName
+                    else if (master.Organizations.Count > 0 && !string.IsNullOrEmpty(master.Organizations[0].Name))
+                        slave.FileAs = master.Organizations[0].Name;
+                    else if (master.Emails.Count > 0 && !string.IsNullOrEmpty(master.Emails[0].Address))
+                        slave.FileAs = master.Emails[0].Address;
+                }
+                if (string.IsNullOrEmpty(slave.FileAs))
+                {
+                    if (!string.IsNullOrEmpty(slave.Email1Address))
+                    {
+                        string emailAddress = ContactPropertiesUtils.GetOutlookEmailAddress1(slave);
+                        Logger.Log("Google Contact '" + master.Summary + "' has neither name nor email address. Setting email address of Outlook contact: " + emailAddress, EventType.Warning);
+                        master.Emails.Add(new EMail(emailAddress));
+                        slave.FileAs = master.Emails[0].Address;
+                    }
+                    else
+                    {
+                        Logger.Log("Google Contact '" + master.Summary + "' has neither name nor email address. Cannot merge with Outlook contact: " + slave.FileAs, EventType.Error);
+                        return;
+                    }
                 }
             }
             #endregion Title/FileAs
