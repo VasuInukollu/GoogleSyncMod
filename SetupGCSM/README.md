@@ -6,6 +6,7 @@
 
 **r744 :
 
+- FIX: Preserve FileAs format when updating existing Outlook contact [bug #543]
 - FIX: Change mapping between Outlook and Gmail for email types (do not use display name from Outlook) [bug #932]
 - FIX: Added more logging [bugs #843, #897]
 - FIX: Handle contacts with duplicated extended properties [bug #655]
