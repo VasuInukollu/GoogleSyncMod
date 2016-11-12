@@ -908,6 +908,9 @@ namespace GoContactSyncMod
             // 
             // lastSyncLabel
             // 
+            this.lastSyncLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lastSyncLabel.AutoEllipsis = true;
             this.lastSyncLabel.AutoSize = true;
             this.lastSyncLabel.Location = new System.Drawing.Point(6, 16);
             this.lastSyncLabel.Name = "lastSyncLabel";
@@ -917,6 +920,7 @@ namespace GoContactSyncMod
             // 
             // logGroupBox
             // 
+            this.logGroupBox.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.logGroupBox.Controls.Add(this.syncConsole);
             this.logGroupBox.Controls.Add(this.lastSyncLabel);
             this.logGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -929,14 +933,16 @@ namespace GoContactSyncMod
             // 
             // syncConsole
             // 
+            this.syncConsole.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.syncConsole.BackColor = System.Drawing.SystemColors.Info;
-            this.syncConsole.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.syncConsole.Location = new System.Drawing.Point(3, 16);
+            this.syncConsole.Location = new System.Drawing.Point(3, 32);
             this.syncConsole.Multiline = true;
             this.syncConsole.Name = "syncConsole";
             this.syncConsole.ReadOnly = true;
             this.syncConsole.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.syncConsole.Size = new System.Drawing.Size(443, 548);
+            this.syncConsole.Size = new System.Drawing.Size(443, 532);
             this.syncConsole.TabIndex = 1;
             this.toolTip.SetToolTip(this.syncConsole, "This window shows information\r\n from the last sync.");
             // 

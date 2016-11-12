@@ -6,6 +6,7 @@
 
 **r765 - :
 
+- FIX: Unhide label with status text [bug #942]
 - FIX: Retry in case ProtocolViolationException exception during Google contact save [bug #903]
 - FIX: Do not add custom field to folder [bug #651]
 
