@@ -346,19 +346,19 @@ namespace GoContactSyncMod
 
         public ConflictResolution Resolve(string message, Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment, Event googleAppointment, Synchronizer sync, bool keepOutlook, bool keepGoogle)
         {
-            string name = string.Empty;
+           // string name = string.Empty;
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
             if (outlookAppointment != null)
             {
-                name = outlookAppointment.Subject + " - " + outlookAppointment.Start;
+               // name = outlookAppointment.Subject + " - " + outlookAppointment.Start;
                 _form.OutlookItemTextBox.Text += outlookAppointment.Body;
             }
 
             if (googleAppointment != null)
             {
-                name = googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
+               // name = googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
                 _form.GoogleItemTextBox.Text += googleAppointment.Description;
             }
 
