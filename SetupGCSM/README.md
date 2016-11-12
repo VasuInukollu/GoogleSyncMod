@@ -1,10 +1,10 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
-## Version [3.10.10] -  
+## Version [3.10.10] -  12.11.2016
 
 ### SVN commits
 
-**r744 :
+**r744 - r763:
 
 - FIX: Preserve FileAs format when updating existing Outlook contact [bug #543]
 - FIX: Change mapping between Outlook and Gmail for email types (do not use display name from Outlook) [bug #932]
