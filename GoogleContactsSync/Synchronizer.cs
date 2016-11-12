@@ -3077,11 +3077,24 @@ namespace GoContactSyncMod
 
                 try
                 {
-                    Contact createdEntry = ContactsRequest.Insert(feedUri, googleContact);
+                    Contact createdEntry = null;
+
+                    try
+                    {
+                        createdEntry = ContactsRequest.Insert(feedUri, googleContact);
+                    }
+                    catch (System.Net.ProtocolViolationException)
+                    {
+                        //TODO (obelix30)
+                        //http://stackoverflow.com/questions/23804960/contactsrequest-insertfeeduri-newentry-sometimes-fails-with-system-net-protoc
+                        createdEntry = ContactsRequest.Insert(feedUri, googleContact);
+                    }
+
                     return createdEntry;
                 }
                 catch (GDataRequestException ex)
                 {
+                    Logger.Log(ex, EventType.Debug);
                     Logger.Log(googleContact, EventType.Debug);
                     string responseString = EscapeXml(ex.ResponseString);
                     string xml = GetXml(googleContact);
@@ -3090,6 +3103,7 @@ namespace GoContactSyncMod
                 }
                 catch (Exception ex)
                 {
+                    Logger.Log(ex, EventType.Debug);
                     string xml = GetXml(googleContact);
                     string newEx = string.Format("Error saving NEW Google contact:\n{0}\n{1}", ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
@@ -3125,8 +3139,18 @@ namespace GoContactSyncMod
                     UpdateExtendedProperties(googleContact);
 
                     //TODO: this will fail if original contact had an empty name or primary email address.
-                    
-                    Contact updated = ContactsRequest.Update(googleContact);
+
+                    Contact updated = null;
+                    try
+                    {
+                        updated = ContactsRequest.Update(googleContact);
+                    }
+                    catch (System.Net.ProtocolViolationException)
+                    {
+                        //TODO (obelix30)
+                        //http://stackoverflow.com/questions/23804960/contactsrequest-insertfeeduri-newentry-sometimes-fails-with-system-net-protoc
+                        updated = ContactsRequest.Update(googleContact);
+                    }
                     return updated;
                 }
                 catch (ApplicationException)
@@ -3135,14 +3159,16 @@ namespace GoContactSyncMod
                 }
                 catch (GDataRequestException ex)
                 {
+                    Logger.Log(ex, EventType.Debug);
                     Logger.Log(googleContact, EventType.Debug);
-                    string responseString = EscapeXml(ex.ResponseString);                   
+                    string responseString = EscapeXml(ex.ResponseString);
                     string xml = GetXml(googleContact);
                     string newEx = string.Format("Error saving EXISTING Google contact: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
                 }
                 catch (Exception ex)
                 {
+                    Logger.Log(ex, EventType.Debug);
                     string xml = GetXml(googleContact);
                     string newEx = string.Format("Error saving EXISTING Google contact:\n{0}\n{1}", ex.Message, xml);
                     throw new ApplicationException(newEx, ex);
@@ -3491,7 +3517,7 @@ namespace GoContactSyncMod
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(googleAppointment, EventType.Debug);                                
+                    Logger.Log(googleAppointment, EventType.Debug);
                     string newEx = string.Format("Error saving NEW Google appointment: {0}. \n{1}", googleAppointment.Summary + " - " + GetTime(googleAppointment), ex.Message);
                     throw new ApplicationException(newEx, ex);
                 }

@@ -6,6 +6,7 @@
 
 **r765 - :
 
+- FIX: Retry in case ProtocolViolationException exception during Google contact save [bug #903]
 - FIX: Do not add custom field to folder [bug #651]
 
 ## Version [3.10.10] -  12.11.2016
