@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Google.GData.Extensions;
-using System.Collections;
 using Google.Contacts;
 using System.Runtime.InteropServices;
 
@@ -14,6 +12,7 @@ namespace GoContactSyncMod
         {
             return outlookContact.EntryID;
         }
+
         public static string GetGoogleId(Contact googleContact)
         {
             string id = googleContact.Id.ToString();
@@ -29,6 +28,7 @@ namespace GoContactSyncMod
 
             SetGoogleOutlookContactId(syncProfile, googleContact, GetOutlookId(outlookContact));
         }
+
         public static void SetGoogleOutlookContactId(string syncProfile, Contact googleContact, string outlookContactId)
         {
             // check if exists
@@ -49,6 +49,7 @@ namespace GoContactSyncMod
                 googleContact.ExtendedProperties.Add(prop);
             }
         }
+
         public static string GetGoogleOutlookContactId(string syncProfile, Contact googleContact)
         {
             // get extended prop
@@ -59,6 +60,7 @@ namespace GoContactSyncMod
             }
             return null;
         }
+
         public static void ResetGoogleOutlookContactId(string syncProfile, Contact googleContact)
         {
             // get extended prop
@@ -85,174 +87,138 @@ namespace GoContactSyncMod
             if (googleContact.ContactEntry.Id.Uri == null)
                 throw new NullReferenceException("GoogleContact must have a valid Id");
 
-            //check if outlook contact aready has google id property.
-            Outlook.UserProperties userProperties = outlookContact.UserProperties;
+            Outlook.UserProperties userProperties = null;
+            Outlook.UserProperty prop = null;
+
             try
             {
-                Outlook.UserProperty prop = null;
+                userProperties = outlookContact.UserProperties;
+                prop = userProperties[sync.OutlookPropertyNameId];
+                //check if outlook contact aready has google id property.
+                if (prop == null)
+                    prop = userProperties.Add(sync.OutlookPropertyNameId, Outlook.OlUserPropertyType.olText, false);
 
-                try
-                {
-                    prop = userProperties[sync.OutlookPropertyNameId];
-                    if (prop == null)
-                        prop = userProperties.Add(sync.OutlookPropertyNameId, Outlook.OlUserPropertyType.olText, true);
-                
-                    prop.Value = googleContact.ContactEntry.Id.Uri.Content;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex, EventType.Debug);
-                    Logger.Log("sync.OutlookPropertyNameId: " + sync.OutlookPropertyNameId, EventType.Debug);
-                    throw;
-                }
-                finally
-                {
-                    if (prop != null)
-                        Marshal.ReleaseComObject(prop);
-                }
+                prop.Value = googleContact.ContactEntry.Id.Uri.Content;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex, EventType.Debug);
+                Logger.Log("Name: " + sync.OutlookPropertyNameId, EventType.Debug);
+                Logger.Log("Value: " + googleContact.ContactEntry.Id.Uri.Content, EventType.Debug);
+                throw;
             }
             finally
             {
-                Marshal.ReleaseComObject(userProperties);
+                if (prop != null)
+                    Marshal.ReleaseComObject(prop);
+                if (userProperties != null)
+                    Marshal.ReleaseComObject(userProperties);
             }
-
-            //save last google's updated date as property
-            /*prop = outlookContact.UserProperties[OutlookPropertyNameUpdated];
-            if (prop == null)
-                prop = outlookContact.UserProperties.Add(OutlookPropertyNameUpdated, Outlook.OlUserPropertyType.olDateTime, null, null);
-            prop.Value = googleContact.Updated;*/
-
-            //Also set the OutlookLastSync date when setting a match between Outlook and Google to assure the lastSync updated when Outlook contact is saved afterwards
             SetOutlookLastSync(sync, outlookContact);
         }
 
         public static void SetOutlookLastSync(Synchronizer sync, Outlook.ContactItem outlookContact)
         {
             //save sync datetime
-            Outlook.UserProperties userProperties = outlookContact.UserProperties;
+            Outlook.UserProperties userProperties = null;
+            Outlook.UserProperty prop = null;
             try
             {
-                Outlook.UserProperty prop = userProperties[sync.OutlookPropertyNameSynced];
+                userProperties = outlookContact.UserProperties;
+                prop = userProperties[sync.OutlookPropertyNameSynced];
                 if (prop == null)
-                    prop = userProperties.Add(sync.OutlookPropertyNameSynced, Outlook.OlUserPropertyType.olDateTime, true);
-                try
-                {
-                    prop.Value = DateTime.Now;
-                }
-                finally
-                {
-                    Marshal.ReleaseComObject(prop);
-                }
+                    prop = userProperties.Add(sync.OutlookPropertyNameSynced, Outlook.OlUserPropertyType.olDateTime, false);
+                prop.Value = DateTime.Now;
             }
             finally
             {
-                Marshal.ReleaseComObject(userProperties);
+                if (prop != null)
+                    Marshal.ReleaseComObject(prop);
+                if (userProperties != null)
+                    Marshal.ReleaseComObject(userProperties);
             }
         }
 
         public static DateTime? GetOutlookLastSync(Synchronizer sync, Outlook.ContactItem outlookContact)
         {
             DateTime? result = null;
-            Outlook.UserProperties userProperties = outlookContact.UserProperties;
+
+            Outlook.UserProperties userProperties = null;
+            Outlook.UserProperty prop = null;
+
             try
             {
-                Outlook.UserProperty prop = userProperties[sync.OutlookPropertyNameSynced];
+                userProperties = outlookContact.UserProperties;
+                prop = userProperties[sync.OutlookPropertyNameSynced];
                 if (prop != null)
-                {
-                    try
-                    {
-                        result = (DateTime)prop.Value;
-                    }
-                    finally
-                    {
-                        Marshal.ReleaseComObject(prop);
-                    }
-                }
+                    result = (DateTime)prop.Value;
             }
             finally
             {
-                Marshal.ReleaseComObject(userProperties);
+                if (prop != null)
+                    Marshal.ReleaseComObject(prop);
+                if (userProperties != null)
+                    Marshal.ReleaseComObject(userProperties);
             }
             return result;
         }
+
         public static string GetOutlookGoogleContactId(Synchronizer sync, Outlook.ContactItem outlookContact)
         {
             string id = null;
-            Outlook.UserProperties userProperties = outlookContact.UserProperties;
+            Outlook.UserProperties userProperties = null;
+            Outlook.UserProperty idProp = null;
             try
             {
-                Outlook.UserProperty idProp = userProperties[sync.OutlookPropertyNameId];
+                userProperties = outlookContact.UserProperties;
+                idProp = userProperties[sync.OutlookPropertyNameId];
                 if (idProp != null)
                 {
-                    try
-                    {
-                        id = (string)idProp.Value;
-                        if (id == null)
-                            throw new Exception();
-                    }
-                    finally
-                    {
-                        Marshal.ReleaseComObject(idProp);
-                    }
+                    id = (string)idProp.Value;
+                    if (id == null)
+                        throw new Exception();
                 }
             }
             finally
             {
-                Marshal.ReleaseComObject(userProperties);
+                if (idProp != null)
+                    Marshal.ReleaseComObject(idProp);
+                if (userProperties != null)
+                    Marshal.ReleaseComObject(userProperties);
             }
             return id;
         }
+
         public static void ResetOutlookGoogleContactId(Synchronizer sync, Outlook.ContactItem outlookContact)
         {
-            Outlook.UserProperties userProperties = outlookContact.UserProperties;
+            Outlook.UserProperties userProperties = null;
+
             try
             {
-                Outlook.UserProperty idProp = userProperties[sync.OutlookPropertyNameId];
-                try
+                userProperties = outlookContact.UserProperties;
+
+                for (var i = userProperties.Count; i > 0; i--)
                 {
-                    Outlook.UserProperty lastSyncProp = userProperties[sync.OutlookPropertyNameSynced];
+                    Outlook.UserProperty p = null;
                     try
                     {
-                        if (idProp == null && lastSyncProp == null)
-                            return;
-
-                        List<int> indexesToBeRemoved = new List<int>();
-                        IEnumerator en = userProperties.GetEnumerator();
-                        en.Reset();
-                        int index = 1; // 1 based collection            
-                        while (en.MoveNext())
+                        p = userProperties[i];
+                        if (p.Name == sync.OutlookPropertyNameId || p.Name == sync.OutlookPropertyNameSynced)
                         {
-                            Outlook.UserProperty userProperty = en.Current as Outlook.UserProperty;
-                            if (userProperty == idProp || userProperty == lastSyncProp)
-                            {
-                                indexesToBeRemoved.Add(index);
-                                //outlookContact.UserProperties.Remove(index);
-                                //Don't return to remove both properties, googleId and lastSynced
-                                //return;
-                            }
-                            index++;
-                            Marshal.ReleaseComObject(userProperty);
+                            userProperties.Remove(i);
                         }
-
-                        for (int i = indexesToBeRemoved.Count - 1; i >= 0; i--)
-                            userProperties.Remove(indexesToBeRemoved[i]);
-                        //throw new Exception("Did not find prop.");
                     }
                     finally
                     {
-                        if (lastSyncProp != null)
-                            Marshal.ReleaseComObject(lastSyncProp);
+                        if (p != null)
+                            Marshal.ReleaseComObject(p);
                     }
-                }
-                finally
-                {
-                    if (idProp != null)
-                        Marshal.ReleaseComObject(idProp);
                 }
             }
             finally
             {
-                Marshal.ReleaseComObject(userProperties);
+                if (userProperties != null)
+                    Marshal.ReleaseComObject(userProperties);
             }
         }
 
@@ -276,54 +242,39 @@ namespace GoContactSyncMod
             switch (emailAddressType)
             {
                 case "EX":  // Microsoft Exchange address: "/o=xxxx/ou=xxxx/cn=Recipients/cn=xxxx"
-                    Outlook.NameSpace outlookNameSpace = outlookContactItem.Application.GetNamespace("mapi");
+
+                    Outlook.NameSpace outlookNameSpace = null;
+                    Outlook.Recipient recipient = null;
+                    Outlook.AddressEntry addressEntry = null;
+                    Outlook.ExchangeUser exchangeUser = null;
+
                     try
                     {
+                        outlookNameSpace = outlookContactItem.Application.GetNamespace("mapi");
                         // The emailEntryID is garbage (bug in Outlook 2007 and before?) - so we cannot do GetAddressEntryFromID().
                         // Instead we create a temporary recipient and ask Exchange to resolve it, then get the SMTP address from it.
                         //Outlook.AddressEntry addressEntry = outlookNameSpace.GetAddressEntryFromID(emailEntryID);
-                        Outlook.Recipient recipient = outlookNameSpace.CreateRecipient(emailAddress);
-                        try
+                        recipient = outlookNameSpace.CreateRecipient(emailAddress);
+
+                        recipient.Resolve();
+                        if (recipient.Resolved)
                         {
-                            recipient.Resolve();
-                            if (recipient.Resolved)
+                            addressEntry = recipient.AddressEntry;
+                            if (addressEntry != null)
                             {
-                                Outlook.AddressEntry addressEntry = recipient.AddressEntry;
-                                if (addressEntry != null)
+                                if (addressEntry.AddressEntryUserType == Outlook.OlAddressEntryUserType.olExchangeUserAddressEntry)
                                 {
-                                    try
+                                    exchangeUser = addressEntry.GetExchangeUser();
+                                    if (exchangeUser != null)
                                     {
-                                        if (addressEntry.AddressEntryUserType == Outlook.OlAddressEntryUserType.olExchangeUserAddressEntry)
-                                        {
-                                            Outlook.ExchangeUser exchangeUser = addressEntry.GetExchangeUser();
-                                            if (exchangeUser != null)
-                                            {
-                                                try
-                                                {
-                                                    return exchangeUser.PrimarySmtpAddress;
-                                                }
-                                                finally
-                                                {
-                                                    Marshal.ReleaseComObject(exchangeUser);
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            Logger.Log(string.Format("Unsupported AddressEntryUserType {0} for contact '{1}'.", addressEntry.AddressEntryUserType, outlookContactItem.FileAs), EventType.Debug);
-                                        }
-                                    }
-                                    finally
-                                    {
-                                        Marshal.ReleaseComObject(addressEntry);
+                                        return exchangeUser.PrimarySmtpAddress;
                                     }
                                 }
+                                else
+                                {
+                                    Logger.Log(string.Format("Unsupported AddressEntryUserType {0} for contact '{1}'.", addressEntry.AddressEntryUserType, outlookContactItem.FileAs), EventType.Debug);
+                                }
                             }
-                        }
-                        finally
-                        {
-                            if (recipient != null)
-                                Marshal.ReleaseComObject(recipient);
                         }
                     }
                     catch (Exception ex)
@@ -335,6 +286,12 @@ namespace GoContactSyncMod
                     }
                     finally
                     {
+                        if (exchangeUser != null)
+                            Marshal.ReleaseComObject(exchangeUser);
+                        if (addressEntry != null)
+                            Marshal.ReleaseComObject(addressEntry);
+                        if (recipient != null)
+                            Marshal.ReleaseComObject(recipient);
                         if (outlookNameSpace != null)
                             Marshal.ReleaseComObject(outlookNameSpace);
                     }
