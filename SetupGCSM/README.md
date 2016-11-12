@@ -1,10 +1,18 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.11] -  
+
+### SVN commits
+
+**r765 - :
+
+- FIX: Do not add custom field to folder [bug #651]
+
 ## Version [3.10.10] -  12.11.2016
 
 ### SVN commits
 
-**r744 - r763:
+**r744 - r764:
 
 - FIX: Preserve FileAs format when updating existing Outlook contact [bug #543]
 - FIX: Change mapping between Outlook and Gmail for email types (do not use display name from Outlook) [bug #932]
@@ -20,7 +28,7 @@
 
 ### SVN commits
 
-**r737 - r742:
+**r737 - r743:
 
 - UPDATE: Update NuGet packages to latest version. 
 - FIX: Fixed regression in selecting folders.
