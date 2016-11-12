@@ -1445,7 +1445,11 @@ namespace GoContactSyncMod
                 Activate();
                 WindowState = FormWindowState.Normal;
 
+                var filter = new OleMessageFilter();
+
                 fillSyncFolderItems();
+
+                filter.Revoke();
                    
                 if (oldState != WindowState)
                     CheckVersion();

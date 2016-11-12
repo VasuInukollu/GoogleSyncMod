@@ -441,8 +441,8 @@ namespace GoContactSyncMod
 
         private static void CreateOutlookNamespace()
         {
-            //Try to create new Outlook namespace 3 times, because mostly it fails the first time, if not yet running
-            for (int i = 0; i < 3; i++)
+            //Try to create new Outlook namespace 5 times, because mostly it fails the first time, if not yet running
+            for (int i = 0; i < 5; i++)
             {
                 try
                 {
@@ -456,13 +456,16 @@ namespace GoContactSyncMod
                         Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException(OutlookRegistryUtils.GetPossibleErrorDiagnosis(), ex);
                     }
-                    if (i == 2)
+                    if (i == 4)
                     {
                         Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                     }
                     else
+                    {
+                        Logger.Log("Try: " + i, EventType.Debug);
                         Thread.Sleep(1000 * 10 * (i + 1));
+                    }
                 }
                 catch (InvalidCastException ex)
                 {
@@ -471,13 +474,16 @@ namespace GoContactSyncMod
                 }
                 catch (Exception ex)
                 {
-                    if (i == 2)
+                    if (i == 4)
                     {
                         Logger.Log(ex, EventType.Debug);
                         throw new NotSupportedException("Could not connect to 'Microsoft Outlook'. Make sure Outlook 2003 or above version is installed and running.", ex);
                     }
                     else
+                    {
+                        Logger.Log("Try: " + i, EventType.Debug);
                         Thread.Sleep(1000 * 10 * (i + 1));
+                    }
                 }
             }
         }

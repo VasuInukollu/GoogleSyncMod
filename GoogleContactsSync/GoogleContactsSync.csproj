@@ -325,6 +325,7 @@
     <Compile Include="NotePropertiesUtils.cs" />
     <Compile Include="NotesMatcher.cs" />
     <Compile Include="GCSMOAuth2WebAuthorizationBroker.cs" />
+    <Compile Include="OleMessageFilter.cs" />
     <Compile Include="OutlookContactInfo.cs" />
     <Compile Include="OutlookRegistryUtils.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
