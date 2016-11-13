@@ -54,9 +54,17 @@ namespace GoContactSyncMod
                     olc = sync.OutlookContacts[i] as Outlook.ContactItem;
                     if (olc == null)
                     {
-                        Logger.Log("Empty Outlook contact found (maybe distribution list). Skipping", EventType.Warning);
-                        sync.SkippedCount++;
-                        sync.SkippedCountNotMatches++;
+                        if (sync.OutlookContacts[i] is Outlook.DistListItem)
+                        {
+                            Logger.Log("Skipping distribution list", EventType.Debug);
+                            sync.TotalCount--;
+                        }
+                        else
+                        {
+                            Logger.Log("Empty Outlook contact found. Skipping", EventType.Warning);
+                            sync.SkippedCount++;
+                            sync.SkippedCountNotMatches++;
+                        }
                         continue;
                     }
                 }
@@ -71,7 +79,6 @@ namespace GoContactSyncMod
 
                 try
                 {
-
                     // sometimes contacts throw Exception when accessing their properties, so we give it a controlled try first.
                     try
                     {

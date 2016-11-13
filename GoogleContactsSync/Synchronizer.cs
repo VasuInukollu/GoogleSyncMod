@@ -31,7 +31,7 @@ namespace GoContactSyncMod
         private static object _syncRoot = new object();
         internal static string UserName;
 
-        public int TotalCount { get; private set; }
+        public int TotalCount { get; set; }
         public int SyncedCount { get; private set; }
         public int DeletedCount { get; private set; }
         public int ErrorCount { get; private set; }
