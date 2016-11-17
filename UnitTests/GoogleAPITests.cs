@@ -15,6 +15,7 @@ using Google.Apis.Auth.OAuth2;
 using System.Threading;
 using System.IO;
 using Google.Apis.Calendar.v3.Data;
+using NodaTime;
 
 namespace GoContactSyncMod.UnitTests
 {
@@ -437,39 +438,57 @@ namespace GoContactSyncMod.UnitTests
 
             #endregion
 
+            DateTimeZone zone = DateTimeZoneProviders.Tzdb["Europe/Warsaw"];
+
+            LocalDateTime e1_start = new LocalDateTime(1970, 10, 14, 10, 0, 0);
+            ZonedDateTime e1_start_zoned = e1_start.InZoneLeniently(zone);
+            DateTime e1_start_utc = e1_start_zoned.ToDateTimeUtc();
+
+            LocalDateTime e1_end = new LocalDateTime(1970, 10, 14, 11, 0, 0);
+            ZonedDateTime e1_end_zoned = e1_start.InZoneLeniently(zone);
+            DateTime e1_end_utc = e1_start_zoned.ToDateTimeUtc();
+
+            var s = new EventDateTime();
+            s.DateTime = e1_start_utc;
+            s.TimeZone = "Europe/Warsaw";
+
+            var e = new EventDateTime();
+            e.DateTime = e1_end_utc;
+            e.TimeZone = "Europe/Warsaw";
+
             var e1 = new Google.Apis.Calendar.v3.Data.Event()
             {
                 Summary = "Birthday 1",
-                Start = new EventDateTime()
-                {
-                    DateTime = new DateTime(1970, 10, 14, 10, 0, 0),
-                    TimeZone = "Europe/Warsaw"
-                },
-                End = new EventDateTime()
-                {
-                    DateTime = new DateTime(1970, 10, 14, 11, 0, 0),
-                    TimeZone = "Europe/Warsaw"
-                },
+                Start = s,
+                End = e,
                 Recurrence = new String[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
             };
 
-            Assert.AreEqual("1970-10-14T08:00:00.000Z", e1.Start.DateTimeRaw);
+            Assert.AreEqual("1970-10-14T09:00:00.000Z", e1.Start.DateTimeRaw);
             var c1 = service.Insert(e1, primaryCalendar.Id).Execute();
-            Assert.AreEqual("1970-10-14T09:00:00+01:00", c1.Start.DateTimeRaw);
+            Assert.AreEqual("1970-10-14T10:00:00+01:00", c1.Start.DateTimeRaw);
+
+            LocalDateTime e2_start = new LocalDateTime(2000, 10, 14, 10, 0, 0);
+            ZonedDateTime e2_start_zoned = e2_start.InZoneLeniently(zone);
+            DateTime e2_start_utc = e2_start_zoned.ToDateTimeUtc();
+
+            LocalDateTime e2_end = new LocalDateTime(2000, 10, 14, 11, 0, 0);
+            ZonedDateTime e2_end_zoned = e2_start.InZoneLeniently(zone);
+            DateTime e2_end_utc = e2_start_zoned.ToDateTimeUtc();
+
+            var ss = new EventDateTime();
+            ss.DateTime = e2_start_utc;
+            ss.TimeZone = "Europe/Warsaw";
+
+            var ee = new EventDateTime();
+            ee.DateTime = e2_end_utc;
+            ee.TimeZone = "Europe/Warsaw";
 
             var e2 = new Google.Apis.Calendar.v3.Data.Event()
             {
                 Summary = "Birthday 2",
-                Start = new EventDateTime()
-                {
-                    DateTime = new DateTime(2000, 10, 14, 10, 0, 0),
-                    TimeZone = "Europe/Warsaw"
-                },
-                End = new EventDateTime()
-                {
-                    DateTime = new DateTime(2000, 10, 14, 11, 0, 0),
-                    TimeZone = "Europe/Warsaw"
-                },
+                Start = ss,
+                End = ee,
                 Recurrence = new String[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
             };
 

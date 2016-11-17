@@ -155,6 +155,9 @@ namespace GoContactSyncMod
             {
                 //Outlook always has TZ set, even if TZ is the same as default one
                 //Google could have TZ empty, if it is equal to default one
+                string google_start_tz = string.Empty;
+                string google_end_tz = string.Empty;
+
                 Outlook.TimeZone outlook_start_tz = null;
                 try
                 {
@@ -163,10 +166,7 @@ namespace GoContactSyncMod
                     {
                         if (!string.IsNullOrEmpty(outlook_start_tz.ID))
                         {
-                            var google_tz = WindowsToIana(outlook_start_tz.ID);
-
-                            if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
-                                slave.Start.TimeZone = google_tz;
+                            google_start_tz = WindowsToIana(outlook_start_tz.ID);              
                         }
                     }
                 }
@@ -189,10 +189,7 @@ namespace GoContactSyncMod
                     {
                         if (!string.IsNullOrEmpty(outlook_end_tz.ID))
                         {
-                            var google_tz = WindowsToIana(outlook_end_tz.ID);
-
-                            if (google_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
-                                slave.End.TimeZone = google_tz;
+                            google_end_tz = WindowsToIana(outlook_end_tz.ID);
                         }
                     }
                 }
@@ -209,8 +206,37 @@ namespace GoContactSyncMod
 
                 slave.Start.Date = null;
                 slave.End.Date = null;
-                slave.Start.DateTime = master.Start;
-                slave.End.DateTime = master.End;
+
+                if (string.IsNullOrEmpty(google_start_tz))
+                {
+                    slave.Start.DateTime = master.Start;
+                }
+                else
+                {
+                    //todo (obelix30), workaround for https://github.com/google/google-api-dotnet-client/issues/853
+                    DateTimeZone zone = DateTimeZoneProviders.Tzdb[google_start_tz];
+                    LocalDateTime start_local = LocalDateTime.FromDateTime (master.StartInStartTimeZone);
+                    ZonedDateTime start_zoned = start_local.InZoneLeniently(zone);
+                    DateTime start_utc = start_zoned.ToDateTimeUtc();
+                    slave.Start.DateTime = start_utc;
+                    if (google_start_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                        slave.Start.TimeZone = google_start_tz;
+                }
+                if (string.IsNullOrEmpty(google_end_tz))
+                {
+                    slave.End.DateTime = master.End;
+                }
+                else
+                {
+                    //todo (obelix30), workaround for https://github.com/google/google-api-dotnet-client/issues/853
+                    DateTimeZone zone = DateTimeZoneProviders.Tzdb[google_end_tz];
+                    LocalDateTime end_local = LocalDateTime.FromDateTime(master.EndInEndTimeZone);
+                    ZonedDateTime end_zoned = end_local.InZoneLeniently(zone);
+                    DateTime end_utc = end_zoned.ToDateTimeUtc();
+                    slave.End.DateTime = end_utc;
+                    if (google_end_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                        slave.End.TimeZone = google_end_tz;
+                }
             }
 
             #region participants
@@ -576,7 +602,6 @@ namespace GoContactSyncMod
         {
             try
             {
-
                 if (!master.IsRecurring)
                 {
                     if (slave.Recurrence != null)
@@ -725,8 +750,6 @@ namespace GoContactSyncMod
             {
                 ErrorHandler.Handle(ex);
             }
-
-
         }
 
         /// <summary>
@@ -1215,9 +1238,9 @@ namespace GoContactSyncMod
 
         internal static bool IsOrganizer(string email)
         {
-            string userName = Synchronizer.UserName.Trim().ToLower().Replace("@googlemail.", "@gmail.");
             if (email != null)
             {
+                string userName = Synchronizer.UserName.Trim().ToLower().Replace("@googlemail.", "@gmail.");
                 email = email.Trim().ToLower().Replace("@googlemail.", "@gmail.");
                 if (email.Equals(userName, StringComparison.InvariantCultureIgnoreCase))
                     return true;
