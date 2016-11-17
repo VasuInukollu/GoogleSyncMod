@@ -6,6 +6,7 @@
 
 **r765 - :
 
+- FIX: Workaround for issue in Google client libraries [bug: #866]
 - IMPROVEMENT: Do not warn about skipping empty contact if this is distribution list
 - FIX: Implement OleMessageFilter to handle RPC_E_CALL_REJECTED errors [bug #939]
 - FIX: Unhide label with status text [bug #942]
