@@ -435,9 +435,6 @@ namespace GoContactSyncMod
                                 duplicateGoogleMatches += Environment.NewLine + str;
                         }
                     }
-
-
-
                 }
 
                 result.Add(match);
@@ -554,8 +551,6 @@ namespace GoContactSyncMod
             {
                 ContactMatch match = sync.Contacts[i];
                 NotificationReceived?.Invoke(string.Format("Syncing contact {0} of {1}: {2} ...", i + 1, sync.Contacts.Count, match.ToString()));
-
-
                 SyncContact(match, sync);
             }
         }
@@ -619,7 +614,6 @@ namespace GoContactSyncMod
                 }
                 else if (match.OutlookContact == null && match.GoogleContact != null)
                 {
-
                     // no outlook contact
                     string outlookId = ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, match.GoogleContact);
                     if (outlookId != null)
@@ -652,7 +646,6 @@ namespace GoContactSyncMod
                         }
 
                     }
-
 
                     if (sync.SyncOption == SyncOption.OutlookToGoogleOnly)
                     {
@@ -740,7 +733,6 @@ namespace GoContactSyncMod
                             return;
                         }
 
-
                         //check if outlook contact was updated (with X second tolerance)
                         if (sync.SyncOption != SyncOption.GoogleToOutlookOnly &&
                             (lastUpdatedOutlook.Subtract(lastSynced.Value).TotalSeconds > TimeTolerance ||
@@ -827,7 +819,6 @@ namespace GoContactSyncMod
                                 break;
                         }
                     }
-
                 }
                 else
                     throw new ArgumentNullException("ContactMatch has all peers null.");
@@ -850,7 +841,6 @@ namespace GoContactSyncMod
                     outlookContactItem = null;
                 }
             }
-
         }
 
         private static PhoneNumber FindPhone(string number, ExtensionCollection<PhoneNumber> phones)
