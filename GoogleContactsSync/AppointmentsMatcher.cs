@@ -82,12 +82,7 @@ namespace GoContactSyncMod
                     sync.SkippedCountNotMatches++;
                     continue;
                 }
-                finally
-                {
-                    if (ola != null)
-                        Marshal.ReleaseComObject(ola);
-                }
-
+                
                 NotificationReceived?.Invoke(string.Format("Matching appointment {0} of {1} by id: {2} ...", i, sync.OutlookAppointments.Count, ola.Subject));
 
                 // Create our own info object to go into collections/lists, so we can free the Outlook objects and not run out of resources / exceed policy limits.
