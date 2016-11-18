@@ -1,11 +1,13 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
-## Version [3.10.11] -  
+## Version [3.10.11] - 18.11.2016 
 
 ### SVN commits
 
-**r765 - :
+**r765 - r779:
 
+- FIX: Check if UserDefinedFields field is null [bug: #948]
+- FIX: Check if FormattedAddress field is null [bug: #945]
 - FIX: Workaround for issue in Google client libraries [bug: #866]
 - IMPROVEMENT: Do not warn about skipping empty contact if this is distribution list
 - FIX: Implement OleMessageFilter to handle RPC_E_CALL_REJECTED errors [bug #939]
@@ -13,7 +15,7 @@
 - FIX: Retry in case ProtocolViolationException exception during Google contact save [bug #903]
 - FIX: Do not add custom field to folder [bug #651]
 
-## Version [3.10.10] -  12.11.2016
+## Version [3.10.10] - 12.11.2016
 
 ### SVN commits
 
