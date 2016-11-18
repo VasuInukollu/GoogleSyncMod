@@ -345,7 +345,8 @@ namespace GoContactSyncMod
 
                 //By default Outlook is not setting Country in formatted string in case Windows is configured for the same country 
                 //(Control Panel\Regional Settings).  So append country, but to be on safe side only if Google address has it
-                if (address.FormattedAddress.EndsWith("\n" + address.Country) && !destination.BusinessAddress.EndsWith("\r\n" + address.Country))
+                if (!string.IsNullOrEmpty(address.FormattedAddress) && address.FormattedAddress.EndsWith("\n" + address.Country) &&
+                    !string.IsNullOrEmpty(destination.BusinessAddress) && !destination.BusinessAddress.EndsWith("\r\n" + address.Country))
                     destination.BusinessAddress = destination.BusinessAddress + "\r\n" + address.Country;
 
                 if (address.Primary)
