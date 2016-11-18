@@ -3120,26 +3120,7 @@ namespace GoContactSyncMod
                 {
                     //contact already present in google. just update
 
-                    // User can create an empty label custom field on the web, but when I retrieve, and update, it throws this:
-                    // Data Request Error Response: [Line 12, Column 44, element gContact:userDefinedField] Missing attribute: &#39;key&#39;
-                    // Even though I didn't touch it.  So, I will search for empty keys, and give them a simple name.  Better than deleting...
-                    int fieldCount = 0;
-                    foreach (UserDefinedField userDefinedField in googleContact.ContactEntry.UserDefinedFields)
-                    {
-                        fieldCount++;
-                        if (string.IsNullOrEmpty(userDefinedField.Key))
-                        {
-                            userDefinedField.Key = "UserField" + fieldCount.ToString();
-                            Logger.Log("Set key to user defined field to avoid errors: " + userDefinedField.Key, EventType.Debug);
-                        }
-
-                        //similar error with empty values
-                        if (string.IsNullOrEmpty(userDefinedField.Value))
-                        {
-                            userDefinedField.Value = userDefinedField.Key;
-                            Logger.Log("Set value to user defined field to avoid errors: " + userDefinedField.Value, EventType.Debug);
-                        }
-                    }
+                    UpdateEmptyUserProperties(googleContact);
 
                     UpdateExtendedProperties(googleContact);
 
@@ -3428,6 +3409,36 @@ namespace GoContactSyncMod
                             }
                         }
                     }
+                }
+            }
+        }
+
+        private static void UpdateEmptyUserProperties(Contact googleContact)
+        {
+            // User can create an empty label custom field on the web, but when I retrieve, and update, it throws this:
+            // Data Request Error Response: [Line 12, Column 44, element gContact:userDefinedField] Missing attribute: &#39;key&#39;
+            // Even though I didn't touch it.  So, I will search for empty keys, and give them a simple name.  Better than deleting...
+            if (googleContact.ContactEntry == null)
+                return;
+
+            if (googleContact.ContactEntry.UserDefinedFields == null)
+                return;
+
+            int fieldCount = 0;
+            foreach (UserDefinedField userDefinedField in googleContact.ContactEntry.UserDefinedFields)
+            {
+                fieldCount++;
+                if (string.IsNullOrEmpty(userDefinedField.Key))
+                {
+                    userDefinedField.Key = "UserField" + fieldCount.ToString();
+                    Logger.Log("Set key to user defined field to avoid errors: " + userDefinedField.Key, EventType.Debug);
+                }
+
+                //similar error with empty values
+                if (string.IsNullOrEmpty(userDefinedField.Value))
+                {
+                    userDefinedField.Value = userDefinedField.Key;
+                    Logger.Log("Set value to user defined field to avoid errors: " + userDefinedField.Value, EventType.Debug);
                 }
             }
         }
