@@ -1,10 +1,18 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.12] - 19.11.2016 
+
+### SVN commits
+
+**r781 - r786:
+
+- FIX: Check if value of extended property field is null [bug: #950]
+
 ## Version [3.10.11] - 18.11.2016 
 
 ### SVN commits
 
-**r765 - r779:
+**r765 - r780:
 
 - FIX: Check if UserDefinedFields field is null [bug: #948]
 - FIX: Check if FormattedAddress field is null [bug: #945]
