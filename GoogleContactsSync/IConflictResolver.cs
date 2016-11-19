@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Google.Contacts;
-using Google.Documents;
 
 namespace GoContactSyncMod
 {
@@ -14,18 +13,11 @@ namespace GoContactSyncMod
         /// <returns>Returns ConflictResolution (enum)</returns>
         ConflictResolution Resolve(ContactMatch match, bool isNewMatch);
 
-        ConflictResolution Resolve(Microsoft.Office.Interop.Outlook.NoteItem outlookNote, Document googleNote, Synchronizer sync, bool isNewMatch);
-
         ConflictResolution ResolveDuplicate(OutlookContactInfo outlookContact, List<Contact> googleContacts, out Contact googleContact);
 
         DeleteResolution ResolveDelete(OutlookContactInfo outlookContact);
 
         DeleteResolution ResolveDelete(Contact googleContact);
-
-        DeleteResolution ResolveDelete(Document googleNote, Synchronizer sync);
-
-        DeleteResolution ResolveDelete(Microsoft.Office.Interop.Outlook.NoteItem outlookNote);
-
 
     }
 

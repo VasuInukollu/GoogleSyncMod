@@ -6,7 +6,7 @@ namespace GoContactSyncMod
 {
     // Definition of the IMessageFilter interface which we need to implement and 
     // register with the CoRegisterMessageFilter API.
-    [ComImport(), Guid("00000016-0000-0000-C000-000000000046"), InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
+    [ComImport(), Guid("00000016-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     interface IOleMessageFilter // Renamed to avoid confusion w/ System.Windows.Forms.IMessageFilter
     {
         [PreserveSig]
@@ -17,11 +17,10 @@ namespace GoContactSyncMod
         int MessagePending(IntPtr hTaskCallee, int dwTickCount, int dwPendingType);
     }
 
+
+
     internal sealed class OleMessageFilter : IOleMessageFilter, IDisposable
     {
-        [DllImport("ole32.dll")]
-        private static extern int CoRegisterMessageFilter(IOleMessageFilter newFilter, out IOleMessageFilter oldFilter);
-
         private bool _isRegistered;
         private IOleMessageFilter _oldFilter;
 
@@ -36,7 +35,7 @@ namespace GoContactSyncMod
             // if we can't switch to STA
             Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
 
-            int result = CoRegisterMessageFilter(this, out _oldFilter);
+            int result = NativeMethods.CoRegisterMessageFilter(this, out _oldFilter);
             if (result != 0)
             {
                 throw new COMException("CoRegisterMessageFilter failed", result);
@@ -49,7 +48,12 @@ namespace GoContactSyncMod
             if (_isRegistered)
             {
                 IOleMessageFilter revokedFilter;
-                CoRegisterMessageFilter(_oldFilter, out revokedFilter);
+                int result = NativeMethods.CoRegisterMessageFilter(_oldFilter, out revokedFilter);
+                if (result != 0)
+                {
+                    throw new COMException("CoRegisterMessageFilter failed", result);
+                }
+
                 _oldFilter = null;
                 _isRegistered = false;
             }

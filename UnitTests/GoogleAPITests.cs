@@ -22,14 +22,13 @@ namespace GoContactSyncMod.UnitTests
     [TestFixture]
     public class GoogleAPITests
     {
-        OAuth2Authenticator _authenticator;
         static Logger.LogUpdatedHandler _logUpdateHandler = null;
         void Logger_LogUpdated(string message)
         {
             Console.WriteLine(message);
         }
 
-        [OneTimeSetUpAttribute]
+        [OneTimeSetUp]
         public void Init()
         {
             //string timestamp = DateTime.Now.Ticks.ToString();            
@@ -45,7 +44,7 @@ namespace GoContactSyncMod.UnitTests
         {
             string gmailUsername;
             string syncProfile;
-            GoogleAPITests.LoadSettings(out gmailUsername, out syncProfile);
+            LoadSettings(out gmailUsername, out syncProfile);
 
             ContactsRequest service;
 
@@ -255,111 +254,6 @@ namespace GoContactSyncMod.UnitTests
             Logger.Log("Deleted Google appointment", EventType.Information);
         }
 
-
-        [Test]
-        public void CreateNewNote()
-        {
-            string gmailUsername;
-            string syncProfile;
-            GoogleAPITests.LoadSettings(out gmailUsername, out syncProfile);
-
-            DocumentsRequest service;
-
-            var scopes = new List<string>();
-            //Contacts-Scope
-            scopes.Add("https://www.google.com/m8/feeds");
-            //Notes-Scope
-            scopes.Add("https://docs.google.com/feeds/");
-            //scopes.Add("https://docs.googleusercontent.com/");
-            //scopes.Add("https://spreadsheets.google.com/feeds/");
-            //Calendar-Scope
-            //scopes.Add("https://www.googleapis.com/auth/calendar");
-            scopes.Add(CalendarService.Scope.Calendar);
-
-            UserCredential credential;
-            byte[] jsonSecrets = Properties.Resources.client_secrets;
-
-            using (var stream = new MemoryStream(jsonSecrets))
-            {
-                FileDataStore fDS = new FileDataStore(Logger.AuthFolder, true);
-
-                GoogleClientSecrets clientSecrets = GoogleClientSecrets.Load(stream);
-
-                credential = GCSMOAuth2WebAuthorizationBroker.AuthorizeAsync(
-                                clientSecrets.Secrets,
-                                scopes.ToArray(),
-                                gmailUsername,
-                                CancellationToken.None,
-                                fDS).
-                                Result;
-
-                OAuth2Parameters parameters = new OAuth2Parameters
-                {
-                    ClientId = clientSecrets.Secrets.ClientId,
-                    ClientSecret = clientSecrets.Secrets.ClientSecret,
-
-                    // Note: AccessToken is valid only for 60 minutes
-                    AccessToken = credential.Token.AccessToken,
-                    RefreshToken = credential.Token.RefreshToken
-                };
-
-                RequestSettings settings = new RequestSettings("GoContactSyncMod", parameters);
-
-                service = new DocumentsRequest(settings);
-
-                //Instantiate an Authenticator object according to your authentication, to use ResumableUploader
-                _authenticator = new OAuth2Authenticator("GCSM Unit Tests", parameters);
-            }
-
-
-
-            //Delete previously created test note.            
-            DeleteTestNote(service);
-
-            Document newEntry = new Document();
-            newEntry.Type = Document.DocumentType.Document;
-            newEntry.Title = "AN_OUTLOOK_TEST_NOTE";
-
-            string file = NotePropertiesUtils.CreateNoteFile("AN_OUTLOOK_TEST_NOTE", "This is just a test note to test GoContactSyncMod", null);
-            newEntry.MediaSource = new MediaFileSource(file, MediaFileSource.GetContentTypeForFileName(file));
-
-            #region normal flow, only working to create documents without content (metadata only), e.g. for Notes folder
-
-            Document createdEntry = Synchronizer.SaveGoogleNote(null, newEntry, service);
-
-            Assert.IsNotNull(createdEntry.DocumentEntry.Id.Uri);
-
-            Logger.Log("Created Google note", EventType.Information);
-
-            //Wait 5 seconds to give the testcase the chance to finish
-            Thread.Sleep(5000);
-
-            //delete test note            
-            DeleteTestNote(service);
-            #endregion
-
-            #region workaround flow to use UploadDocument, not needed anymore because of new approach to use ResumableUploader
-            //Google.GData.Documents.DocumentEntry createdEntry2 = service.Service.UploadDocument(file, newEntry.Title);
-
-            //Assert.IsNotNull(createdEntry2.Id.Uri);
-
-            ////delete test note            
-            //DeleteTestNote(service);
-            #endregion
-
-            #region New approach how to update an existing document: https://developers.google.com/google-apps/documents-list/#updatingchanging_documents_and_files            
-            //Instantiate the ResumableUploader component.      
-            ResumableUploader uploader = new ResumableUploader();
-            uploader.AsyncOperationCompleted += new AsyncOperationCompletedEventHandler(OnGoogleNoteCreated);
-            Synchronizer.CreateGoogleNote(newEntry, file, service, uploader, _authenticator);
-            #endregion
-
-            //Wait 5 seconds to give the testcase the chance to finish the Async events
-            Thread.Sleep(5000);
-
-            DeleteTestNote(service);
-        }
-
         [Test]
         public void Test_OldRecurringAppointment()
         {
@@ -509,59 +403,6 @@ namespace GoContactSyncMod.UnitTests
             //service.Delete(primaryCalendar.Id, createdEntry.Id).Execute();
 
             Logger.Log("Deleted Google appointment", EventType.Information);
-        }
-
-        private void OnGoogleNoteCreated(object sender, AsyncOperationCompletedEventArgs e)
-        {
-            DocumentEntry entry = e.Entry as DocumentEntry;
-
-            Assert.IsNotNull(entry);
-
-            Logger.Log("Created Google note", EventType.Information);
-
-            //Now update the same entry
-            //Instantiate the ResumableUploader component.      
-            ResumableUploader uploader = new ResumableUploader();
-            uploader.AsyncOperationCompleted += new AsyncOperationCompletedEventHandler(OnGoogleNoteUpdated);
-            uploader.UpdateAsync(_authenticator, entry, e.UserState);
-
-
-        }
-
-        private void OnGoogleNoteUpdated(object sender, AsyncOperationCompletedEventArgs e)
-        {
-            DocumentEntry entry = e.Entry as DocumentEntry;
-
-            Assert.IsNotNull(entry);
-
-            Logger.Log("Updated Google note", EventType.Information);
-
-            File.Delete(e.UserState as string);
-        }
-
-        private static void DeleteTestNote(DocumentsRequest service)
-        {
-            //ToDo: Doesn'T work always, frequently throwing 401, Precondition failed, maybe Google API bug
-            //service.Delete(createdEntry);
-
-            //Todo: Workaround to load document again
-            DocumentQuery query = new DocumentQuery(service.BaseUri);
-            query.NumberToRetrieve = 500;
-
-            Feed<Document> feed = service.Get<Document>(query);
-
-            Logger.Log("Loaded Google notes", EventType.Information);
-
-            foreach (Document entry in feed.Entries)
-            {
-                if (entry.Title == "AN_OUTLOOK_TEST_NOTE")
-                {
-                    //service.Delete(entry);
-                    service.Delete(new Uri(Google.GData.Documents.DocumentsListQuery.documentsBaseUri + "/" + entry.ResourceId), entry.ETag);
-                    Logger.Log("Deleted Google note", EventType.Information);
-                    //break;
-                }
-            }
         }
 
         internal static void LoadSettings(out string gmailUsername, out string syncProfile, out string syncContactsFolder, out string syncNotesFolder, out string syncAppointmentsFolder)

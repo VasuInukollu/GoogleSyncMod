@@ -154,7 +154,6 @@ namespace GoContactSyncMod
             Logger.Log("Started application " + Application.ProductName + " (" + Application.ProductVersion + ") on " + VersionInformation.GetWindowsVersion() + " and " + OutlookRegistryUtils.GetOutlookVersion(), EventType.Information);
             Logger.Log("Detailed log file created: " + Logger.Folder + "log.txt", EventType.Information);
             ContactsMatcher.NotificationReceived += new ContactsMatcher.NotificationHandler(OnNotificationReceived);
-            NotesMatcher.NotificationReceived += new NotesMatcher.NotificationHandler(OnNotificationReceived);
             AppointmentsMatcher.NotificationReceived += new AppointmentsMatcher.NotificationHandler(OnNotificationReceived);
             PopulateSyncOptionBox();
 
@@ -220,10 +219,10 @@ namespace GoContactSyncMod
                 {
                     if (OutlookFoldersLoaded)
                         return;
-                    
-                    if (contactFoldersComboBox.DataSource == null ||  appointmentFoldersComboBox.DataSource == null || 
+
+                    if (contactFoldersComboBox.DataSource == null || appointmentFoldersComboBox.DataSource == null ||
                         appointmentGoogleFoldersComboBox.DataSource == null && btSyncAppointments.Checked ||
-                        contactFoldersComboBox.Items.Count == 0 ||  appointmentFoldersComboBox.Items.Count == 0 || 
+                        contactFoldersComboBox.Items.Count == 0 || appointmentFoldersComboBox.Items.Count == 0 ||
                         appointmentGoogleFoldersComboBox.Items.Count == 0 && btSyncAppointments.Checked)
                     {
                         Logger.Log("Loading Outlook folders...", EventType.Information);
@@ -277,7 +276,7 @@ namespace GoContactSyncMod
                                 contactFoldersComboBox.ValueMember = "FolderID";
                             }
 
-                            if (outlookAppointmentFolders != null) 
+                            if (outlookAppointmentFolders != null)
                             {
                                 outlookAppointmentFolders.Sort();
                                 outlookAppointmentFolders.Insert(0, new OutlookFolder(defaultText, defaultText, false));
@@ -436,7 +435,7 @@ namespace GoContactSyncMod
 
             if (regKeyAppRoot.GetValue(RegistryUsername) != null)
             {
-                UserName.Text = regKeyAppRoot.GetValue(RegistryUsername) as string;           
+                UserName.Text = regKeyAppRoot.GetValue(RegistryUsername) as string;
             }
 
             //temporary remove listener
@@ -453,7 +452,7 @@ namespace GoContactSyncMod
             if (regKeyAppRoot.GetValue(RegistrySyncAppointmentsTimezone) != null)
                 appointmentTimezonesComboBox.Text = regKeyAppRoot.GetValue(RegistrySyncAppointmentsTimezone) as string;
             ReadRegistryIntoCheckBox(btSyncAppointments, regKeyAppRoot.GetValue(RegistrySyncAppointments));
-     
+
             ReadRegistryIntoCheckBox(btSyncContacts, regKeyAppRoot.GetValue(RegistrySyncContacts));
             ReadRegistryIntoCheckBox(chkUseFileAs, regKeyAppRoot.GetValue(RegistryUseFileAs));
 
@@ -472,7 +471,7 @@ namespace GoContactSyncMod
                     Logger.Log("LastSyncDate couldn't be read from registry (" + regKeyAppRoot.GetValue(RegistryLastSync) + "): " + ex, EventType.Warning);
                 }
             }
-          
+
             //autoSyncCheckBox_CheckedChanged(null, null);
             btSyncContacts_CheckedChanged(null, null);
 
@@ -671,9 +670,9 @@ namespace GoContactSyncMod
                     toolTip.SetToolTip(UserName, "User is of wrong format, should be full Google Mail address, e.g. user@googelmail.com");
                 else
                     toolTip.SetToolTip(UserName, string.Empty);
-                
+
                 return userNameIsValid &&
-                      
+
                        syncProfileIsValid;
             }
         }
@@ -762,10 +761,10 @@ namespace GoContactSyncMod
                     //only reset notes if NotesFolder changed and reset contacts if ContactsFolder changed
                     //and only reset appointments, if either OutlookAppointmentsFolder changed (without changing Google at the same time) or GoogleAppointmentsFolder changed (without changing Outlook at the same time) (not chosen before means not changed)
                     bool syncContacts = !string.IsNullOrEmpty(oldSyncContactsFolder) && !oldSyncContactsFolder.Equals(syncContactsFolder) && btSyncContacts.Checked;
-                    bool syncNotes = false; 
+                    bool syncNotes = false;
                     bool syncAppointments = !string.IsNullOrEmpty(oldSyncAppointmentsFolder) && !oldSyncAppointmentsFolder.Equals(syncAppointmentsFolder) && btSyncAppointments.Checked;
                     bool syncGoogleAppointments = !string.IsNullOrEmpty(syncAppointmentsGoogleFolder) && !syncAppointmentsGoogleFolder.Equals(oldSyncAppointmentsGoogleFolder) && btSyncAppointments.Checked;
-                    if (syncContacts ||  syncAppointments && !syncGoogleAppointments || !syncAppointments && syncGoogleAppointments)
+                    if (syncContacts || syncAppointments && !syncGoogleAppointments || !syncAppointments && syncGoogleAppointments)
                     {
                         bool r = await ResetMatches(syncContacts, syncNotes, syncAppointments);
                         if (!r)
@@ -775,7 +774,7 @@ namespace GoContactSyncMod
                     //Then save the Contacts and Notes Folders used at last sync
                     if (btSyncContacts.Checked)
                         regKeyAppRoot.SetValue(RegistrySyncContactsFolder, syncContactsFolder);
-                    
+
                     if (btSyncAppointments.Checked)
                     {
                         regKeyAppRoot.SetValue(RegistrySyncAppointmentsFolder, syncAppointmentsFolder);
@@ -1359,11 +1358,6 @@ namespace GoContactSyncMod
                 sync.ResetContactMatches();
             }
 
-            if (sync.SyncNotes)
-            {
-                sync.LoadNotes();
-                sync.ResetNoteMatches();
-            }
             lastSync = DateTime.Now;
             SetLastSyncText("Matches reset at " + lastSync.ToString());
             Logger.Log("Matches reset.", EventType.Information);
@@ -1445,12 +1439,11 @@ namespace GoContactSyncMod
                 Activate();
                 WindowState = FormWindowState.Normal;
 
-                var filter = new OleMessageFilter();
+                using (var filter = new OleMessageFilter())
+                {
+                    fillSyncFolderItems();
+                }
 
-                fillSyncFolderItems();
-
-                filter.Revoke();
-                   
                 if (oldState != WindowState)
                     CheckVersion();
             }

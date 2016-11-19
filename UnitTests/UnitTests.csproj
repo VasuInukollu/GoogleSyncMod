@@ -185,7 +185,6 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GoogleAPITests.cs" />
     <Compile Include="SyncAppointmentsTests.cs" />
-    <Compile Include="SyncNotesTests.cs" />
     <Compile Include="OutlookTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SyncContactsTests.cs" />

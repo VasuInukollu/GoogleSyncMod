@@ -53,8 +53,6 @@ namespace GoContactSyncMod
 
         public ContactsRequest ContactsRequest { get; private set; }
 
-        private OAuth2Authenticator authenticator;
-
         public DocumentsRequest DocumentsRequest { get; private set; }
         public EventsResource EventRequest { get; private set; }
 
@@ -127,8 +125,6 @@ namespace GoContactSyncMod
         //}
 
         public List<ContactMatch> Contacts { get; private set; }
-
-        public List<NoteMatch> Notes { get; private set; }
 
         public List<AppointmentMatch> Appointments { get; private set; }
 
@@ -234,19 +230,6 @@ namespace GoContactSyncMod
                         ContactsRequest = new ContactsRequest(settings);
                     }
 
-                    //Obsolete, because no notes sync anymore:
-                    if (SyncNotes)
-                    {
-                        //DocumentsRequest = new DocumentsRequest(rs);
-                        DocumentsRequest = new DocumentsRequest(settings);
-
-                        //Instantiate an Authenticator object according to your authentication, to use ResumableUploader
-                        //GDataCredentials cred = new GDataCredentials(credential.Token.AccessToken);
-                        //GOAuth2RequestFactory rf = new GOAuth2RequestFactory(null, Application.ProductName, parameters);
-                        //DocumentsRequest.Service.RequestFactory = rf;
-
-                        authenticator = new OAuth2Authenticator(Application.ProductName, parameters);
-                    }
                     if (SyncAppointments)
                     {
                         //ContactsRequest = new Google.Contacts.ContactsRequest()
@@ -1207,7 +1190,7 @@ namespace GoContactSyncMod
                 string pageToken = null;
                 //query.MaxResults = 256; //ToDo: Find a way to retrieve all appointments
 
-                //Only Load events from month range, but onyl if not a distinct Google Appointment is searched for
+                //Only Load events from month range, but only if not a distinct Google Appointment is searched for
                 if (restrictMonthsInPast != 0)
                     query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
                 if (restrictStartTime != null && (query.TimeMin == default(DateTime) || restrictStartTime > query.TimeMin))
@@ -1824,26 +1807,6 @@ namespace GoContactSyncMod
         }
 
         /// <summary>
-        /// Load the contacts from Google and Outlook and match them
-        /// </summary>
-        public void MatchNotes()
-        {
-            LoadNotes();
-            Notes = NotesMatcher.MatchNotes(this);
-            /*DuplicateDataException duplicateDataException;
-            _matches = ContactsMatcher.MatchContacts(this, out duplicateDataException);
-            if (duplicateDataException != null)
-            {
-
-                if (DuplicatesFound != null)
-                    DuplicatesFound("Google duplicates found", duplicateDataException.Message);
-                else
-                    Logger.Log(duplicateDataException.Message, EventType.Warning);
-            }*/
-            Logger.Log("Note Matches Found: " + Notes.Count, EventType.Debug);
-        }
-
-        /// <summary>
         /// Load the appointments from Google and Outlook and match them
         /// </summary>
         public void MatchAppointments()
@@ -1877,9 +1840,6 @@ namespace GoContactSyncMod
 
                     if (SyncContacts)
                         MatchContacts();
-
-                    if (SyncNotes)
-                        MatchNotes();
 
                     if (SyncAppointments)
                     {
@@ -1938,37 +1898,6 @@ namespace GoContactSyncMod
                         SaveContacts(Contacts);
                     }
 
-                    if (SyncNotes)
-                    {
-                        if (Notes == null)
-                            return;
-
-                        TotalCount += Notes.Count + SkippedCountNotMatches;
-
-                        Logger.Log("Syncing notes...", EventType.Information);
-                        NotesMatcher.SyncNotes(this);
-
-                        SaveNotes(Notes);
-
-                        int timeout = 10;//seconds to wait for asynchronous upload
-                        //Because notes are uploaded asynchonously, wait until all notes have been successfully uploaded
-                        foreach (NoteMatch match in Notes)
-                        {
-                            for (int i = 0; match.AsyncUpdateCompleted.HasValue && !match.AsyncUpdateCompleted.Value && i < timeout; i++)
-                            {
-                                Application.DoEvents();
-                                Thread.Sleep(1000);//DoNothing, until the Async Update is complete, but only wait maximum 10 seconds
-                                Application.DoEvents();
-                            }
-
-                            if (match.AsyncUpdateCompleted.HasValue && !match.AsyncUpdateCompleted.Value)
-                                Logger.Log("Asynchronous upload of note didn't finish within " + timeout + " seconds: " + match.GoogleNote.Title, EventType.Warning);
-                        }
-
-                        //Delete empty Google note folders
-                        CleanUpGoogleCategories();
-                    }
-
                     if (SyncAppointments)
                     {
                         if (Appointments == null)
@@ -2007,7 +1936,6 @@ namespace GoContactSyncMod
                     GoogleContactDuplicates = null;
                     GoogleGroups = null;
                     Contacts = null;
-                    Notes = null;
                     Appointments = null;
                 }
             }
@@ -2314,30 +2242,6 @@ namespace GoContactSyncMod
             }
         }
 
-        public void SaveNotes(List<NoteMatch> notes)
-        {
-            foreach (NoteMatch match in notes)
-            {
-                try
-                {
-                    SaveNote(match);
-                }
-                catch (Exception ex)
-                {
-                    if (ErrorEncountered != null)
-                    {
-                        ErrorCount++;
-                        SyncedCount--;
-                        string message = string.Format("Failed to synchronize note: {0}.", match.OutlookNote.Subject);
-                        Exception newEx = new Exception(message, ex);
-                        ErrorEncountered("Error", newEx, EventType.Error);
-                    }
-                    else
-                        throw;
-                }
-            }
-        }
-
         public void SaveContact(ContactMatch match)
         {
             if (match.GoogleContact != null && match.OutlookContact != null)
@@ -2435,131 +2339,6 @@ namespace GoContactSyncMod
                 //TODO: ignore for now: 
                 throw new ArgumentNullException("To save contacts, at least a GoogleContacat or OutlookContact must be present.");
                 //Logger.Log("Both Google and Outlook contact: \"" + match.OutlookContact.FileAs + "\" have been changed! Not implemented yet.", EventType.Warning);
-            }
-        }
-
-        public void SaveNote(NoteMatch match)
-        {
-            if (match.GoogleNote != null && match.OutlookNote != null)
-            {
-                //bool googleChanged, outlookChanged;
-                //SaveNoteGroups(match, out googleChanged, out outlookChanged);
-                if (match.GoogleNote.DocumentEntry.Dirty || match.GoogleNote.DocumentEntry.IsDirty())
-                {
-                    //google note was modified. save.
-                    SyncedCount++;
-                    SaveGoogleNote(match);
-                    //Don't log here, because the DocumentsRequest uses async upload, log when async upload was successful
-                    //Logger.Log("Updated Google note from Outlook: \"" + match.OutlookNote.Subject + "\".", EventType.Information);
-                }
-                else if (!match.OutlookNote.Saved)// || outlookChanged) //If google note is saved above, Saving the OutlookNote not necessary anymore, because this will be done when updating NoteMatchId during saving the Google Note above
-                {
-                    //outlook note was modified. save.
-                    SyncedCount++;
-                    NotePropertiesUtils.SetOutlookGoogleNoteId(this, match.OutlookNote, match.GoogleNote);
-                    match.OutlookNote.Save();
-                    Logger.Log("Updated Outlook note from Google: \"" + match.OutlookNote.Subject + "\".", EventType.Information);
-                }
-
-                // save photos
-                //SaveNotePhotos(match);
-            }
-            else if (match.GoogleNote == null && match.OutlookNote != null)
-            {
-                if (match.OutlookNote.ItemProperties[OutlookPropertyNameId] != null)
-                {
-                    string name = match.OutlookNote.Subject;
-                    if (_syncOption == SyncOption.OutlookToGoogleOnly)
-                    {
-                        SkippedCount++;
-                        Logger.Log("Skipped Deletion of Outlook note because of SyncOption " + _syncOption + ":" + name + ".", EventType.Information);
-                    }
-                    else if (!SyncDelete)
-                    {
-                        SkippedCount++;
-                        Logger.Log("Skipped Deletion of Outlook note because SyncDeletion is switched off: " + name + ".", EventType.Information);
-                    }
-                    else
-                    {
-                        // peer google note was deleted, delete outlook note
-                        Outlook.NoteItem item = match.OutlookNote;
-                        //try
-                        //{
-                        string outlookNoteId = NotePropertiesUtils.GetOutlookGoogleNoteId(this, match.OutlookNote);
-                        try
-                        {
-                            //First reset OutlookGoogleContactId to restore it later from trash
-                            NotePropertiesUtils.ResetOutlookGoogleNoteId(this, item);
-                            item.Save();
-                        }
-                        catch (Exception)
-                        {
-                            Logger.Log("Error resetting match for Outlook note: \"" + name + "\".", EventType.Warning);
-                        }
-
-                        item.Delete();
-                        try
-                        { //Delete also the according temporary NoteFile
-                            File.Delete(NotePropertiesUtils.GetFileName(outlookNoteId, SyncProfile));
-                        }
-                        catch (Exception)
-                        { }
-                        DeletedCount++;
-                        Logger.Log("Deleted Outlook note: \"" + name + "\".", EventType.Information);
-                        //}
-                        //finally
-                        //{
-                        //    Marshal.ReleaseComObject(item);
-                        //    item = null;
-                        //}
-                    }
-                }
-            }
-            else if (match.GoogleNote != null && match.OutlookNote == null)
-            {
-                if (NotePropertiesUtils.NoteFileExists(match.GoogleNote.Id, SyncProfile))
-                {
-                    string name = match.GoogleNote.Title;
-
-                    if (_syncOption == SyncOption.GoogleToOutlookOnly)
-                    {
-                        SkippedCount++;
-                        Logger.Log("Skipped Deletion of Google note because of SyncOption " + _syncOption + ":" + name + ".", EventType.Information);
-                    }
-                    else if (!SyncDelete)
-                    {
-                        SkippedCount++;
-                        Logger.Log("Skipped Deletion of Google note because SyncDeletion is switched off :" + name + ".", EventType.Information);
-                    }
-                    else
-                    {
-                        // peer outlook note was deleted, delete google note
-                        DocumentsRequest.Delete(new Uri(DocumentsListQuery.documentsBaseUri + "/" + match.GoogleNote.ResourceId), match.GoogleNote.ETag);
-                        //DocumentsRequest.Service.Delete(match.GoogleNote.DocumentEntry); //ToDo: Currently, the Delete only removes the Notes label from the document but keeps the document in the root folder, therefore I use the URI Delete above for now: "https://docs.google.com/feeds/default/private/full"
-                        //DocumentsRequest.Delete(match.GoogleNote);
-
-                        ////ToDo: Currently, the Delete only removes the Notes label from the document but keeps the document in the root folder, therefore the following workaround
-                        //Document deletedNote = LoadGoogleNotes(match.GoogleNote.DocumentEntry.Id);
-                        //if (deletedNote != null)
-                        //    DocumentsRequest.Delete(deletedNote);
-
-                        try
-                        {//Delete also the according temporary NoteFile
-                            File.Delete(NotePropertiesUtils.GetFileName(match.GoogleNote.Id, SyncProfile));
-                        }
-                        catch (Exception)
-                        { }
-
-                        DeletedCount++;
-                        Logger.Log("Deleted Google note: \"" + name + "\".", EventType.Information);
-                    }
-                }
-            }
-            else
-            {
-                //TODO: ignore for now: 
-                throw new ArgumentNullException("To save notes, at least a GoogleContacat or OutlookNote must be present.");
-                //Logger.Log("Both Google and Outlook note: \"" + match.OutlookNote.FileAs + "\" have been changed! Not implemented yet.", EventType.Warning);
             }
         }
 
@@ -2876,155 +2655,6 @@ namespace GoContactSyncMod
                 Marshal.ReleaseComObject(outlookContactItem);
                 outlookContactItem = null;
             }
-        }
-
-        public void SaveGoogleNote(NoteMatch match)
-        {
-            Outlook.NoteItem outlookNoteItem = match.OutlookNote;
-            //try
-            //{  
-
-            //ToDo: Somewhow, the content is not uploaded to Google, only an empty document                
-            //match.GoogleNote = SaveGoogleNote(match.GoogleNote);
-
-            //New approach how to update an existing document: https://developers.google.com/google-apps/documents-list/#updatingchanging_documents_and_files
-            // Instantiate the ResumableUploader component.      
-            ResumableUploader uploader = new ResumableUploader();
-            // Set the handlers for the completion and progress events                  
-            //uploader.AsyncOperationProgress += new AsyncOperationProgressEventHandler(OnProgress);
-
-            //ToDo: Therefoe I use DocumentService.UploadDocument instead and move it to the NotesFolder
-            string oldOutlookGoogleNoteId = NotePropertiesUtils.GetOutlookGoogleNoteId(this, outlookNoteItem);
-            if (match.GoogleNote.DocumentEntry.Id.Uri != null)
-            {
-                //DocumentsRequest.Delete(new Uri(Google.GData.Documents.DocumentsListQuery.documentsBaseUri + "/" + match.GoogleNote.ResourceId), match.GoogleNote.ETag);
-                ////DocumentsRequest.Delete(match.GoogleNote); //ToDo: Currently, the Delete only removes the Notes label from the document but keeps the document in the root folder
-                //NotePropertiesUtils.ResetOutlookGoogleNoteId(this, outlookNoteItem);                                        
-
-                ////ToDo: Currently, the Delete only removes the Notes label from the document but keeps the document in the root folder
-                //Document deletedNote = LoadGoogleNotes(match.GoogleNote.DocumentEntry.Id);
-                //if (deletedNote != null)
-                //    DocumentsRequest.Delete(deletedNote);
-
-                // Start the update process.  
-                uploader.AsyncOperationCompleted += new AsyncOperationCompletedEventHandler(OnGoogleNoteUpdated);
-                uploader.UpdateAsync(authenticator, match.GoogleNote.DocumentEntry, match);
-
-                //uploader.Update(_authenticator, match.GoogleNote.DocumentEntry);
-            }
-            else
-            {
-                uploader.AsyncOperationCompleted += new AsyncOperationCompletedEventHandler(OnGoogleNoteCreated);
-                CreateGoogleNote(match.GoogleNote, match, DocumentsRequest, uploader, authenticator);
-            }
-
-            match.AsyncUpdateCompleted = false;
-
-            //Google.GData.Documents.DocumentEntry entry = DocumentsRequest.Service.UploadDocument(NotePropertiesUtils.GetFileName(outlookNoteItem.EntryID, SyncProfile), match.GoogleNote.Title.Replace(":", String.Empty));                               
-            //Document newNote = LoadGoogleNotes(entry.Id);
-            //match.GoogleNote = DocumentsRequest.MoveDocumentTo(GoogleNotesFolder, newNote);
-
-            //First delete old temporary file, because it was saved with old GoogleNoteID, because every sync to Google becomes a new ID, because updateMedia doesn't work
-            //File.Delete(NotePropertiesUtils.GetFileName(oldOutlookGoogleNoteId, SyncProfile));
-            //UpdateNoteMatchId(match);
-            //}
-            //finally
-            //{
-            //    Marshal.ReleaseComObject(outlookNoteItem);
-            //    outlookNoteItem = null;
-            //}
-        }
-
-        public static void CreateGoogleNote(/*Document parentFolder, */Document googleNote, object UserData, DocumentsRequest documentsRequest, ResumableUploader uploader, OAuth2Authenticator authenticator)
-        {
-            // Define the resumable upload link      
-            Uri createUploadUrl = new Uri("https://docs.google.com/feeds/upload/create-session/default/private/full");
-            //Uri createUploadUrl = new Uri(GoogleNotesFolder.AtomEntry.EditUri.ToString()); 
-            AtomLink link = new AtomLink(createUploadUrl.AbsoluteUri);
-            link.Rel = ResumableUploader.CreateMediaRelation;
-            googleNote.DocumentEntry.Links.Add(link);
-            //if (parentFolder != null)
-            //    googleNote.DocumentEntry.ParentFolders.Add(new AtomLink(parentFolder.DocumentEntry.SelfUri.ToString()));
-            // Set the service to be used to parse the returned entry 
-            googleNote.DocumentEntry.Service = documentsRequest.Service;
-            // Start the upload process   
-            //uploader.InsertAsync(_authenticator, match.GoogleNote.DocumentEntry, new object());
-            uploader.InsertAsync(authenticator, googleNote.DocumentEntry, UserData);
-        }
-
-        private void UpdateNoteMatchId(NoteMatch match)
-        {
-            NotePropertiesUtils.SetOutlookGoogleNoteId(this, match.OutlookNote, match.GoogleNote);
-            match.OutlookNote.Save();
-
-            //As GoogleDocuments don't have UserProperties, we have to use the file to check, if Note was already synced or not
-            File.Delete(NotePropertiesUtils.GetFileName(match.GoogleNote.Id, SyncProfile));
-            File.Move(NotePropertiesUtils.GetFileName(match.OutlookNote.EntryID, SyncProfile), NotePropertiesUtils.GetFileName(match.GoogleNote.Id, SyncProfile));
-        }
-
-        private void OnGoogleNoteCreated(object sender, AsyncOperationCompletedEventArgs e)
-        {
-            MoveGoogleNote(e.Entry as DocumentEntry, e.UserState as NoteMatch, true, e.Error, e.Cancelled);
-        }
-
-        private void OnGoogleNoteUpdated(object sender, AsyncOperationCompletedEventArgs e)
-        {
-            MoveGoogleNote(e.Entry as DocumentEntry, e.UserState as NoteMatch, false, e.Error, e.Cancelled);
-        }
-        private void MoveGoogleNote(DocumentEntry entry, NoteMatch match, bool create, Exception ex, bool cancelled)
-        {
-            if (ex != null)
-            {
-                ErrorHandler.Handle(new Exception("Google Note couldn't be " + (create ? "created" : "updated") + " :" + entry == null ? null : entry.Summary.ToString(), ex));
-                return;
-            }
-
-            if (cancelled || entry == null)
-            {
-                ErrorHandler.Handle(new Exception("Google Note " + (create ? "creation" : "update") + " was cancelled: " + entry == null ? null : entry.Summary.ToString()));
-                return;
-            }
-
-            //Get updated Google Note
-            Document newNote = LoadGoogleNotes(null, entry.Id);
-            match.GoogleNote = newNote;
-
-            //Doesn't work because My Drive is not listed as parent folder: Remove all parent folders except for the Notes subfolder
-            //if (create)
-            //{
-            //    foreach (string parentFolder in newNote.ParentFolders)
-            //        if (parentFolder != googleNotesFolder.Self)
-            //            DocumentsRequest.Delete(new Uri(googleNotesFolder.DocumentEntry.Content.AbsoluteUri + "/" + newNote.ResourceId),newNote.ETag);
-            //}
-
-            //first delete the note from all categories, the still valid categories are assigned again later           
-            foreach (string parentFolder in newNote.ParentFolders)
-                if (parentFolder != googleNotesFolder.Self) //Except for Notes root folder
-                {
-                    Document deletedNote = LoadGoogleNotes(parentFolder + "/contents", newNote.DocumentEntry.Id);
-                    //DocumentsRequest.Delete(new Uri(parentFolder + "/contents/" + newNote.ResourceId), newNote.ETag);
-                    DocumentsRequest.Delete(deletedNote); //Just delete it from this category
-                }
-
-            //Move now to Notes subfolder (if not already there)
-            if (!IsInFolder(googleNotesFolder, newNote))
-                newNote = DocumentsRequest.MoveDocumentTo(googleNotesFolder, newNote);
-
-            //Move now to all categories subfolder (if not already there)
-            foreach (string category in Utilities.GetOutlookGroups(match.OutlookNote.Categories))
-            {
-                Document categoryFolder = GetOrCreateGoogleFolder(googleNotesFolder, category);
-
-                if (!IsInFolder(categoryFolder, newNote))
-                    newNote = DocumentsRequest.MoveDocumentTo(categoryFolder, newNote);
-            }
-
-            //Then update the match IDs
-            UpdateNoteMatchId(match);
-
-            Logger.Log((create ? "Created" : "Updated") + " Google note from Outlook: \"" + match.OutlookNote.Subject + "\".", EventType.Information);
-            //Then release this match as completed (to not log the summary already before each single note result has been synced
-            match.AsyncUpdateCompleted = true;
         }
 
         /// <summary>
@@ -3872,64 +3502,6 @@ namespace GoContactSyncMod
         }
 
         /// <summary>
-        /// Updates Google note from Outlook
-        /// </summary>
-        public void UpdateNote(Outlook.NoteItem master, Document slave)
-        {
-            if (!string.IsNullOrEmpty(master.Subject))
-                slave.Title = master.Subject.Replace(":", string.Empty);
-
-            string fileName = NotePropertiesUtils.CreateNoteFile(master.EntryID, master.Body, SyncProfile);
-
-            string contentType = MediaFileSource.GetContentTypeForFileName(fileName);
-
-            //ToDo: Somewhow, the content is not uploaded to Google, only an empty document
-            //Therefoe I use DocumentService.UploadDocument instead.
-            slave.MediaSource = new MediaFileSource(fileName, contentType);
-        }
-
-        /// <summary>
-        /// Updates Outlook contact from Google
-        /// </summary>
-        public void UpdateNote(Document master, Outlook.NoteItem slave)
-        {
-            //slave.Subject = master.Title; //The Subject is readonly and set automatically by Outlook
-            string body = NotePropertiesUtils.GetBody(this, master);
-
-            if (string.IsNullOrEmpty(body) && slave.Body != null)
-            {
-                //DialogResult result = MessageBox.Show("The body of Google note '" + master.Title + "' is empty. Do you really want to synchronize an empty Google note to a not yet empty Outlook note?", "Empty Google Note", MessageBoxButtons.YesNo);
-
-                //if (result != DialogResult.Yes)
-                //{
-                //    Logger.Log("The body of Google note '" + master.Title + "' is empty. The user decided to skip this note and not to synchronize an empty Google note to a not yet empty Outlook note.", EventType.Information);
-                Logger.Log("The body of Google note '" + master.Title + "' is empty. It is skipped from syncing, because Outlook note is not empty.", EventType.Warning);
-                SkippedCount++;
-                return;
-                //}
-                //Logger.Log("The body of Google note '" + master.Title + "' is empty. The user decided to synchronize an empty Google note to a not yet empty Outlook note (" + slave.Body + ").", EventType.Warning);                
-
-            }
-
-            slave.Body = body;
-
-            slave.Categories = string.Empty;
-            List<string> newCats = new List<string>();
-            foreach (string category in master.ParentFolders)
-            {
-                Document categoryFolder = GetGoogleFolder(googleNotesFolder, null, category);
-
-                if (categoryFolder != null)
-                    newCats.Add(categoryFolder.Title);
-
-            }
-
-            slave.Categories = string.Join(", ", newCats.ToArray());
-
-            NotePropertiesUtils.CreateNoteFile(master.Id, body, SyncProfile);
-        }
-
-        /// <summary>
         /// Updates Google contact's groups from Outlook contact
         /// </summary>
         private void OverwriteContactGroups(Outlook.ContactItem master, Contact slave)
@@ -4102,84 +3674,7 @@ namespace GoContactSyncMod
 
         }
 
-        /// <summary>
-        /// Resets associantions of Outlook notes with Google contacts via user props
-        /// and resets associantions of Google contacts with Outlook contacts via extended properties.
-        /// </summary>
-        public void ResetNoteMatches()
-        {
-            Debug.Assert(OutlookNotes != null, "Outlook Notes object is null - this should not happen. Please inform Developers.");
-
-            //try
-            //{
-            if (string.IsNullOrEmpty(SyncProfile))
-            {
-                Logger.Log("Must set a sync profile. This should be different on each user/computer you sync on.", EventType.Error);
-                return;
-            }
-
-
-            lock (_syncRoot)
-            {
-                Logger.Log("Resetting Google Note matches...", EventType.Information);
-
-                try
-                {
-                    NotePropertiesUtils.DeleteNoteFiles(SyncProfile);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("The Google Note matches couldn't be reset: " + ex.Message, EventType.Warning);
-                }
-
-
-                Logger.Log("Resetting Outlook Note matches...", EventType.Information);
-                //1 based array
-                for (int i = 1; i <= OutlookNotes.Count; i++)
-                {
-                    Outlook.NoteItem outlookNote = null;
-
-                    try
-                    {
-                        outlookNote = OutlookNotes[i] as Outlook.NoteItem;
-                        if (outlookNote == null)
-                        {
-                            Logger.Log("Empty Outlook Note found (maybe distribution list). Skipping", EventType.Warning);
-                            continue;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        //this is needed because some notes throw exceptions
-                        Logger.Log("Accessing Outlook Note threw and exception. Skipping: " + ex.Message, EventType.Warning);
-                        continue;
-                    }
-
-                    try
-                    {
-                        ResetMatch(outlookNote);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log("The match of Outlook note " + outlookNote.Subject + " couldn't be reset: " + ex.Message, EventType.Warning);
-                    }
-                }
-
-            }
-            //}
-            //finally
-            //{
-            //    if (OutlookContacts != null)
-            //    {
-            //        Marshal.ReleaseComObject(OutlookContacts);
-            //        OutlookContacts = null;
-            //    }
-            //    GoogleContacts = null;
-            //}
-
-        }
-
-
+       
         ///// <summary>
         ///// Reset the match link between Google and Outlook contact
         ///// </summary>
@@ -4335,27 +3830,6 @@ namespace GoContactSyncMod
                     Marshal.ReleaseComObject(outlookContact);
                     outlookContact = null;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Reset the match link between Outlook and Google note
-        /// </summary>
-        public void ResetMatch(Outlook.NoteItem outlookNote)
-        {
-
-            if (outlookNote != null)
-            {
-                //try
-                //{
-                NotePropertiesUtils.ResetOutlookGoogleNoteId(this, outlookNote);
-                outlookNote.Save();
-                //}
-                //finally
-                //{
-                //    Marshal.ReleaseComObject(outlookNote);
-                //    outlookNote = null;
-                //}
             }
         }
 
@@ -4629,15 +4103,6 @@ namespace GoContactSyncMod
                 string oCount = "Outlook Contact Count: " + OutlookContacts.Count;
                 string gCount = "Google Contact Count: " + GoogleContacts.Count;
                 string mCount = "Matches Count: " + Contacts.Count;
-
-                MessageBox.Show(string.Format(msg, oCount, gCount, mCount), "DEBUG INFO", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-            if (SyncNotes)
-            {
-                string oCount = "Outlook Notes Count: " + OutlookNotes.Count;
-                string gCount = "Google Notes Count: " + GoogleNotes.Count;
-                string mCount = "Matches Count: " + Notes.Count;
 
                 MessageBox.Show(string.Format(msg, oCount, gCount, mCount), "DEBUG INFO", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }

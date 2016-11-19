@@ -24,10 +24,9 @@ namespace GoContactSyncMod
         [DllImport("user32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern int RegisterWindowMessage(string message);
 
-        /*
-        [DllImport("kernel32", CharSet = CharSet.Unicode)]
-        public static extern bool GetVersionEx(ref OSVERSIONINFOEX osvi);
-        */
+        [DllImport("ole32.dll")]
+        public static extern int CoRegisterMessageFilter(IOleMessageFilter newFilter, out IOleMessageFilter oldFilter);
+
         #endregion
     }
 }
