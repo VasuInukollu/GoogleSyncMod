@@ -2898,7 +2898,7 @@ namespace GoContactSyncMod
             {
                 foreach (var p in googleContact.ExtendedProperties)
                 {
-                    if (p.Value.Length > 1012)
+                    if (p.Value != null && p.Value.Length > 1012)
                     {
                         Logger.Log(googleContact.Title + ": for extended property " + p.Name + " size limit exceeded (" + p.Value.Length + "). Value is: " + p.Value, EventType.Debug);
                         if (form == null)
