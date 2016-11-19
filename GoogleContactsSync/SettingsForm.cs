@@ -1987,9 +1987,15 @@ namespace GoContactSyncMod
         private void NewVersionLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (((LinkLabel)sender).LinkColor == Color.Red)
+            {
+                Logger.Log("Process Start for https://sourceforge.net/projects/googlesyncmod/files/latest/download", EventType.Debug);
                 Process.Start("https://sourceforge.net/projects/googlesyncmod/files/latest/download");
+            }
             else
-                Process.Start("https://sourceforge.net/projects/googlesyncmod");
+            {
+                Logger.Log("Process Start for https://sourceforge.net/projects/googlesyncmod/", EventType.Debug);
+                Process.Start("https://sourceforge.net/projects/googlesyncmod/");
+            }
         }
     }
 }
