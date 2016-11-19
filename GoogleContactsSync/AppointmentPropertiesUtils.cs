@@ -180,6 +180,7 @@ namespace GoContactSyncMod
         public static string GetOutlookGoogleAppointmentId(Synchronizer sync, Outlook.AppointmentItem outlookAppointment)
         {
             string id = null;
+
             Outlook.UserProperties userProperties = null;
             Outlook.UserProperty idProp = null;
 
@@ -190,8 +191,6 @@ namespace GoContactSyncMod
                 if (idProp != null)
                 {
                     id = (string)idProp.Value;
-                    if (id == null)
-                        throw new Exception();
                 }
             }
             finally

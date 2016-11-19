@@ -89,53 +89,28 @@ namespace GoContactSyncMod
                 //OutlookAppointmentInfo olci = new OutlookAppointmentInfo(ola, sync);
 
                 //try to match this appointment to one of Google appointments               
-                Outlook.ItemProperties userProperties = null;
-                Outlook.ItemProperty idProp = null;
-                try
+
+                string googleAppointmentId = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola);
+
+                if (googleAppointmentId != null)
                 {
-                    userProperties = ola.ItemProperties;
-                    idProp = userProperties[sync.OutlookPropertyNameId];
+                    Event foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
+                    var match = new AppointmentMatch(ola, null);
 
-                    if (idProp != null)
+                    if (foundAppointment != null && !foundAppointment.Status.Equals("cancelled"))
                     {
-                        string googleAppointmentId = string.Copy((string)idProp.Value);
-                        Event foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
-                        var match = new AppointmentMatch(ola, null);
-
-                        if (foundAppointment != null && !foundAppointment.Status.Equals("cancelled"))
-                        {
-                            //we found a match by google id, that is not deleted or cancelled yet
-
-                            //ToDo: For an unknown reason, some appointments are duplicate in GoogleAppointments, therefore remove all duplicates before continuing
-                            while (foundAppointment != null)
-                            {
-                                match.AddGoogleAppointment(foundAppointment);
-                                result.Add(match);
-                                //Remove the appointment from the list to not sync it twice
-                                if (sync.GoogleAppointments.Contains(foundAppointment))
-                                {
-                                    sync.GoogleAppointments.Remove(foundAppointment);
-                                    foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
-                                }
-                                else
-                                    foundAppointment = null;
-                            }
-                        }
-                        else
-                        {
-                            OutlookAppointmentsWithoutSyncId.Add(ola);
-                        }
+                        //we found a match by google id, that is not deleted or cancelled yet
+                        match.AddGoogleAppointment(foundAppointment);
+                        result.Add(match);
                     }
                     else
+                    {
                         OutlookAppointmentsWithoutSyncId.Add(ola);
+                    }
                 }
-                finally
-                {
-                    if (idProp != null)
-                        Marshal.ReleaseComObject(idProp);
-                    if (userProperties != null)
-                        Marshal.ReleaseComObject(userProperties);
-                }
+                else
+                    OutlookAppointmentsWithoutSyncId.Add(ola);
+
             }
             #endregion
             #region Match the remaining appointments by properties
@@ -163,19 +138,9 @@ namespace GoContactSyncMod
 
                         //ToDo: For an unknown reason, some appointments are duplicate in GoogleAppointments, therefore remove all duplicates before continuing                                                
                         Event foundAppointment = sync.GetGoogleAppointmentById(AppointmentPropertiesUtils.GetGoogleId(googleAppointment));
-                        while (foundAppointment != null)
-                        {
-                            //we found a match by google id, that is not deleted yet                       
-                            match.AddGoogleAppointment(foundAppointment);
-                            //Remove the appointment from the list to not sync it twice
-                            if (sync.GoogleAppointments.Contains(foundAppointment))
-                            {
-                                sync.GoogleAppointments.Remove(foundAppointment);
-                                foundAppointment = sync.GetGoogleAppointmentById(AppointmentPropertiesUtils.GetGoogleId(googleAppointment));
-                            }
-                            else
-                                foundAppointment = null;
-                        }
+
+                        //we found a match by google id, that is not deleted yet                       
+                        match.AddGoogleAppointment(foundAppointment);
                     }
                 }
 
