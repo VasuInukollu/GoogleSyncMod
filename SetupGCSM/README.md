@@ -1,5 +1,13 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.13] - 20.11.2016 
+
+### SVN commits
+
+**r787 - r789:
+
+- FIX: Avoid further matching in case appointments are already matched [bug: #951]
+
 ## Version [3.10.12] - 19.11.2016 
 
 ### SVN commits
