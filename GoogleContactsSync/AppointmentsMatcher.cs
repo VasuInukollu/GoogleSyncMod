@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Outlook = Microsoft.Office.Interop.Outlook;
-using System.Runtime.InteropServices;
 using Google.Apis.Calendar.v3.Data;
 
 namespace GoContactSyncMod
@@ -102,6 +101,7 @@ namespace GoContactSyncMod
                         //we found a match by google id, that is not deleted or cancelled yet
                         match.AddGoogleAppointment(foundAppointment);
                         result.Add(match);
+                        sync.GoogleAppointments.Remove(foundAppointment);
                     }
                     else
                     {
