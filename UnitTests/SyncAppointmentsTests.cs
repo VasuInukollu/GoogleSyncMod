@@ -41,7 +41,6 @@ namespace GoContactSyncMod.UnitTests
 
             sync = new Synchronizer();
             sync.SyncAppointments = true;
-            sync.SyncNotes = false;
             sync.SyncContacts = false;
             sync.SyncProfile = syncProfile;
             Assert.IsNotNull(syncAppointmentsFolder);

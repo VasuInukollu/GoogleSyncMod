@@ -44,7 +44,6 @@ namespace GoContactSyncMod.UnitTests
 
             sync = new Synchronizer();
             sync.SyncContacts = true;
-            sync.SyncNotes = false;
             sync.SyncAppointments = false;
             sync.SyncProfile = syncProfile;
             Synchronizer.SyncContactsFolder = syncContactsFolder;  

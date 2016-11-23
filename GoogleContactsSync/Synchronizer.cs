@@ -6,9 +6,7 @@ using Google.Apis.Util.Store;
 using Google.Contacts;
 using Google.Documents;
 using Google.GData.Client;
-using Google.GData.Client.ResumableUpload;
 using Google.GData.Contacts;
-using Google.GData.Documents;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -52,8 +50,6 @@ namespace GoContactSyncMod
         public event TimeZoneNotificationHandler TimeZoneChanges;
 
         public ContactsRequest ContactsRequest { get; private set; }
-
-        public DocumentsRequest DocumentsRequest { get; private set; }
         public EventsResource EventRequest { get; private set; }
 
         private static Outlook.NameSpace _outlookNamespace;
@@ -69,18 +65,15 @@ namespace GoContactSyncMod
 
         public static Outlook.Application OutlookApplication { get; private set; }
         public Outlook.Items OutlookContacts { get; private set; }
-        public Outlook.Items OutlookNotes { get; private set; }
         public Outlook.Items OutlookAppointments { get; private set; }
         public Collection<ContactMatch> OutlookContactDuplicates { get; set; }
         public Collection<ContactMatch> GoogleContactDuplicates { get; set; }
         public Collection<Contact> GoogleContacts { get; private set; }
-        public Collection<Document> GoogleNotes { get; private set; }
         private CalendarService CalendarRequest;
         public Collection<Google.Apis.Calendar.v3.Data.Event> GoogleAppointments { get; private set; }
         public Collection<Google.Apis.Calendar.v3.Data.Event> AllGoogleAppointments { get; private set; }
         public IList<CalendarListEntry> calendarList { get; private set; }
         public Collection<Group> GoogleGroups { get; set; }
-        internal Document googleNotesFolder;
         public string OutlookPropertyPrefix { get; private set; }
 
         public string OutlookPropertyNameId
@@ -107,7 +100,6 @@ namespace GoContactSyncMod
 
         public string SyncProfile { get; set; }
         public static string SyncContactsFolder { get; set; }
-        public static string SyncNotesFolder { get; set; }
         public static string SyncAppointmentsFolder { get; set; }
         public static string SyncAppointmentsGoogleFolder { get; set; }
         public static string SyncAppointmentsGoogleTimeZone { get; set; }
@@ -148,10 +140,6 @@ namespace GoContactSyncMod
         /// </summary>
         public bool SyncDelete { get; set; }
         public bool PromptDelete { get; set; }
-        /// <summary>
-        /// If true sync also notes
-        /// </summary>
-        public bool SyncNotes { get; set; }
 
         /// <summary>
         /// If true sync also contacts
@@ -172,7 +160,7 @@ namespace GoContactSyncMod
         public void LoginToGoogle(string username)
         {
             Logger.Log("Connecting to Google...", EventType.Information);
-            if (ContactsRequest == null && SyncContacts || DocumentsRequest == null && SyncNotes || EventRequest == null & SyncAppointments)
+            if (ContactsRequest == null && SyncContacts || EventRequest == null & SyncAppointments)
             {
                 //OAuth2 for all services
                 List<string> scopes = new List<string>();
@@ -594,13 +582,6 @@ namespace GoContactSyncMod
             Logger.Log("Outlook Contacts Found: " + OutlookContacts.Count, EventType.Debug);
         }
 
-        private void LoadOutlookNotes()
-        {
-            Logger.Log("Loading Outlook Notes...", EventType.Information);
-            OutlookNotes = GetOutlookItems(Outlook.OlDefaultFolders.olFolderNotes, SyncNotesFolder);
-            Logger.Log("Outlook Notes Found: " + OutlookNotes.Count, EventType.Debug);
-        }
-
         private void LoadOutlookAppointments()
         {
             Logger.Log("Loading Outlook appointments...", EventType.Information);
@@ -795,77 +776,6 @@ namespace GoContactSyncMod
                 //Logger.Log(message, EventType.Error);
                 throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
             }
-        }
-
-        private void LoadGoogleNotes()
-        {
-            LoadGoogleNotes(null, null);
-            Logger.Log("Google Notes Found: " + GoogleNotes.Count, EventType.Debug);
-        }
-
-        internal Document LoadGoogleNotes(string folderUri, AtomId id)
-        {
-            string message = "Error Loading Google Notes. Cannot connect to Google.\r\nPlease ensure you are connected to the internet. If you are behind a proxy, change your proxy configuration!";
-
-            Document ret = null;
-            try
-            {
-                if (folderUri == null && id == null)
-                {
-                    // Only log, if not specific Google Notes are searched
-                    Logger.Log("Loading Google Notes...", EventType.Information);
-                    GoogleNotes = new Collection<Document>();
-                }
-
-                if (googleNotesFolder == null)
-                    googleNotesFolder = GetOrCreateGoogleFolder(null, "Notes");//ToDo: Make the folder name Notes configurable in SettingsForm, for now hardcode to "Notes");
-
-                if (folderUri == null)
-                {
-                    if (id == null)
-                        folderUri = googleNotesFolder.DocumentEntry.Content.AbsoluteUri;
-                    else //if newly created
-                        folderUri = DocumentsRequest.BaseUri;
-                }
-
-                DocumentQuery query = new DocumentQuery(folderUri);
-                query.Categories.Add(new QueryCategory(new AtomCategory("document")));
-                query.NumberToRetrieve = 256;
-                query.StartIndex = 0;
-
-                //query.ShowDeleted = false;
-                //query.OrderBy = "lastmodified";
-                Feed<Document> feed = DocumentsRequest.Get<Document>(query);
-
-                while (feed != null)
-                {
-                    foreach (Document a in feed.Entries)
-                    {
-                        if (id == null)
-                            GoogleNotes.Add(a);
-                        else if (id.Equals(a.DocumentEntry.Id))
-                        {
-                            ret = a;
-                            return ret;
-                        }
-                    }
-                    query.StartIndex += query.NumberToRetrieve;
-                    feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
-                }
-
-            }
-            catch (System.Net.WebException ex)
-            {
-                //Logger.Log(message, EventType.Error);
-                throw new GDataRequestException(message, ex);
-            }
-            catch (NullReferenceException ex)
-            {
-                //Logger.Log(message, EventType.Error);
-                throw new GDataRequestException(message, new System.Net.WebException("Error accessing feed", ex));
-            }
-
-            return ret;
         }
 
         private void LoadGoogleAppointments()
@@ -1252,127 +1162,8 @@ namespace GoContactSyncMod
             return ret;
         }
 
-        /// <summary>
-        /// Cleanup empty GoogleNotesFolders (for Outlook categories)
-        /// </summary>
-        internal void CleanUpGoogleCategories()
-        {
-            DocumentQuery query;
-            Feed<Document> feed;
-            List<Document> categoryFolders = GetGoogleGroups();
+        
 
-            if (categoryFolders != null)
-            {
-                foreach (Document categoryFolder in categoryFolders)
-                {
-                    query = new DocumentQuery(categoryFolder.DocumentEntry.Content.AbsoluteUri);
-                    query.NumberToRetrieve = 256;
-                    query.StartIndex = 0;
-
-                    //query.ShowDeleted = false;
-                    //query.OrderBy = "lastmodified";
-                    feed = DocumentsRequest.Get<Document>(query);
-
-                    bool isEmpty = true;
-                    while (feed != null)
-                    {
-                        foreach (Document a in feed.Entries)
-                        {
-                            isEmpty = false;
-                            break;
-                        }
-                        if (!isEmpty)
-                            break;
-                        query.StartIndex += query.NumberToRetrieve;
-                        feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
-                    }
-
-                    if (isEmpty)
-                    {
-                        DocumentsRequest.Delete(new Uri(DocumentsListQuery.documentsBaseUri + "/" + categoryFolder.ResourceId), categoryFolder.ETag);
-                        Logger.Log("Deleted empty Google category folder: " + categoryFolder.Title, EventType.Information);
-                    }
-                }
-            }
-        }
-
-        internal List<Document> GetGoogleGroups()
-        {
-            List<Document> categoryFolders;
-
-            DocumentQuery query = new DocumentQuery(googleNotesFolder.DocumentEntry.Content.AbsoluteUri);
-            query.Categories.Add(new QueryCategory(new AtomCategory("folder")));
-            query.NumberToRetrieve = 256;
-            query.StartIndex = 0;
-
-            //query.ShowDeleted = false;
-            //query.OrderBy = "lastmodified";
-            Feed<Document> feed = DocumentsRequest.Get<Document>(query);
-            categoryFolders = new List<Document>();
-
-            while (feed != null)
-            {
-                foreach (Document a in feed.Entries)
-                {
-                    categoryFolders.Add(a);
-                }
-                query.StartIndex += query.NumberToRetrieve;
-                feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
-            }
-
-            return categoryFolders;
-        }
-
-        private Document GetOrCreateGoogleFolder(Document parentFolder, string title)
-        {
-            Document ret = null;
-
-            lock (this) //Synchronize the threads
-            {
-                ret = GetGoogleFolder(parentFolder, title, null);
-
-                if (ret == null)
-                {
-                    ret = new Document();
-                    ret.Type = Document.DocumentType.Folder;
-                    //ret.Categories.Add(new AtomCategory("http://schemas.google.com/docs/2007#folder"));
-                    ret.Title = title;
-                    ret = SaveGoogleNote(parentFolder, ret, DocumentsRequest);
-                }
-            }
-
-            return ret;
-        }
-
-        internal Document GetGoogleFolder(Document parentFolder, string title, string uri)
-        {
-            Document ret = null;
-
-            //First get the Notes folder or create it, if not yet existing            
-            DocumentQuery query = new DocumentQuery(DocumentsRequest.BaseUri);
-            //Doesn't work, therefore used IsInFolder below: DocumentQuery query = new DocumentQuery((parentFolder == null) ? DocumentsRequest.BaseUri : parentFolder.DocumentEntryContent.AbsoluteUri);
-            query.Categories.Add(new QueryCategory(new AtomCategory("folder")));
-            if (!string.IsNullOrEmpty(title))
-                query.Title = title;
-
-            Feed<Document> feed = DocumentsRequest.Get<Document>(query);
-
-            if (feed != null)
-            {
-                foreach (Document a in feed.Entries)
-                {
-                    if ((string.IsNullOrEmpty(uri) || a.Self == uri) &&
-                        (parentFolder == null || IsInFolder(parentFolder, a)))
-                    {
-                        ret = a;
-                        break;
-                    }
-                }
-                query.StartIndex += query.NumberToRetrieve;
-                feed = DocumentsRequest.Get(feed, FeedRequestType.Next);
-            }
-            return ret;
-        }
         /// <summary>
         /// Load the contacts from Google and Outlook
         /// </summary>
@@ -1385,17 +1176,13 @@ namespace GoContactSyncMod
             RemoveGoogleDuplicatedContacts();
         }
 
-        public void LoadNotes()
-        {
-            LoadOutlookNotes();
-            LoadGoogleNotes();
-        }
-
         /// <summary>
         /// Remove duplicates from Google: two different Google appointments pointing to the same Outlook appointment.
         /// </summary>
         private void RemoveGoogleDuplicatedAppointments()
         {
+            Logger.Log("Removing Google duplicated appointments...", EventType.Information);
+
             var appointments = new Dictionary<string, int>();
 
             //scan all Google appointments
@@ -1491,6 +1278,8 @@ namespace GoContactSyncMod
         /// </summary>
         private void RemoveOutlookDuplicatedAppointments()
         {
+            Logger.Log("Removing Outlook duplicated appointments...", EventType.Information);
+
             var appointments = new Dictionary<string, int>();
 
             //scan all appointments
@@ -1586,6 +1375,8 @@ namespace GoContactSyncMod
         /// </summary>
         private void RemoveGoogleDuplicatedContacts()
         {
+            Logger.Log("Removing Google duplicated contacts...", EventType.Information);
+
             var contacts = new Dictionary<string, int>();
 
             //scan all Google contacts
@@ -1681,6 +1472,8 @@ namespace GoContactSyncMod
         /// </summary>
         private void RemoveOutlookDuplicatedContacts()
         {
+            Logger.Log("Removing Outlook duplicated contacts...", EventType.Information);
+
             var contacts = new Dictionary<string, int>();
 
             //scan all contacts
@@ -1919,18 +1712,12 @@ namespace GoContactSyncMod
                         Marshal.ReleaseComObject(OutlookContacts);
                         OutlookContacts = null;
                     }
-                    if (OutlookNotes != null)
-                    {
-                        Marshal.ReleaseComObject(OutlookNotes);
-                        OutlookNotes = null;
-                    }
                     if (OutlookAppointments != null)
                     {
                         Marshal.ReleaseComObject(OutlookAppointments);
                         OutlookAppointments = null;
                     }
                     GoogleContacts = null;
-                    GoogleNotes = null;
                     GoogleAppointments = null;
                     OutlookContactDuplicates = null;
                     GoogleContactDuplicates = null;
@@ -3331,8 +3118,6 @@ namespace GoContactSyncMod
                                         //Just save the Outlook Contact to have the same lastUpdate date as Google
                                         ContactPropertiesUtils.SetOutlookGoogleContactId(this, outlookContactitem, match.GoogleContact);
                                         outlookContactitem.Save();
-                                        outlookPhoto.Dispose();
-
                                     }
                                 }
                                 break; //Exit because photo save succeeded
@@ -3962,17 +3747,6 @@ namespace GoContactSyncMod
             return null;
         }
 
-        public Document GetGoogleNoteById(string id)
-        {
-            AtomId atomId = new AtomId(id);
-            foreach (Document note in GoogleNotes)
-            {
-                if (note.DocumentEntry.Id.Equals(atomId))
-                    return note;
-            }
-            return null;
-        }
-
         public Google.Apis.Calendar.v3.Data.Event GetGoogleAppointmentById(string id)
         {
             //ToDo: Temporary remove prefix used by v2:
@@ -4136,28 +3910,6 @@ namespace GoContactSyncMod
             }
             return outlookContact;
         }
-
-        public static Outlook.NoteItem CreateOutlookNoteItem(string syncNotesFolder)
-        {
-            //outlookNote = OutlookApplication.CreateItem(Outlook.OlItemType.olNoteItem) as Outlook.NoteItem; //This will only create it in the default folder, but we have to consider the selected folder
-            Outlook.NoteItem outlookNote = null;
-            Outlook.MAPIFolder notesFolder = null;
-            Outlook.Items items = null;
-
-            try
-            {
-                notesFolder = OutlookNameSpace.GetFolderFromID(syncNotesFolder);
-                items = notesFolder.Items;
-                outlookNote = items.Add(Outlook.OlItemType.olNoteItem) as Outlook.NoteItem;
-            }
-            finally
-            {
-                if (items != null) Marshal.ReleaseComObject(items);
-                if (notesFolder != null) Marshal.ReleaseComObject(notesFolder);
-            }
-            return outlookNote;
-        }
-
 
         public static Outlook.AppointmentItem CreateOutlookAppointmentItem(string syncAppointmentsFolder)
         {

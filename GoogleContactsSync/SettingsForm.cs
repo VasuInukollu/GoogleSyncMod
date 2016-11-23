@@ -74,7 +74,6 @@ namespace GoContactSyncMod
         private ProxySettingsForm _proxy = new ProxySettingsForm();
 
         private string syncContactsFolder = "";
-        private string syncNotesFolder = "";
         private string syncAppointmentsFolder = "";
         private string syncAppointmentsGoogleFolder = "";
         private string Timezone = "";
@@ -806,7 +805,6 @@ namespace GoContactSyncMod
                     //SetSyncConsoleText(Logger.GetText());
                     sync.SyncProfile = SyncProfile;
                     Synchronizer.SyncContactsFolder = syncContactsFolder;
-                    Synchronizer.SyncNotesFolder = syncNotesFolder;
                     Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
                     Synchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
                     Synchronizer.MonthsInPast = Convert.ToUInt16(pastMonthInterval.Value);
@@ -817,13 +815,12 @@ namespace GoContactSyncMod
                     sync.SyncDelete = btSyncDelete.Checked;
                     sync.PromptDelete = btPromptDelete.Checked && btSyncDelete.Checked;
                     sync.UseFileAs = chkUseFileAs.Checked;
-                    sync.SyncNotes = false;
                     sync.SyncContacts = btSyncContacts.Checked;
                     sync.SyncAppointments = btSyncAppointments.Checked;
                     Synchronizer.SyncAppointmentsForceRTF = btSyncAppointmentsForceRTF.Checked;
                     Synchronizer.SyncContactsForceRTF = btSyncContactsForceRTF.Checked;
 
-                    if (!sync.SyncContacts && !sync.SyncNotes && !sync.SyncAppointments)
+                    if (!sync.SyncContacts && !sync.SyncAppointments)
                     {
                         SetLastSyncText("Sync failed.");
                         notifyIcon.Text = Application.ProductName + "\nSync failed";
@@ -1307,12 +1304,10 @@ namespace GoContactSyncMod
             SetSyncConsoleText("");
             Logger.Log("Reset Matches started  (" + SyncProfile + ").", EventType.Information);
 
-            sync.SyncNotes = syncNotes;
             sync.SyncContacts = syncContacts;
             sync.SyncAppointments = syncAppointments;
 
             Synchronizer.SyncContactsFolder = syncContactsFolder;
-            Synchronizer.SyncNotesFolder = syncNotesFolder;
             Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
             Synchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
             sync.SyncProfile = SyncProfile;
@@ -1697,23 +1692,7 @@ namespace GoContactSyncMod
             ValidateSyncButton();
         }
 
-        private void noteFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            string message = "Select the Outlook Notes folder you want to sync";
-            var comboBox = sender as ComboBox;
-            if (comboBox.SelectedIndex >= 0 && comboBox.SelectedIndex < comboBox.Items.Count && comboBox.SelectedItem is OutlookFolder)
-            {
-                syncNotesFolder = comboBox.SelectedValue.ToString();
-                toolTip.SetToolTip(comboBox, message + ":\r\n" + ((OutlookFolder)comboBox.SelectedItem).DisplayName);
-            }
-            else
-            {
-                syncNotesFolder = "";
-                toolTip.SetToolTip(comboBox, message);
-            }
-
-            ValidateSyncButton();
-        }
+        
 
         private void appointmentFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
