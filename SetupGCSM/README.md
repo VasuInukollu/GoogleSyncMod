@@ -1,5 +1,14 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
+## Version [3.10.14] -  
+
+### SVN commits
+
+**r790 - r:
+
+- FIX: Handle DPI resolutions [bug: #953]
+- UPDATE: Update NuGet packages to latest version. 
+
 ## Version [3.10.13] - 20.11.2016 
 
 ### SVN commits
