@@ -1606,6 +1606,32 @@ namespace GoContactSyncMod
             Logger.Log("Appointment Matches Found: " + Appointments.Count, EventType.Debug);
         }
 
+        private void LogSyncParams()
+        {
+            Logger.Log("Synchronization options:", EventType.Debug);
+            Logger.Log("Profile: " + SyncProfile, EventType.Debug);
+            Logger.Log("SyncOption: " + SyncOption, EventType.Debug);
+            Logger.Log("SyncDelete: " + SyncDelete, EventType.Debug);
+            Logger.Log("PromptDelete: " + PromptDelete, EventType.Debug);
+
+            if (SyncContacts)
+            {
+                Logger.Log("Sync contacts", EventType.Debug);
+                Logger.Log("SyncContactsFolder: " + SyncContactsFolder, EventType.Debug);
+                Logger.Log("SyncContactsForceRTF: " + SyncContactsForceRTF, EventType.Debug);
+                Logger.Log("UseFileAs: " + UseFileAs, EventType.Debug);
+            }
+
+            if (SyncAppointments)
+            {
+                Logger.Log("Sync appointments", EventType.Debug);
+                Logger.Log("MonthsInPast: " + MonthsInPast, EventType.Debug);
+                Logger.Log("MonthsInFuture: " + MonthsInFuture, EventType.Debug);
+                Logger.Log("SyncAppointmentsFolder: " + SyncAppointmentsFolder, EventType.Debug);
+                Logger.Log("SyncAppointmentsGoogleFolder: " + SyncAppointmentsGoogleFolder, EventType.Debug);
+                Logger.Log("SyncAppointmentsForceRTF: " + SyncAppointmentsForceRTF, EventType.Debug);
+            }
+        }
 
         public void Sync()
         {
@@ -1618,6 +1644,8 @@ namespace GoContactSyncMod
                         Logger.Log("Must set a sync profile. This should be different on each user/computer you sync on.", EventType.Error);
                         return;
                     }
+
+                    LogSyncParams();
 
                     SyncedCount = 0;
                     DeletedCount = 0;

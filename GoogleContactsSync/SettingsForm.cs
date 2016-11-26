@@ -844,7 +844,7 @@ namespace GoContactSyncMod
                     lastSync = DateTime.Now;
                     SetLastSyncText("Last synced at " + lastSync.ToString());
 
-                    string message = string.Format("Sync complete.\r\n Synced:  {1} out of {0}.\r\n Deleted:  {2}.\r\n Skipped: {3}.\r\n Errors:    {4}.", sync.TotalCount, sync.SyncedCount, sync.DeletedCount, sync.SkippedCount, sync.ErrorCount);
+                    string message = string.Format("Sync complete. Synced: {1} out of {0}. Deleted: {2}. Skipped: {3}. Errors: {4}.", sync.TotalCount, sync.SyncedCount, sync.DeletedCount, sync.SkippedCount, sync.ErrorCount);
                     Logger.Log(message, EventType.Information);
 
                     if (reportSyncResultCheckBox.Checked)
