@@ -167,10 +167,7 @@ namespace GoContactSyncMod
 
                 //Contacts-Scope
                 scopes.Add("https://www.google.com/m8/feeds");
-                //Notes-Scope
-                //Obsolete, because no notes sync anymore: scopes.Add("https://docs.google.com/feeds/");
-                //Didn'T work: scopes.Add("https://docs.googleusercontent.com/");
-                //Didn'T work: scopes.Add("https://spreadsheets.google.com/feeds/");
+                
                 //Calendar-Scope
                 //Didn't work: scopes.Add("https://www.googleapis.com/auth/calendar");
                 scopes.Add(CalendarService.Scope.Calendar);
@@ -610,8 +607,8 @@ namespace GoContactSyncMod
                 //    for (int i = 1; i <= Folder.Folders.Count; i++)
                 //    {
                 //        Outlook.Folder subFolder = Folder.Folders[i] as Outlook.Folder;
-                //        if ((Outlook.OlDefaultFolders.olFolderContacts == outlookDefaultFolder && Outlook.OlItemType.olContactItem == subFolder.DefaultItemType) ||
-                //                 (Outlook.OlDefaultFolders.olFolderNotes == outlookDefaultFolder && Outlook.OlItemType.olNoteItem == subFolder.DefaultItemType) 
+                //        if ((Outlook.OlDefaultFolders.olFolderContacts == outlookDefaultFolder && Outlook.OlItemType.olContactItem == subFolder.DefaultItemType) 
+                //                 
                 //                )
                 //        {
                 //            mapiFolder = subFolder as Outlook.MAPIFolder;
@@ -2977,73 +2974,6 @@ namespace GoContactSyncMod
                     //throw new ApplicationException(newEx, ex);
 
                     return googleAppointment;
-                }
-            }
-        }
-
-        /// <summary>
-        /// save the google note
-        /// </summary>
-        /// <param name="googleNote"></param>
-        public static Document SaveGoogleNote(Document parentFolder, Document googleNote, DocumentsRequest documentsRequest)
-        {
-            //check if this contact was not yet inserted on google.
-            if (googleNote.DocumentEntry.Id.Uri == null)
-            {
-                //insert contact.
-                Uri feedUri = null;
-
-                if (parentFolder != null)
-                {
-                    try
-                    {//In case of Notes folder creation, the GoogleNotesFolder.DocumentEntry.Content.AbsoluteUri throws a NullReferenceException
-                        feedUri = new Uri(parentFolder.DocumentEntry.Content.AbsoluteUri);
-                    }
-                    catch (Exception)
-                    { }
-                }
-
-                if (feedUri == null)
-                    feedUri = new Uri(documentsRequest.BaseUri);
-
-                try
-                {
-                    Document createdEntry = documentsRequest.Insert(feedUri, googleNote);
-                    //ToDo: Workaround also doesn't help: Utilities.SaveGoogleNoteContent(this, createdEntry, googleNote);    
-                    Logger.Log("Created new Google folder: " + createdEntry.Title, EventType.Information);
-                    return createdEntry;
-                }
-                catch (Exception ex)
-                {
-                    string responseString = "";
-                    GDataRequestException e = ex as GDataRequestException;
-                    if (e != null)
-                        responseString = EscapeXml(e.ResponseString);
-                    string xml = GetXml(googleNote);
-                    string newEx = string.Format("Error saving NEW Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
-                    throw new ApplicationException(newEx, ex);
-                }
-            }
-            else
-            {
-                try
-                {
-                    //note already present in google. just update
-                    Document updated = documentsRequest.Update(googleNote);
-
-                    //ToDo: Workaround also doesn't help: Utilities.SaveGoogleNoteContent(this, updated, googleNote);                   
-
-                    return updated;
-                }
-                catch (Exception ex)
-                {
-                    string responseString = "";
-                    GDataRequestException e = ex as GDataRequestException;
-                    if (e != null)
-                        responseString = EscapeXml(e.ResponseString);
-                    string xml = GetXml(googleNote);
-                    string newEx = string.Format("Error saving EXISTING Google note: {0}. \n{1}\n{2}", responseString, ex.Message, xml);
-                    throw new ApplicationException(newEx, ex);
                 }
             }
         }

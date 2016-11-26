@@ -61,7 +61,6 @@ namespace GoContactSyncMod
         public const string RegistrySyncAppointmentsTimezone = "SyncAppointmentsTimezone";
         public const string RegistrySyncAppointments = "SyncAppointments";
         public const string RegistrySyncAppointmentsForceRTF = "SyncAppointmentsForceRTF";
-        public const string RegistrySyncNotes = "SyncNotes";
         public const string RegistrySyncContacts = "SyncContacts";
         public const string RegistrySyncContactsForceRTF = "SyncContactsForceRTF";
         public const string RegistryUseFileAs = "UseFileAs";
@@ -619,9 +618,7 @@ namespace GoContactSyncMod
             {
                 bool syncContactFolderIsValid = (contactFoldersComboBox.SelectedIndex >= 1 && contactFoldersComboBox.SelectedIndex < contactFoldersComboBox.Items.Count)
                                                 || !btSyncContacts.Checked;
-                //ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
-                //bool syncNoteFolderIsValid = (noteFoldersComboBox.SelectedIndex >= 1 && noteFoldersComboBox.SelectedIndex < noteFoldersComboBox.Items.Count)
-                //                                || !btSyncNotes.Checked;
+                
                 bool syncAppointmentFolderIsValid = (appointmentFoldersComboBox.SelectedIndex >= 1 && appointmentFoldersComboBox.SelectedIndex < appointmentFoldersComboBox.Items.Count)
                         && (appointmentGoogleFoldersComboBox.SelectedIndex == appointmentGoogleFoldersComboBox.Items.Count - 1 || appointmentGoogleFoldersComboBox.SelectedIndex >= 1 && appointmentGoogleFoldersComboBox.SelectedIndex < appointmentGoogleFoldersComboBox.Items.Count)
                                                 || !btSyncAppointments.Checked;
@@ -631,7 +628,7 @@ namespace GoContactSyncMod
                 //setBgColor(noteFoldersComboBox, syncNoteFolderIsValid);
                 //setBgColor(appointmentFoldersComboBox, syncAppointmentFolderIsValid);
 
-                return syncContactFolderIsValid && /*syncNoteFolderIsValid &&*/ syncAppointmentFolderIsValid;
+                return syncContactFolderIsValid && syncAppointmentFolderIsValid;
             }
         }
 
@@ -750,27 +747,25 @@ namespace GoContactSyncMod
                 {
                     TimerSwitch(false);
 
-                    //if the contacts or notes folder has changed ==> Reset matches (to not delete contacts or notes on the one or other side)                
+                    //if the contacts folder has changed ==> Reset matches (to not delete contacts on the one or other side)                
                     RegistryKey regKeyAppRoot = Registry.CurrentUser.CreateSubKey(AppRootKey + "\\" + SyncProfile);
                     string oldSyncContactsFolder = regKeyAppRoot.GetValue(RegistrySyncContactsFolder) as string;
-                    // string oldSyncNotesFolder = regKeyAppRoot.GetValue(RegistrySyncNotesFolder) as string;
                     string oldSyncAppointmentsFolder = regKeyAppRoot.GetValue(RegistrySyncAppointmentsFolder) as string;
                     string oldSyncAppointmentsGoogleFolder = regKeyAppRoot.GetValue(RegistrySyncAppointmentsGoogleFolder) as string;
 
-                    //only reset notes if NotesFolder changed and reset contacts if ContactsFolder changed
+                    //only reset contacts if ContactsFolder changed
                     //and only reset appointments, if either OutlookAppointmentsFolder changed (without changing Google at the same time) or GoogleAppointmentsFolder changed (without changing Outlook at the same time) (not chosen before means not changed)
                     bool syncContacts = !string.IsNullOrEmpty(oldSyncContactsFolder) && !oldSyncContactsFolder.Equals(syncContactsFolder) && btSyncContacts.Checked;
-                    bool syncNotes = false;
                     bool syncAppointments = !string.IsNullOrEmpty(oldSyncAppointmentsFolder) && !oldSyncAppointmentsFolder.Equals(syncAppointmentsFolder) && btSyncAppointments.Checked;
                     bool syncGoogleAppointments = !string.IsNullOrEmpty(syncAppointmentsGoogleFolder) && !syncAppointmentsGoogleFolder.Equals(oldSyncAppointmentsGoogleFolder) && btSyncAppointments.Checked;
                     if (syncContacts || syncAppointments && !syncGoogleAppointments || !syncAppointments && syncGoogleAppointments)
                     {
-                        bool r = await ResetMatches(syncContacts, syncNotes, syncAppointments);
+                        bool r = await ResetMatches(syncContacts, syncAppointments);
                         if (!r)
                             throw new Exception("Reset required but cancelled by user");
                     }
 
-                    //Then save the Contacts and Notes Folders used at last sync
+                    //Then save the Contacts Folders used at last sync
                     if (btSyncContacts.Checked)
                         regKeyAppRoot.SetValue(RegistrySyncContactsFolder, syncContactsFolder);
 
@@ -825,7 +820,7 @@ namespace GoContactSyncMod
                         SetLastSyncText("Sync failed.");
                         notifyIcon.Text = Application.ProductName + "\nSync failed";
 
-                        string messageText = "Neither notes nor contacts nor appointments are switched on for syncing. Please choose at least one option. Sync aborted!";
+                        string messageText = "Neither contacts nor appointments are switched on for syncing. Please choose at least one option. Sync aborted!";
                         //    Logger.Log(messageText, EventType.Error);
                         //    ShowForm();
                         //    ShowBalloonToolTip("Error", messageText, ToolTipIcon.Error, 5000, true);
@@ -1263,7 +1258,7 @@ namespace GoContactSyncMod
             try
             {
                 cancelButton.Enabled = false; //Cancel is only working for sync currently, not for reset
-                await ResetMatches(btSyncContacts.Checked, false /*btSyncNotes.Checked*/, btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                await ResetMatches(btSyncContacts.Checked,  btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             }
             catch (Exception ex)
             {
@@ -1286,7 +1281,7 @@ namespace GoContactSyncMod
             }
         }
 
-        private async Task<bool> ResetMatches(bool syncContacts, bool syncNotes, bool syncAppointments)
+        private async Task<bool> ResetMatches(bool syncContacts, bool syncAppointments)
         {
             TimerSwitch(false);
 
@@ -1611,22 +1606,12 @@ namespace GoContactSyncMod
         {
             if (!btSyncContacts.Checked && !btSyncAppointments.Checked)
             {
-                MessageBox.Show("Neither contacts nor appointments are switched on for syncing. Please choose at least one option (automatically switched on notes for syncing now).", "No sync switched on");
-                btSyncAppointments.Checked = true;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                MessageBox.Show("Neither contacts nor appointments are switched on for syncing. Please choose at least one option (automatically switched on appointments for syncing now).", "No sync switched on");
+                btSyncAppointments.Checked = true;
             }
             contactFoldersComboBox.Visible = btSyncContacts.Checked;
             btSyncContactsForceRTF.Visible = btSyncContacts.Checked;
         }
-
-        //private void btSyncNotes_CheckedChanged(object sender, EventArgs e)
-        //{
-        //    if (!btSyncContacts.Checked && !btSyncNotes.Checked && !btSyncAppointments.Checked)
-        //    {
-        //        MessageBox.Show("Neither notes nor contacts nor appointments are switched on for syncing. Please choose at least one option (automatically switched on appointments for syncing now).", "No sync switched on");
-        //        btSyncAppointments.Checked = true; //ToDo: Google Calendar Api v2 deprecated                
-        //    }
-        //    noteFoldersComboBox.Visible = btSyncNotes.Checked;
-        //}
 
         private void btSyncAppointments_CheckedChanged(object sender, EventArgs e)
         {

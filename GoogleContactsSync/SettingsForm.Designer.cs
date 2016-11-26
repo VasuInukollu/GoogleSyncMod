@@ -1235,11 +1235,9 @@ namespace GoContactSyncMod
         private System.Windows.Forms.Button hideButton;
         private System.Windows.Forms.LinkLabel proxySettingsLinkLabel;
         private System.Windows.Forms.CheckBox reportSyncResultCheckBox;
-        //private System.Windows.Forms.CheckBox btSyncNotes;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
         private System.Windows.Forms.CheckBox btSyncContacts;
         private System.Windows.Forms.ComboBox contactFoldersComboBox;
         private System.Windows.Forms.ComboBox cmbSyncProfile;
-        //private System.Windows.Forms.ComboBox noteFoldersComboBox;//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
         private System.Windows.Forms.CheckBox btPromptDelete;
         private System.Windows.Forms.CheckBox chkUseFileAs;
         private System.Windows.Forms.PictureBox pictureBoxExit;

@@ -51,10 +51,6 @@ namespace GoContactSyncMod.UnitTests
             var scopes = new List<string>();
             //Contacts-Scope
             scopes.Add("https://www.google.com/m8/feeds");
-            //Notes-Scope
-            scopes.Add("https://docs.google.com/feeds/");
-            //scopes.Add("https://docs.googleusercontent.com/");
-            //scopes.Add("https://spreadsheets.google.com/feeds/");
             //Calendar-Scope
             //scopes.Add("https://www.googleapis.com/auth/calendar");
             scopes.Add(CalendarService.Scope.Calendar);
@@ -157,17 +153,13 @@ namespace GoContactSyncMod.UnitTests
         {
             string gmailUsername;
             string syncProfile;
-            GoogleAPITests.LoadSettings(out gmailUsername, out syncProfile);
+            LoadSettings(out gmailUsername, out syncProfile);
 
             EventsResource service;
             CalendarListEntry primaryCalendar = null;
             var scopes = new List<string>();
             //Contacts-Scope
             scopes.Add("https://www.google.com/m8/feeds");
-            //Notes-Scope
-            scopes.Add("https://docs.google.com/feeds/");
-            //scopes.Add("https://docs.googleusercontent.com/");
-            //scopes.Add("https://spreadsheets.google.com/feeds/");
             //Calendar-Scope
             //scopes.Add("https://www.googleapis.com/auth/calendar");
             scopes.Add(CalendarService.Scope.Calendar);
@@ -266,8 +258,6 @@ namespace GoContactSyncMod.UnitTests
             var scopes = new List<string>();
             //Contacts-Scope
             scopes.Add("https://www.google.com/m8/feeds");
-            //Notes-Scope
-            scopes.Add("https://docs.google.com/feeds/");
            
             scopes.Add(CalendarService.Scope.Calendar);
 
@@ -405,16 +395,15 @@ namespace GoContactSyncMod.UnitTests
             Logger.Log("Deleted Google appointment", EventType.Information);
         }
 
-        internal static void LoadSettings(out string gmailUsername, out string syncProfile, out string syncContactsFolder, out string syncNotesFolder, out string syncAppointmentsFolder)
+        internal static void LoadSettings(out string gmailUsername, out string syncProfile, out string syncContactsFolder, out string syncAppointmentsFolder)
         {
             Microsoft.Win32.RegistryKey regKeyAppRoot = LoadSettings(out gmailUsername, out syncProfile);
 
             syncContactsFolder = "";
-            syncNotesFolder = "";
             syncAppointmentsFolder = "";
             Synchronizer.SyncAppointmentsGoogleFolder = "";
 
-            //First, check if there is a folder called GCSMTestContacts and GCSMTestNotes available, if yes, use them
+            //First, check if there is a folder called GCSMTestContacts available, if yes, use them
             ArrayList outlookContactFolders = new ArrayList();
             ArrayList outlookNoteFolders = new ArrayList();
             ArrayList outlookAppointmentFolders = new ArrayList();
@@ -440,16 +429,7 @@ namespace GoContactSyncMod.UnitTests
                     break;
                 }
             }
-            foreach (OutlookFolder folder in outlookNoteFolders)
-            {
-                if (folder.FolderName.ToUpper().Contains("GCSMTestNotes".ToUpper()))
-                {
-                    Logger.Log("Uses Test folder: " + folder.DisplayName, EventType.Information);
-                    syncNotesFolder = folder.FolderID;
-                    break;
-                }
-            }
-
+            
             foreach (OutlookFolder folder in outlookAppointmentFolders)
             {
                 if (folder.FolderName.ToUpper().Contains("GCSMTestAppointments".ToUpper()))
@@ -463,9 +443,6 @@ namespace GoContactSyncMod.UnitTests
             if (string.IsNullOrEmpty(syncContactsFolder))
                 if (regKeyAppRoot.GetValue("SyncContactsFolder") != null)
                     syncContactsFolder = regKeyAppRoot.GetValue("SyncContactsFolder") as string;
-            if (string.IsNullOrEmpty(syncNotesFolder))
-                if (regKeyAppRoot.GetValue("SyncNotesFolder") != null)
-                    syncNotesFolder = regKeyAppRoot.GetValue("SyncNotesFolder") as string;
             if (string.IsNullOrEmpty(syncAppointmentsFolder))
                 if (regKeyAppRoot.GetValue("SyncAppointmentsFolder") != null)
                     syncAppointmentsFolder = regKeyAppRoot.GetValue("SyncAppointmentsFolder") as string;

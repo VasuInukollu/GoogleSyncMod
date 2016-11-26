@@ -37,10 +37,9 @@ namespace GoContactSyncMod.UnitTests
             //string gmailPassword;
             string syncProfile;
             string syncContactsFolder;
-            string syncNotesFolder;
             string syncAppointmentsFolder;
 
-            GoogleAPITests.LoadSettings(out gmailUsername, out syncProfile, out syncContactsFolder, out syncNotesFolder, out syncAppointmentsFolder);
+            GoogleAPITests.LoadSettings(out gmailUsername, out syncProfile, out syncContactsFolder, out syncAppointmentsFolder);
 
             sync = new Synchronizer();
             sync.SyncContacts = true;

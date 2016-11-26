@@ -6,6 +6,7 @@
 
 **r790 - r:
 
+- FIX: Fixed NullReferenceException in Office version checking
 - FIX: Handle DPI resolutions [bug: #953]
 - UPDATE: Update NuGet packages to latest version. 
 
