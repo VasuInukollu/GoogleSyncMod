@@ -86,7 +86,7 @@ namespace GoContactSyncMod
             }
             else
             {
-                return "Cannot open registry " + interfaceKey.ToString() + ".\r\nPlease read FAQ and fix your Office installation";
+                return "Cannot open registry " + interfaceVersion + ".\r\nPlease read FAQ and fix your Office installation";
             }
 
             if (!string.IsNullOrEmpty(registryVersion))
