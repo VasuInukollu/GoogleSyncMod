@@ -1,16 +1,17 @@
 # +++ NEWS +++ NEWS +++ NEWS +++
 
-## Version [3.10.14] -  
+## Version [3.10.14] - 27.11.2016
 
 ### SVN commits
 
-**r790 - r:
+**r790 - r799:
 
+- FIX: Do not scan for duplicates during matching, duplicates were removed during load [bug: #954]
 - FIX: Fixed NullReferenceException in Office version checking
 - FIX: Handle DPI resolutions [bug: #953]
 - UPDATE: Update NuGet packages to latest version. 
 
-## Version [3.10.13] - 20.11.2016 
+## Version [3.10.13] - 20.11.2016
 
 ### SVN commits
 
@@ -18,7 +19,7 @@
 
 - FIX: Avoid further matching in case appointments are already matched [bug: #951]
 
-## Version [3.10.12] - 19.11.2016 
+## Version [3.10.12] - 19.11.2016
 
 ### SVN commits
 
