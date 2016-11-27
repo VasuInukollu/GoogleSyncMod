@@ -135,12 +135,6 @@ namespace GoContactSyncMod
                     {
                         match.AddGoogleAppointment(googleAppointment);
                         sync.GoogleAppointments.Remove(googleAppointment);
-
-                        //ToDo: For an unknown reason, some appointments are duplicate in GoogleAppointments, therefore remove all duplicates before continuing                                                
-                        Event foundAppointment = sync.GetGoogleAppointmentById(AppointmentPropertiesUtils.GetGoogleId(googleAppointment));
-
-                        //we found a match by google id, that is not deleted yet                       
-                        match.AddGoogleAppointment(foundAppointment);
                     }
                 }
 
