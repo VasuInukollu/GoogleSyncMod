@@ -19,24 +19,8 @@ namespace GoContactSyncMod
         public delegate void NotificationHandler(string message);
         public static event NotificationHandler NotificationReceived;
 
-        /// <summary>
-        /// Matches outlook and Google appointment by a) id b) properties.
-        /// </summary>
-        /// <param name="sync">Syncronizer instance</param>
-        /// <returns>Returns a list of match pairs (outlook appointment + Google appointment) for all appointment. Those that weren't matche will have it's peer set to null</returns>
-        public static List<AppointmentMatch> MatchAppointments(Synchronizer sync)
+        private static void MatchAppointmentsById(Synchronizer sync, Collection<Outlook.AppointmentItem> OutlookAppointmentsWithoutSyncId, List<AppointmentMatch> result)
         {
-            Logger.Log("Matching Outlook and Google appointments...", EventType.Information);
-            var result = new List<AppointmentMatch>();
-
-            var googleAppointmentExceptions = new List<Event>();
-
-            //for each outlook appointment try to get Google appointment id from user properties
-            //if no match - try to match by properties
-            //if no match - create a new match pair without Google appointment. 
-            //foreach (Outlook._AppointmentItem olc in outlookAppointments)
-            var OutlookAppointmentsWithoutSyncId = new Collection<Outlook.AppointmentItem>();
-            #region Match first all outlookAppointments by sync id
             for (int i = 1; i <= sync.OutlookAppointments.Count; i++)
             {
                 Outlook.AppointmentItem ola = null;
@@ -69,6 +53,32 @@ namespace GoContactSyncMod
                         Logger.Log("Skipping Outlook appointment because it is out of months range to sync:" + ola.Subject + " - " + ola.Start, EventType.Debug);
                         continue;
                     }
+
+                    NotificationReceived?.Invoke(string.Format("Matching appointment {0} of {1} by id: {2} ...", i, sync.OutlookAppointments.Count, ola.Subject));
+
+                    //try to match this appointment to one of Google appointments               
+
+                    string googleAppointmentId = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola);
+
+                    if (googleAppointmentId != null)
+                    {
+                        Event foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
+                        var match = new AppointmentMatch(ola, null);
+
+                        if (foundAppointment != null && !foundAppointment.Status.Equals("cancelled"))
+                        {
+                            //we found a match by google id, that is not deleted or cancelled yet
+                            match.AddGoogleAppointment(foundAppointment);
+                            result.Add(match);
+                            sync.GoogleAppointments.Remove(foundAppointment);
+                        }
+                        else
+                        {
+                            OutlookAppointmentsWithoutSyncId.Add(ola);
+                        }
+                    }
+                    else
+                        OutlookAppointmentsWithoutSyncId.Add(ola);
                 }
                 catch (Exception ex)
                 {
@@ -79,42 +89,12 @@ namespace GoContactSyncMod
                         Logger.Log("Accessing Outlook appointment threw and exception. Skipping: " + ex.Message, EventType.Warning);
                     sync.SkippedCount++;
                     sync.SkippedCountNotMatches++;
-                    continue;
                 }
-
-                NotificationReceived?.Invoke(string.Format("Matching appointment {0} of {1} by id: {2} ...", i, sync.OutlookAppointments.Count, ola.Subject));
-
-                // Create our own info object to go into collections/lists, so we can free the Outlook objects and not run out of resources / exceed policy limits.
-                //OutlookAppointmentInfo olci = new OutlookAppointmentInfo(ola, sync);
-
-                //try to match this appointment to one of Google appointments               
-
-                string googleAppointmentId = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola);
-
-                if (googleAppointmentId != null)
-                {
-                    Event foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
-                    var match = new AppointmentMatch(ola, null);
-
-                    if (foundAppointment != null && !foundAppointment.Status.Equals("cancelled"))
-                    {
-                        //we found a match by google id, that is not deleted or cancelled yet
-                        match.AddGoogleAppointment(foundAppointment);
-                        result.Add(match);
-                        sync.GoogleAppointments.Remove(foundAppointment);
-                    }
-                    else
-                    {
-                        OutlookAppointmentsWithoutSyncId.Add(ola);
-                    }
-                }
-                else
-                    OutlookAppointmentsWithoutSyncId.Add(ola);
-
             }
-            #endregion
-            #region Match the remaining appointments by properties
+        }
 
+        private static void MatchAppointmentsByProperties(Synchronizer sync, Collection<Outlook.AppointmentItem> OutlookAppointmentsWithoutSyncId, List<AppointmentMatch> result)
+        {
             for (int i = 0; i < OutlookAppointmentsWithoutSyncId.Count; i++)
             {
                 Outlook.AppointmentItem ola = OutlookAppointmentsWithoutSyncId[i];
@@ -143,9 +123,10 @@ namespace GoContactSyncMod
 
                 result.Add(match);
             }
-            #endregion
+        }
 
-
+        private static void MatchAppointmentsNoOutlookAppointment(Synchronizer sync, List<Event> googleAppointmentExceptions, List<AppointmentMatch> result)
+        {
             //for each Google appointment that's left (they will be nonmatched) create a new match pair without outlook appointment. 
             for (int i = 0; i < sync.GoogleAppointments.Count; i++)
             {
@@ -178,7 +159,10 @@ namespace GoContactSyncMod
                     result.Add(match);
                 }
             }
+        }
 
+        private static void MatchAppointmentsNoOutlookAppointmentGoogleException(Synchronizer sync, List<Event> googleAppointmentExceptions, List<AppointmentMatch> result)
+        {
             //for each Google appointment exception, assign to proper match
             for (int i = 0; i < googleAppointmentExceptions.Count; i++)
             {
@@ -201,6 +185,25 @@ namespace GoContactSyncMod
                 if (!found)
                     Logger.Log(string.Format("No match found for Google appointment exception: {0}", googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment)), EventType.Debug);
             }
+        }
+
+        /// <summary>
+        /// Matches outlook and Google appointment by a) id b) properties.
+        /// </summary>
+        /// <param name="sync">Syncronizer instance</param>
+        /// <returns>Returns a list of match pairs (outlook appointment + Google appointment) for all appointment. Those that weren't matche will have it's peer set to null</returns>
+        public static List<AppointmentMatch> MatchAppointments(Synchronizer sync)
+        {
+            Logger.Log("Matching Outlook and Google appointments...", EventType.Information);
+            var result = new List<AppointmentMatch>();
+            var OutlookAppointmentsWithoutSyncId = new Collection<Outlook.AppointmentItem>();
+
+            MatchAppointmentsById(sync, OutlookAppointmentsWithoutSyncId, result);
+            MatchAppointmentsByProperties(sync, OutlookAppointmentsWithoutSyncId, result);
+
+            var googleAppointmentExceptions = new List<Event>();
+            MatchAppointmentsNoOutlookAppointment(sync, googleAppointmentExceptions, result);
+            MatchAppointmentsNoOutlookAppointmentGoogleException(sync, googleAppointmentExceptions, result);
 
             return result;
         }
@@ -570,8 +573,6 @@ namespace GoContactSyncMod
         }
     }
 
-
-
     internal class AppointmentMatch
     {
         //ToDo: OutlookappointmentInfo
@@ -606,9 +607,5 @@ namespace GoContactSyncMod
 
             LastGoogleAppointment = googleAppointment;
         }
-
     }
-
-
-
 }
