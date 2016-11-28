@@ -161,9 +161,8 @@ namespace GoContactSyncMod
             for (int i = 0; i < sync.GoogleAppointments.Count; i++)
             {
                 var googleAppointment = sync.GoogleAppointments[i];
-                var oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, googleAppointment);
-
-                NotificationReceived?.Invoke(string.Format("Adding new Google appointment {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleAppointments.Count, googleAppointment.Summary));
+               
+                NotificationReceived?.Invoke(string.Format("Processing Google appointment {0} of {1} by unique properties: {2} ...", i + 1, sync.GoogleAppointments.Count, googleAppointment.Summary));
 
                 if (googleAppointment.RecurringEventId != null)
                 {
@@ -173,8 +172,6 @@ namespace GoContactSyncMod
                 else if (googleAppointment.Status.Equals("cancelled"))
                 {
                     Logger.Log("Skipping Google appointment found because it is cancelled: " + googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment), EventType.Debug);
-                    //sync.SkippedCount++;
-                    //sync.SkippedCountNotMatches++;
                 }
                 else if (string.IsNullOrEmpty(googleAppointment.Summary) && (googleAppointment.Start == null || googleAppointment.Start.DateTime == null && googleAppointment.Start.Date == null))
                 {
@@ -185,8 +182,7 @@ namespace GoContactSyncMod
                 }
                 else
                 {
-                    Logger.Log(string.Format("No match found for Google appointment ({0}) => {1}", googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment),
-                        (string.IsNullOrEmpty(oid) ? "Add to Outlook" : "Delete from Google")), EventType.Information);
+                    Logger.Log(string.Format("No match found for Google appointment ({0})", googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment)), EventType.Information);
                     var match = new AppointmentMatch(null, googleAppointment);
                     result.Add(match);
                 }
@@ -332,7 +328,8 @@ namespace GoContactSyncMod
 
         private static void SyncAppointmentNoOutlook(AppointmentMatch match, Synchronizer sync)
         {
-            string outlookAppointmenttId = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, match.GoogleAppointment);
+            var outlookAppointmenttId = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(sync.SyncProfile, match.GoogleAppointment);
+
             if (!string.IsNullOrEmpty(outlookAppointmenttId))
             {
                 if (sync.SyncOption == SyncOption.GoogleToOutlookOnly || !sync.SyncDelete)
