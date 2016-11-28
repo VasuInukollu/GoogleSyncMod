@@ -618,7 +618,7 @@ namespace GoContactSyncMod
             {
                 bool syncContactFolderIsValid = (contactFoldersComboBox.SelectedIndex >= 1 && contactFoldersComboBox.SelectedIndex < contactFoldersComboBox.Items.Count)
                                                 || !btSyncContacts.Checked;
-                
+
                 bool syncAppointmentFolderIsValid = (appointmentFoldersComboBox.SelectedIndex >= 1 && appointmentFoldersComboBox.SelectedIndex < appointmentFoldersComboBox.Items.Count)
                         && (appointmentGoogleFoldersComboBox.SelectedIndex == appointmentGoogleFoldersComboBox.Items.Count - 1 || appointmentGoogleFoldersComboBox.SelectedIndex >= 1 && appointmentGoogleFoldersComboBox.SelectedIndex < appointmentGoogleFoldersComboBox.Items.Count)
                                                 || !btSyncAppointments.Checked;
@@ -1258,7 +1258,7 @@ namespace GoContactSyncMod
             try
             {
                 cancelButton.Enabled = false; //Cancel is only working for sync currently, not for reset
-                await ResetMatches(btSyncContacts.Checked,  btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                await ResetMatches(btSyncContacts.Checked, btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             }
             catch (Exception ex)
             {
@@ -1306,6 +1306,15 @@ namespace GoContactSyncMod
             Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
             Synchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
             sync.SyncProfile = SyncProfile;
+
+            Synchronizer.MonthsInPast = Convert.ToUInt16(pastMonthInterval.Value);
+            Synchronizer.MonthsInFuture = Convert.ToUInt16(futureMonthInterval.Value);
+
+            DateTime now = DateTime.Now;
+            if (Synchronizer.MonthsInPast != 0)
+                Synchronizer.DateTimeMin = now.AddMonths(-Synchronizer.MonthsInPast);
+            if (Synchronizer.MonthsInFuture != 0)
+                Synchronizer.DateTimeMax = now.AddMonths(Synchronizer.MonthsInFuture);
 
             sync.LoginToGoogle(UserName.Text);
             sync.LoginToOutlook();
@@ -1677,7 +1686,7 @@ namespace GoContactSyncMod
             ValidateSyncButton();
         }
 
-        
+
 
         private void appointmentFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {

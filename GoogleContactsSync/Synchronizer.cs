@@ -106,6 +106,9 @@ namespace GoContactSyncMod
 
         public static ushort MonthsInPast { get; set; }
         public static ushort MonthsInFuture { get; set; }
+        public static DateTime DateTimeMin { get; set; }
+        public static DateTime DateTimeMax { get; set; }
+
         public static string Timezone { get; set; }
         public static bool MappingBetweenTimeZonesRequired { get; set; }
 
@@ -167,7 +170,7 @@ namespace GoContactSyncMod
 
                 //Contacts-Scope
                 scopes.Add("https://www.google.com/m8/feeds");
-                
+
                 //Calendar-Scope
                 //Didn't work: scopes.Add("https://www.googleapis.com/auth/calendar");
                 scopes.Add(CalendarService.Scope.Calendar);
@@ -628,8 +631,10 @@ namespace GoContactSyncMod
             finally
             {
                 if (mapiFolder != null)
+                {
                     Marshal.ReleaseComObject(mapiFolder);
-                mapiFolder = null;
+                    mapiFolder = null;
+                }
             }
         }
 
@@ -778,7 +783,7 @@ namespace GoContactSyncMod
         private void LoadGoogleAppointments()
         {
             Logger.Log("Loading Google appointments...", EventType.Information);
-            LoadGoogleAppointments(null, MonthsInPast, MonthsInFuture, null, null);
+            LoadGoogleAppointments(null, null, null);
             Logger.Log("Google Appointments Found: " + GoogleAppointments.Count, EventType.Debug);
         }
 
@@ -827,9 +832,9 @@ namespace GoContactSyncMod
                 string pageToken = null;
 
                 if (MonthsInPast != 0)
-                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
+                    query.TimeMin = DateTimeMin;
                 if (MonthsInFuture != 0)
-                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+                    query.TimeMax = DateTimeMax;
 
                 Logger.Log("Processing single updates.", EventType.Information);
 
@@ -939,9 +944,9 @@ namespace GoContactSyncMod
                 string pageToken = null;
 
                 if (MonthsInPast != 0)
-                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
+                    query.TimeMin = DateTimeMin;
                 if (MonthsInFuture != 0)
-                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+                    query.TimeMax = DateTimeMax;
 
                 Logger.Log("Processing batch updates.", EventType.Information);
 
@@ -1082,7 +1087,7 @@ namespace GoContactSyncMod
             }
         }
 
-        internal Google.Apis.Calendar.v3.Data.Event LoadGoogleAppointments(string id, ushort restrictMonthsInPast, ushort restrictMonthsInFuture, DateTime? restrictStartTime, DateTime? restrictEndTime)
+        internal Google.Apis.Calendar.v3.Data.Event LoadGoogleAppointments(string id, DateTime? restrictStartTime, DateTime? restrictEndTime)
         {
             string message = "Error Loading Google appointments. Cannot connect to Google.\r\nPlease ensure you are connected to the internet. If you are behind a proxy, change your proxy configuration!";
 
@@ -1098,12 +1103,12 @@ namespace GoContactSyncMod
                 //query.MaxResults = 256; //ToDo: Find a way to retrieve all appointments
 
                 //Only Load events from month range, but only if not a distinct Google Appointment is searched for
-                if (restrictMonthsInPast != 0)
-                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
+                if (MonthsInPast != 0)
+                    query.TimeMin = DateTimeMin;
                 if (restrictStartTime != null && (query.TimeMin == default(DateTime) || restrictStartTime > query.TimeMin))
                     query.TimeMin = restrictStartTime.Value;
-                if (restrictMonthsInFuture != 0)
-                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+                if (MonthsInFuture != 0)
+                    query.TimeMax = DateTimeMax;
                 if (restrictEndTime != null && (query.TimeMax == default(DateTime) || restrictEndTime < query.TimeMax))
                     query.TimeMax = restrictEndTime.Value;
 
@@ -1153,13 +1158,13 @@ namespace GoContactSyncMod
             }
 
             //Remember, if all Google Appointments have been loaded
-            if (restrictMonthsInPast == 0 && restrictMonthsInFuture == 0 && restrictStartTime == null && restrictEndTime == null) //restrictStartDate == null)
+            if (MonthsInPast == 0 && MonthsInFuture == 0 && restrictStartTime == null && restrictEndTime == null) //restrictStartDate == null)
                 AllGoogleAppointments = GoogleAppointments;
 
             return ret;
         }
 
-        
+
 
         /// <summary>
         /// Load the contacts from Google and Outlook
@@ -1656,6 +1661,12 @@ namespace GoContactSyncMod
                     DeleteGoogleResolution = DeleteResolution.Cancel;
                     DeleteOutlookResolution = DeleteResolution.Cancel;
 
+                    DateTime now = DateTime.Now;
+                    if (MonthsInPast != 0)
+                        DateTimeMin = now.AddMonths(-MonthsInPast);
+                    if (MonthsInFuture != 0)
+                        DateTimeMax = now.AddMonths(MonthsInFuture);
+
                     if (SyncContacts)
                         MatchContacts();
 
@@ -1721,7 +1732,7 @@ namespace GoContactSyncMod
                         if (Appointments == null)
                             return;
 
-                        TotalCount += Appointments.Count + SkippedCountNotMatches; ;
+                        TotalCount += Appointments.Count + SkippedCountNotMatches;
 
                         Logger.Log("Syncing appointments...", EventType.Information);
                         AppointmentsMatcher.SyncAppointments(this);
@@ -3417,7 +3428,7 @@ namespace GoContactSyncMod
 
         }
 
-       
+
         ///// <summary>
         ///// Reset the match link between Google and Outlook contact
         ///// </summary>

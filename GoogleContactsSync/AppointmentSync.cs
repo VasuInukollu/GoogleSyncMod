@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 
 namespace GoContactSyncMod
 {
-
     internal static class AppointmentSync
     {
         private const string dateFormat = "yyyyMMdd";
@@ -166,7 +165,7 @@ namespace GoContactSyncMod
                     {
                         if (!string.IsNullOrEmpty(outlook_start_tz.ID))
                         {
-                            google_start_tz = WindowsToIana(outlook_start_tz.ID);              
+                            google_start_tz = WindowsToIana(outlook_start_tz.ID);
                         }
                     }
                 }
@@ -215,7 +214,7 @@ namespace GoContactSyncMod
                 {
                     //todo (obelix30), workaround for https://github.com/google/google-api-dotnet-client/issues/853
                     DateTimeZone zone = DateTimeZoneProviders.Tzdb[google_start_tz];
-                    LocalDateTime start_local = LocalDateTime.FromDateTime (master.StartInStartTimeZone);
+                    LocalDateTime start_local = LocalDateTime.FromDateTime(master.StartInStartTimeZone);
                     ZonedDateTime start_zoned = start_local.InZoneLeniently(zone);
                     DateTime start_utc = start_zoned.ToDateTimeUtc();
                     slave.Start.DateTime = start_utc;
@@ -959,7 +958,7 @@ namespace GoContactSyncMod
                                 break;
                             }
                         }
-                        
+
                         foreach (string part in parts)
                         {
                             if (part.StartsWith(BYMONTHDAY))
@@ -990,7 +989,6 @@ namespace GoContactSyncMod
 
         public static bool UpdateRecurrenceExceptions(Outlook.AppointmentItem master, Event slave, Synchronizer sync)
         {
-
             bool ret = false;
 
             Outlook.Exceptions exceptions = master.GetRecurrencePattern().Exceptions;
@@ -1002,8 +1000,8 @@ namespace GoContactSyncMod
                     if (!exception.Deleted)
                     {
                         //Add exception time (but only if in given time range
-                        if ((Synchronizer.MonthsInPast == 0 || exception.AppointmentItem.End >= DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) &&
-                             (Synchronizer.MonthsInFuture == 0 || exception.AppointmentItem.Start <= DateTime.Now.AddMonths(Synchronizer.MonthsInFuture)))
+                        if ((Synchronizer.MonthsInPast == 0 || exception.AppointmentItem.End >= Synchronizer.DateTimeMin) &&
+                             (Synchronizer.MonthsInFuture == 0 || exception.AppointmentItem.Start <= Synchronizer.DateTimeMax))
                         {
                             //slave.Times.Add(new Google.GData.Extensions.When(exception.AppointmentItem.Start, exception.AppointmentItem.Start, exception.AppointmentItem.AllDayEvent));
                             var googleRecurrenceException = Factory.NewEvent();
@@ -1065,8 +1063,8 @@ namespace GoContactSyncMod
                         //    if (googleRecurrenceException != null)
                         //        googleRecurrenceException.Delete();
 
-                        if ((Synchronizer.MonthsInPast == 0 || exception.OriginalDate >= DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) &&
-                             (Synchronizer.MonthsInFuture == 0 || exception.OriginalDate <= DateTime.Now.AddMonths(Synchronizer.MonthsInFuture)))
+                        if ((Synchronizer.MonthsInPast == 0 || exception.OriginalDate >= Synchronizer.DateTimeMin) &&
+                             (Synchronizer.MonthsInFuture == 0 || exception.OriginalDate <= Synchronizer.DateTimeMax))
                         {
                             //First create deleted occurrences, to delete it later again
                             var googleRecurrenceException = Factory.NewEvent();
@@ -1164,7 +1162,7 @@ namespace GoContactSyncMod
                     else if (googleRecurrenceException.End != null)
                         timeMax = googleRecurrenceException.End.DateTime;
 
-                    googleRecurrenceException = sync.LoadGoogleAppointments(googleRecurrenceException.Id, 0, 0, timeMin, timeMax); //Reload, just in case it was updated by master recurrence                                
+                    googleRecurrenceException = sync.LoadGoogleAppointments(googleRecurrenceException.Id, timeMin, timeMax); //Reload, just in case it was updated by master recurrence                                
                     if (googleRecurrenceException != null)
                     {
                         if (googleRecurrenceException.Status.Equals("cancelled"))
