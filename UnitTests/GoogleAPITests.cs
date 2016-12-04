@@ -5,9 +5,6 @@ using Google.GData.Contacts;
 using Google.GData.Client;
 using Google.GData.Extensions;
 using Google.Contacts;
-using Google.Documents;
-using Google.GData.Client.ResumableUpload;
-using Google.GData.Documents;
 using System.Collections;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Util.Store;
@@ -52,7 +49,6 @@ namespace GoContactSyncMod.UnitTests
             //Contacts-Scope
             scopes.Add("https://www.google.com/m8/feeds");
             //Calendar-Scope
-            //scopes.Add("https://www.googleapis.com/auth/calendar");
             scopes.Add(CalendarService.Scope.Calendar);
 
             UserCredential credential;
@@ -86,9 +82,6 @@ namespace GoContactSyncMod.UnitTests
 
                 service = new ContactsRequest(settings);
             }
-
-
-
 
             #region Delete previously created test contact.
             ContactsQuery query = new ContactsQuery(ContactsQuery.CreateContactsUri("default"));
@@ -161,15 +154,11 @@ namespace GoContactSyncMod.UnitTests
             //Contacts-Scope
             scopes.Add("https://www.google.com/m8/feeds");
             //Calendar-Scope
-            //scopes.Add("https://www.googleapis.com/auth/calendar");
             scopes.Add(CalendarService.Scope.Calendar);
 
             UserCredential credential;
             byte[] jsonSecrets = Properties.Resources.client_secrets;
 
-            //using (var stream = new FileStream(Path.GetDirectoryName(System.Reflection.Assembly.GetAssembly(this.GetType()).Location) + "\\client_secrets.json", FileMode.Open, FileAccess.Read))
-            //using (var stream = new FileStream("client_secrets.json", FileMode.Open, FileAccess.Read))
-            //using (var stream = new FileStream(Application.StartupPath + "\\client_secrets.json", FileMode.Open, FileAccess.Read))
             using (var stream = new MemoryStream(jsonSecrets))
             {
                 FileDataStore fDS = new FileDataStore(Logger.AuthFolder, true);
@@ -194,7 +183,6 @@ namespace GoContactSyncMod.UnitTests
 
                 if (primaryCalendar == null)
                     throw new Exception("Primary Calendar not found");
-
 
                 //EventQuery query = new EventQuery("https://www.google.com/calendar/feeds/default/private/full");
                 //ToDo: Upgrade to v3, EventQuery query = new EventQuery("https://www.googleapis.com/calendar/v3/calendars/default/events");
@@ -251,14 +239,14 @@ namespace GoContactSyncMod.UnitTests
         {
             string gmailUsername;
             string syncProfile;
-            GoogleAPITests.LoadSettings(out gmailUsername, out syncProfile);
+            LoadSettings(out gmailUsername, out syncProfile);
 
             EventsResource service;
             CalendarListEntry primaryCalendar = null;
             var scopes = new List<string>();
             //Contacts-Scope
             scopes.Add("https://www.google.com/m8/feeds");
-           
+
             scopes.Add(CalendarService.Scope.Calendar);
 
             UserCredential credential;
@@ -345,7 +333,7 @@ namespace GoContactSyncMod.UnitTests
                 Summary = "Birthday 1",
                 Start = s,
                 End = e,
-                Recurrence = new String[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
+                Recurrence = new string[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
             };
 
             Assert.AreEqual("1970-10-14T09:00:00.000Z", e1.Start.DateTimeRaw);
@@ -373,21 +361,16 @@ namespace GoContactSyncMod.UnitTests
                 Summary = "Birthday 2",
                 Start = ss,
                 End = ee,
-                Recurrence = new String[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
+                Recurrence = new string[] { "RRULE:FREQ=YEARLY;BYMONTHDAY=14;BYMONTH=10" }
             };
 
             Assert.AreEqual("2000-10-14T08:00:00.000Z", e2.Start.DateTimeRaw);
             var c2 = service.Insert(e2, primaryCalendar.Id).Execute();
             Assert.AreEqual("2000-10-14T10:00:00+02:00", c2.Start.DateTimeRaw);
 
-
-
-
             Logger.Log("Created Google appointment", EventType.Information);
 
             Assert.IsNotNull(c1.Id);
-
-            
 
             //delete test contacts
             //service.Delete(primaryCalendar.Id, createdEntry.Id).Execute();
@@ -429,7 +412,7 @@ namespace GoContactSyncMod.UnitTests
                     break;
                 }
             }
-            
+
             foreach (OutlookFolder folder in outlookAppointmentFolders)
             {
                 if (folder.FolderName.ToUpper().Contains("GCSMTestAppointments".ToUpper()))
@@ -476,5 +459,4 @@ namespace GoContactSyncMod.UnitTests
             return regKeyAppRoot;
         }
     }
-
 }

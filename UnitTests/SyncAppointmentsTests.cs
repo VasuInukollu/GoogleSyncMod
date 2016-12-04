@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using System.Threading;
 using Google.Apis.Calendar.v3.Data;
+using System.Runtime.InteropServices;
 
 namespace GoContactSyncMod.UnitTests
 {
@@ -19,7 +20,6 @@ namespace GoContactSyncMod.UnitTests
         //readonly When whenTime = new When(DateTime.Now, DateTime.Now.AddHours(1), false);
         //ToDo:const string groupName = "A TEST GROUP";
 
-
         [OneTimeSetUp]
         public void Init()
         {
@@ -31,7 +31,6 @@ namespace GoContactSyncMod.UnitTests
             }
 
             string gmailUsername;
-            //string gmailPassword;
             string syncProfile;
             string syncContactsFolder;
             string syncAppointmentsFolder;
@@ -49,7 +48,6 @@ namespace GoContactSyncMod.UnitTests
 
             sync.LoginToGoogle(gmailUsername);
             sync.LoginToOutlook();
-
         }
 
         [SetUp]
@@ -57,7 +55,6 @@ namespace GoContactSyncMod.UnitTests
         {
             // delete previously failed test appointments
             DeleteTestAppointments();
-
         }
 
         private void DeleteTestAppointments()
@@ -74,7 +71,7 @@ namespace GoContactSyncMod.UnitTests
             foreach (Event googleAppointment in sync.GoogleAppointments)
             {
                 if (googleAppointment != null &&
-                    googleAppointment.Summary != null && 
+                    googleAppointment.Summary != null &&
                     googleAppointment.Summary == name)
                 {
                     DeleteTestAppointment(googleAppointment);
@@ -331,7 +328,7 @@ namespace GoContactSyncMod.UnitTests
             sync.UpdateAppointment(ola2, ref e1);
             AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(sync.SyncProfile, e1);
             e1 = sync.SaveGoogleAppointment(e1);
-            
+
             var gid_ola1 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola1);
             var gid_ola2 = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola2);
             var gid_e1 = AppointmentPropertiesUtils.GetGoogleId(e1);
@@ -393,7 +390,6 @@ namespace GoContactSyncMod.UnitTests
 
             outlookAppointment.Save();
 
-
             sync.SyncOption = SyncOption.OutlookToGoogleOnly;
 
             var googleAppointment = Factory.NewEvent();
@@ -441,12 +437,11 @@ namespace GoContactSyncMod.UnitTests
 
             outlookAppointment.Save();
 
-
             sync.SyncOption = SyncOption.OutlookToGoogleOnly;
 
             var googleAppointment = Factory.NewEvent();
             sync.UpdateAppointment(outlookAppointment, ref googleAppointment);
-           
+
             googleAppointment = null;
 
             sync.SyncOption = SyncOption.GoogleToOutlookOnly;
@@ -459,7 +454,7 @@ namespace GoContactSyncMod.UnitTests
             Assert.IsNotNull(match.OutlookAppointment);
 
             Outlook.AppointmentItem recreatedOutlookAppointment = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
-            sync.UpdateAppointment(ref match.GoogleAppointment, recreatedOutlookAppointment, match.GoogleAppointmentExceptions);            
+            sync.UpdateAppointment(ref match.GoogleAppointment, recreatedOutlookAppointment, match.GoogleAppointmentExceptions);
             Assert.IsNotNull(outlookAppointment);
             Assert.IsNotNull(recreatedOutlookAppointment);
             // match recreatedOutlookAppointment with outlookAppointment
@@ -472,13 +467,12 @@ namespace GoContactSyncMod.UnitTests
 
             DeleteTestAppointments(match);
             recreatedOutlookAppointment.Delete();
-        }        
+        }
 
         [Test]
         public void TestExtendedProps()
         {
             sync.SyncOption = SyncOption.MergeOutlookWins;
-        
 
             // create new appointment to sync
             Outlook.AppointmentItem outlookAppointment = Synchronizer.CreateOutlookAppointmentItem(Synchronizer.SyncAppointmentsFolder);
@@ -491,7 +485,7 @@ namespace GoContactSyncMod.UnitTests
 
             var googleAppointment = Factory.NewEvent();
             sync.UpdateAppointment(outlookAppointment, ref googleAppointment);
-                      
+
             Assert.AreEqual(name, googleAppointment.Summary);
 
             // read appointment from google
@@ -500,7 +494,7 @@ namespace GoContactSyncMod.UnitTests
             AppointmentsMatcher.SyncAppointments(sync);
 
             AppointmentMatch match = FindMatch(outlookAppointment);
-            
+
             Assert.IsNotNull(match);
             Assert.IsNotNull(match.GoogleAppointment);
 
@@ -509,432 +503,6 @@ namespace GoContactSyncMod.UnitTests
 
             DeleteTestAppointments(match);
         }
-
-        //ToDo:
-        //[Test]
-        //public void TestSyncDeletedOulook()
-        //{
-        //    //ToDo: Check for eache SyncOption and SyncDelete combination
-        //    sync.SyncOption = SyncOption.MergeOutlookWins;
-        //    sync.SyncDelete = true;
-
-        //    // create new appointment to sync
-        //    Outlook.AppointmentItem outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    outlookAppointment.Subject = name;
-        //    outlookAppointment.Start = DateTime.Now;
-        //    outlookAppointment.Start = DateTime.Now.AddHours(1); 
-        //    outlookAppointment.Save();
-
-        //    var googleAppointment = new Event();
-        //    sync.UpdateAppointment(outlookAppointment, googleAppointment);           
-
-        //    // delete outlook appointment
-        //    outlookAppointment.Delete();
-
-        //    // sync
-        //    MatchAppointments(sync);
-        //    AppointmentsMatcher.SyncAppointments(sync);
-        //    // find match
-        //    AppointmentMatch match = FindMatch(outlookAppointment);
-
-        //    Assert.IsNotNull(match);
-
-        //    // delete
-        //    sync.UpdateAppointment(match);
-
-        //    // sync
-        //    MatchAppointments(sync);
-        //    AppointmentsMatcher.SyncAppointments(sync);
-
-        //    // check if google appointment still exists
-        //    googleAppointment = null;
-        //    match = sync.AppointmentByProperty(name, email);
-        //    //foreach (AppointmentMatch m in sync.Appointments)
-        //    //{
-        //    //    if (m.GoogleAppointment.Title == name)
-        //    //    {
-        //    //        googleAppointment = m.GoogleAppointment;
-        //    //        break;
-        //    //    }
-        //    //}
-        //    Assert.IsNull(match);
-        //}
-
-        //[Test]
-        //public void TestSyncDeletedGoogle()
-        //{
-        //    //ToDo: Check for eache SyncOption and SyncDelete combination
-        //    sync.SyncOption = SyncOption.MergeOutlookWins;
-        //    sync.SyncDelete = true;
-
-        //    // create new appointment to sync
-        //    Outlook.AppointmentItem outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    outlookAppointment.FullName = name;
-        //    outlookAppointment.FileAs = name;
-        //    outlookAppointment.Email1Address = email;
-        //    outlookAppointment.Email2Address = email.Replace("00", "01");
-        //    outlookAppointment.Email3Address = email.Replace("00", "02");
-        //    outlookAppointment.HomeAddress = "10 Parades";
-        //    outlookAppointment.PrimaryTelephoneNumber = "123";
-        //    outlookAppointment.Save();
-
-        //    Appointment googleAppointment = new Appointment();
-        //    sync.UpdateAppointment(outlookAppointment, googleAppointment);
-        //    AppointmentMatch match = new AppointmentMatch(outlookAppointment, sync), googleAppointment);
-
-        //    //save appointments
-        //    sync.UpdateAppointment(match);
-
-        //    // delete google appointment
-        //    GoogleAppointment.Delete();
-
-        //    // sync
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // delete
-        //    sync.UpdateAppointment(match);
-
-        //    // sync
-        //    MatchAppointments(sync);
-        //    AppointmentsMatcher.SyncAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-
-        //    // check if outlook appointment still exists
-        //    Assert.IsNull(match);
-
-        //    DeleteTestAppointments(match);
-        //}
-
-        
-        //[Test]
-        //public void TestSyncGroups()
-        //{
-        //    sync.SyncOption = SyncOption.MergeOutlookWins;
-
-        //    // create new appointment to sync
-        //    Outlook.AppointmentItem outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    outlookAppointment.FullName = name;
-        //    outlookAppointment.FileAs = name;
-        //    outlookAppointment.Email1Address = email;
-        //    outlookAppointment.Email2Address = email.Replace("00", "01");
-        //    outlookAppointment.Email3Address = email.Replace("00", "02");
-        //    outlookAppointment.HomeAddress = "10 Parades";
-        //    outlookAppointment.PrimaryTelephoneNumber = "123";
-        //    outlookAppointment.Categories = groupName;
-        //    outlookAppointment.Save();
-
-        //    //Outlook appointment should now have a group
-        //    Assert.AreEqual(groupName, outlookAppointment.Categories);
-
-        //    //Sync Groups first
-        //    MatchAppointments(sync);
-        //    AppointmentsMatcher.SyncGroups(sync);
-
-        //    Appointment googleAppointment = new Appointment();
-        //    sync.UpdateAppointment(outlookAppointment, googleAppointment);
-        //    AppointmentMatch match = new AppointmentMatch(outlookAppointment, sync), googleAppointment);
-
-        //    //sync and save appointment to google.
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-        //    sync.UpdateAppointment(match);
-
-        //    //load the same appointment from google.
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // google appointment should now have the same group
-        //    System.Collections.ObjectModel.Collection<Group> googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleAppointment);
-        //    Assert.AreEqual(2, googleGroups.Count);
-        //    Assert.Contains(sync.GetGoogleGroupByName(groupName), googleGroups);
-        //    Assert.Contains(sync.GetGoogleGroupByName(Syncronizer.myAppointmentsGroup), googleGroups);
-
-        //    // delete outlook appointment
-        //    outlookAppointment.Delete();
-        //    outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    sync.UpdateAppointment(match.GoogleAppointment, outlookAppointment);
-        //    match = new AppointmentMatch(outlookAppointment, sync), match.GoogleAppointment);
-        //    outlookAppointment.Save();
-
-        //    sync.SyncOption = SyncOption.MergeGoogleWins;
-
-        //    //sync and save appointment to outlook
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-        //    sync.UpdateAppointment(match);
-
-        //    //load the same appointment from outlook
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-
-        //    Assert.AreEqual(groupName, outlookAppointment.Categories);
-
-        //    DeleteTestAppointments(match);
-
-        //    // delete test group
-        //    Group group = sync.GetGoogleGroupByName(groupName);
-        //    if (group != null)
-        //        sync.CalendarService.Delete(group);
-        //}
-
-        //[Test]
-        //public void TestSyncDeletedGoogleGroup()
-        //{
-        //    //ToDo: Check for eache SyncOption and SyncDelete combination
-        //    sync.SyncOption = SyncOption.MergeOutlookWins;
-        //    sync.SyncDelete = true;
-
-        //    // create new appointment to sync
-        //    Outlook.AppointmentItem outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    outlookAppointment.FullName = name;
-        //    outlookAppointment.FileAs = name;
-        //    outlookAppointment.Email1Address = email;
-        //    outlookAppointment.Email2Address = email.Replace("00", "01");
-        //    outlookAppointment.Email3Address = email.Replace("00", "02");
-        //    outlookAppointment.HomeAddress = "10 Parades";
-        //    outlookAppointment.PrimaryTelephoneNumber = "123";
-        //    outlookAppointment.Categories = groupName;
-        //    outlookAppointment.Save();
-
-        //    //Outlook appointment should now have a group
-        //    Assert.AreEqual(groupName, outlookAppointment.Categories);
-
-        //    //Sync Groups first
-        //    MatchAppointments(sync);
-        //    AppointmentsMatcher.SyncGroups(sync);
-
-        //    //Create now Google Appointment and assing new Group
-        //    Appointment googleAppointment = new Appointment();
-        //    sync.UpdateAppointment(outlookAppointment, googleAppointment);
-        //    AppointmentMatch match = new AppointmentMatch(outlookAppointment, sync), googleAppointment);
-
-        //    //save appointment to google.            
-        //    sync.UpdateAppointment(match);
-
-        //    //load the same appointment from google.
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // google appointment should now have the same group
-        //    System.Collections.ObjectModel.Collection<Group> googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleAppointment);
-        //    Group group = sync.GetGoogleGroupByName(groupName);
-
-        //    Assert.AreEqual(2, googleGroups.Count);
-        //    Assert.Contains(group, googleGroups);
-        //    Assert.Contains(sync.GetGoogleGroupByName(Syncronizer.myAppointmentsGroup), googleGroups);
-
-        //    // delete group from google
-        //    Utilities.RemoveGoogleGroup(match.GoogleAppointment, group);
-
-        //    googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleAppointment);
-        //    Assert.AreEqual(1, googleGroups.Count);
-        //    Assert.Contains(sync.GetGoogleGroupByName(Syncronizer.myAppointmentsGroup), googleGroups);
-
-        //    //save appointment to google.
-        //    sync.SaveGoogleAppointment(match.GoogleAppointment);
-
-        //    sync.SyncOption = SyncOption.GoogleToOutlookOnly;
-
-        //    //Sync Groups first
-        //    MatchAppointments(sync);
-        //    AppointmentsMatcher.SyncGroups(sync);
-
-        //    //sync and save appointment to outlook.
-        //    match = sync.AppointmentByProperty(name, email);
-        //    sync.UpdateAppointment(match.GoogleAppointment, outlookAppointment);
-        //    sync.UpdateAppointment(match);
-
-        //    // google and outlook should now have no category except for the System Group: My Appointments
-        //    googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleAppointment);
-        //    Assert.AreEqual(1, googleGroups.Count);
-        //    Assert.AreEqual(null, outlookAppointment.Categories);
-        //    Assert.Contains(sync.GetGoogleGroupByName(Syncronizer.myAppointmentsGroup), googleGroups);
-
-        //    DeleteTestAppointments(match);
-
-        //    // delete test group
-        //    if (group != null)
-        //        sync.CalendarService.Delete(group);
-        //}
-
-        //[Test]
-        //public void TestSyncDeletedOutlookGroup()
-        //{
-        //    //ToDo: Check for eache SyncOption and SyncDelete combination
-        //    sync.SyncOption = SyncOption.MergeOutlookWins;
-        //    sync.SyncDelete = true;
-
-        //    // create new appointment to sync
-        //    Outlook.AppointmentItem outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    outlookAppointment.FullName = name;
-        //    outlookAppointment.FileAs = name;
-        //    outlookAppointment.Email1Address = email;
-        //    outlookAppointment.Email2Address = email.Replace("00", "01");
-        //    outlookAppointment.Email3Address = email.Replace("00", "02");
-        //    outlookAppointment.HomeAddress = "10 Parades";
-        //    outlookAppointment.PrimaryTelephoneNumber = "123";
-        //    outlookAppointment.Categories = groupName;
-        //    outlookAppointment.Save();
-
-        //    //Outlook appointment should now have a group
-        //    Assert.AreEqual(groupName, outlookAppointment.Categories);
-
-        //    //Now sync Groups
-        //    MatchAppointments(sync);
-        //    AppointmentsMatcher.SyncGroups(sync);
-
-        //    Appointment googleAppointment = new Appointment();
-        //    sync.UpdateAppointment(outlookAppointment, googleAppointment);
-        //    AppointmentMatch match = new AppointmentMatch(outlookAppointment, sync), googleAppointment);
-
-        //    //save appointment to google.
-        //    sync.UpdateAppointment(match);
-
-        //    //load the same appointment from google.
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // google appointment should now have the same group
-        //    System.Collections.ObjectModel.Collection<Group> googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleAppointment);
-        //    Group group = sync.GetGoogleGroupByName(groupName);
-        //    Assert.AreEqual(2, googleGroups.Count);
-        //    Assert.Contains(sync.GetGoogleGroupByName(Syncronizer.myAppointmentsGroup), googleGroups);
-        //    Assert.Contains(group, googleGroups);
-
-        //    // delete group from outlook
-        //    Utilities.RemoveOutlookGroup(outlookAppointment, groupName);
-
-        //    //save appointment to google.
-        //    sync.UpdateAppointment(match);
-
-        //    //load the same appointment from google.
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    sync.UpdateAppointment(outlookAppointment, match.GoogleAppointment);
-
-        //    // google and outlook should now have no category
-        //    googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleAppointment);
-        //    Assert.AreEqual(null, outlookAppointment.Categories);
-        //    Assert.AreEqual(1, googleGroups.Count);
-        //    Assert.Contains(sync.GetGoogleGroupByName(Syncronizer.myAppointmentsGroup), googleGroups);
-
-        //    DeleteTestAppointments(match);
-
-        //    // delete test group
-        //    if (group != null)
-        //        sync.CalendarService.Delete(group);
-        //}
-
-        //[Test]
-        //public void TestResetMatches()
-        //{
-        //    sync.SyncOption = SyncOption.MergeOutlookWins;
-
-        //    // create new appointment to sync
-        //    Outlook.AppointmentItem outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    outlookAppointment.FullName = name;
-        //    outlookAppointment.FileAs = name;
-        //    outlookAppointment.Email1Address = email;
-        //    outlookAppointment.Email2Address = email.Replace("00", "01");
-        //    outlookAppointment.Email3Address = email.Replace("00", "02");
-        //    outlookAppointment.HomeAddress = "10 Parades";
-        //    outlookAppointment.PrimaryTelephoneNumber = "123";
-        //    //outlookAppointment.Categories = groupName; //Group is not relevant here
-        //    outlookAppointment.Save();
-
-        //    Appointment googleAppointment = new Appointment();
-        //    sync.UpdateAppointment(outlookAppointment, googleAppointment);
-        //    AppointmentMatch match = new AppointmentMatch(outlookAppointment, sync), googleAppointment);
-
-        //    //save appointment to google.
-        //    sync.UpdateAppointment(match);
-
-        //    //load the same appointment from google.
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // delete outlook appointment
-        //    outlookAppointment.Delete();
-        //    match.OutlookAppointment = null;
-
-        //    //load the same appointment from google
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    Assert.IsNull(match.OutlookAppointment);
-
-        //    // reset matches
-        //    sync.ResetMatch(match.GoogleAppointment);
-        //    //Not, because NULL: sync.ResetMatch(match.OutlookAppointment.GetOriginalItemFromOutlook(sync));
-
-        //    // load same appointment match
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // google appointment should still be present and OutlookAppointment should be filled
-        //    Assert.IsNotNull(match.GoogleAppointment);
-        //    Assert.IsNotNull(match.OutlookAppointment);
-
-        //    DeleteTestAppointments();
-
-        //    // create new appointment to sync
-        //    outlookAppointment = Syncronizer.CreateOutlookAppointmentItem(Syncronizer.SyncAppointmentsFolder);
-        //    outlookAppointment.FullName = name;
-        //    outlookAppointment.FileAs = name;
-        //    outlookAppointment.Email1Address = email;
-        //    outlookAppointment.Email2Address = email.Replace("00", "01");
-        //    outlookAppointment.Email3Address = email.Replace("00", "02");
-        //    outlookAppointment.HomeAddress = "10 Parades";
-        //    outlookAppointment.PrimaryTelephoneNumber = "123";
-        //    outlookAppointment.Save();
-
-        //    // same test for delete google appointment...
-        //    googleAppointment = new Appointment();
-        //    sync.UpdateAppointment(outlookAppointment, googleAppointment);
-        //    match = new AppointmentMatch(outlookAppointment, sync), googleAppointment);
-
-        //    //save appointment to google.
-        //    sync.UpdateAppointment(match);
-
-        //    //load the same appointment from google.
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // delete google appointment           
-        //    match.GoogleAppointment.Delete();
-        //    match.GoogleAppointment = null;
-
-        //    //load the same appointment from google.
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    Assert.IsNull(match.GoogleAppointment);
-
-        //    // reset matches
-        //    //Not, because null: sync.ResetMatch(match.GoogleAppointment);
-        //    sync.ResetMatch(match.OutlookAppointment.GetOriginalItemFromOutlook());
-
-        //    // load same appointment match
-        //    MatchAppointments(sync);
-        //    match = sync.AppointmentByProperty(name, email);
-        //    AppointmentsMatcher.SyncAppointment(match, sync);
-
-        //    // Outlook appointment should still be present and GoogleAppointment should be filled
-        //    Assert.IsNotNull(match.OutlookAppointment);
-        //    Assert.IsNotNull(match.GoogleAppointment);
-
-        //    outlookAppointment.Delete();
-        //}
 
         private void DeleteTestAppointments(AppointmentMatch match)
         {
@@ -957,15 +525,11 @@ namespace GoContactSyncMod.UnitTests
                 }
                 finally
                 {
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(outlookAppointment);
+                    Marshal.ReleaseComObject(outlookAppointment);
                     outlookAppointment = null;
                 }
-
             }
         }
-
-
-       
 
         private void DeleteTestAppointment(Event googleAppointment)
         {
@@ -976,7 +540,6 @@ namespace GoContactSyncMod.UnitTests
                 Thread.Sleep(2000);
             }
         }
-        
 
         internal AppointmentMatch FindMatch(Outlook.AppointmentItem outlookAppointment)
         {
@@ -1006,6 +569,5 @@ namespace GoContactSyncMod.UnitTests
             }
             return null;
         }
-
     }
 }

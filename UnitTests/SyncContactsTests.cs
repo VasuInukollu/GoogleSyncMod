@@ -22,19 +22,18 @@ namespace GoContactSyncMod.UnitTests
         const string email = "email00@outlook.com";
         const string groupName = "A TEST GROUP";
 
-       
+
         [OneTimeSetUp]
-        public void Init() 
-        {            
+        public void Init()
+        {
             //string timestamp = DateTime.Now.Ticks.ToString();            
             if (_logUpdateHandler == null)
             {
                 _logUpdateHandler = new Logger.LogUpdatedHandler(Logger_LogUpdated);
                 Logger.LogUpdated += _logUpdateHandler;
             }
-            
+
             string gmailUsername;
-            //string gmailPassword;
             string syncProfile;
             string syncContactsFolder;
             string syncAppointmentsFolder;
@@ -45,7 +44,7 @@ namespace GoContactSyncMod.UnitTests
             sync.SyncContacts = true;
             sync.SyncAppointments = false;
             sync.SyncProfile = syncProfile;
-            Synchronizer.SyncContactsFolder = syncContactsFolder;  
+            Synchronizer.SyncContactsFolder = syncContactsFolder;
 
             sync.LoginToGoogle(gmailUsername);
             sync.LoginToOutlook();
@@ -58,14 +57,12 @@ namespace GoContactSyncMod.UnitTests
             // delete previously failed test contacts
             DeleteTestContacts();
             sync.UseFileAs = true;
-                      
+
         }
 
         private void DeleteTestContacts()
         {
             sync.LoadContacts();
-
-           
 
             Outlook.ContactItem outlookContact = sync.OutlookContacts.Find("[Email1Address] = '" + email + "'") as Outlook.ContactItem;
             while (outlookContact != null)
@@ -105,7 +102,7 @@ namespace GoContactSyncMod.UnitTests
             Console.WriteLine(message);
         }
 
-        [OneTimeTearDown]        
+        [OneTimeTearDown]
         public void TearDown()
         {
             sync.LogoffOutlook();
@@ -114,15 +111,14 @@ namespace GoContactSyncMod.UnitTests
 
         [Test]
         public void TestSync_Structured()
-        {        
-
+        {
             // create new contact to sync
             Outlook.ContactItem outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
             outlookContact.FileAs = name;
             outlookContact.Email1Address = email;
             outlookContact.Email2Address = email.Replace("00", "01");
             outlookContact.Email3Address = email.Replace("00", "02");
-            
+
             //outlookContact.HomeAddress = "10 Parades";
             outlookContact.HomeAddressStreet = "Street";
             outlookContact.HomeAddressCity = "City";
@@ -130,7 +126,7 @@ namespace GoContactSyncMod.UnitTests
             outlookContact.HomeAddressCountry = "Country";
             outlookContact.HomeAddressPostOfficeBox = "PO1";
             outlookContact.HomeAddressState = "State1";
-            
+
             //outlookContact.BusinessAddress = "11 Parades"
             outlookContact.BusinessAddressStreet = "Street2";
             outlookContact.BusinessAddressCity = "City2";
@@ -166,27 +162,27 @@ namespace GoContactSyncMod.UnitTests
 
             #region Name
             outlookContact.Title = "Title";
-            outlookContact.FirstName = "Firstname";            
+            outlookContact.FirstName = "Firstname";
             outlookContact.MiddleName = "Middlename";
             outlookContact.LastName = "Lastname";
             outlookContact.Suffix = "Suffix";
             //outlookContact.FullName = name; //The Outlook fullName is automatically set, so don't assign it from Google
             #endregion Name
 
-            outlookContact.Birthday = new DateTime(1999,1,1);
+            outlookContact.Birthday = new DateTime(1999, 1, 1);
 
             outlookContact.NickName = "Nickname";
-            outlookContact.OfficeLocation = "Location";            
+            outlookContact.OfficeLocation = "Location";
             outlookContact.Initials = "IN";
-            outlookContact.Language = "German"; 
-            
+            outlookContact.Language = "German";
+
             //outlookContact.Companies = "Company";
             outlookContact.CompanyName = "CompanyName";
             outlookContact.JobTitle = "Position";
             outlookContact.Department = "Department";
 
             outlookContact.IMAddress = "IMs";
-            outlookContact.Anniversary = new DateTime(2000,1,1);
+            outlookContact.Anniversary = new DateTime(2000, 1, 1);
             outlookContact.Children = "Children";
             outlookContact.Spouse = "Spouse";
             outlookContact.AssistantName = "Assi";
@@ -194,7 +190,7 @@ namespace GoContactSyncMod.UnitTests
             outlookContact.WebPage = "http://www.test.de";
             outlookContact.Body = "<sn>Content & other stuff</sn>\r\n<![CDATA[  \r\n...\r\n&stuff in CDATA < >\r\n  ]]>";
             outlookContact.Save();
-            
+
             sync.SyncOption = SyncOption.OutlookToGoogleOnly;
 
             Contact googleContact = new Contact();
@@ -205,7 +201,7 @@ namespace GoContactSyncMod.UnitTests
             sync.SaveGoogleContact(match);
             googleContact = null;
 
-            sync.SyncOption = SyncOption.GoogleToOutlookOnly;     
+            sync.SyncOption = SyncOption.GoogleToOutlookOnly;
             //load the same contact from google.
             MatchContacts(sync);
             match = sync.ContactByProperty(name, email);
@@ -268,20 +264,20 @@ namespace GoContactSyncMod.UnitTests
             Assert.AreEqual(outlookContact.Initials, recreatedOutlookContact.Initials);
             Assert.AreEqual(outlookContact.Language, recreatedOutlookContact.Language);
 
-            Assert.AreEqual(outlookContact.IMAddress, recreatedOutlookContact.IMAddress); 
-            Assert.AreEqual(outlookContact.Anniversary, recreatedOutlookContact.Anniversary); 
-            Assert.AreEqual(outlookContact.Children, recreatedOutlookContact.Children); 
+            Assert.AreEqual(outlookContact.IMAddress, recreatedOutlookContact.IMAddress);
+            Assert.AreEqual(outlookContact.Anniversary, recreatedOutlookContact.Anniversary);
+            Assert.AreEqual(outlookContact.Children, recreatedOutlookContact.Children);
             Assert.AreEqual(outlookContact.Spouse, recreatedOutlookContact.Spouse);
             Assert.AreEqual(outlookContact.ManagerName, recreatedOutlookContact.ManagerName);
-            Assert.AreEqual(outlookContact.AssistantName, recreatedOutlookContact.AssistantName); 
+            Assert.AreEqual(outlookContact.AssistantName, recreatedOutlookContact.AssistantName);
 
-            Assert.AreEqual(outlookContact.WebPage, recreatedOutlookContact.WebPage); 
-            Assert.AreEqual(outlookContact.Body, recreatedOutlookContact.Body); 
+            Assert.AreEqual(outlookContact.WebPage, recreatedOutlookContact.WebPage);
+            Assert.AreEqual(outlookContact.Body, recreatedOutlookContact.Body);
 
             //Assert.AreEqual(outlookContact.Companies, recreatedOutlookContact.Companies); 
-            Assert.AreEqual(outlookContact.CompanyName, recreatedOutlookContact.CompanyName); 
-            Assert.AreEqual(outlookContact.JobTitle, recreatedOutlookContact.JobTitle); 
-            Assert.AreEqual(outlookContact.Department, recreatedOutlookContact.Department); 
+            Assert.AreEqual(outlookContact.CompanyName, recreatedOutlookContact.CompanyName);
+            Assert.AreEqual(outlookContact.JobTitle, recreatedOutlookContact.JobTitle);
+            Assert.AreEqual(outlookContact.Department, recreatedOutlookContact.Department);
 
             DeleteTestContacts(match);
             recreatedOutlookContact.Delete();
@@ -289,12 +285,12 @@ namespace GoContactSyncMod.UnitTests
             //Also delete the birthday/anniversary entries in Outlook calendar
             Logger.Log("Deleting Outlook calendar TEST entries (birthday, anniversary) ...", EventType.Information);
 
-            
             try
-            {   Outlook.NameSpace outlookNamespace = Synchronizer.OutlookApplication.GetNamespace("mapi");
+            {
+                Outlook.NameSpace outlookNamespace = Synchronizer.OutlookApplication.GetNamespace("mapi");
                 Outlook.MAPIFolder calendarFolder = outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
                 Outlook.Items outlookCalendarItems = calendarFolder.Items;
-                for (int i = outlookCalendarItems.Count ; i > 0; i--)
+                for (int i = outlookCalendarItems.Count; i > 0; i--)
                 {
                     Outlook.AppointmentItem item = outlookCalendarItems[i] as Outlook.AppointmentItem;
                     if (item.Subject.Contains(name))
@@ -303,16 +299,12 @@ namespace GoContactSyncMod.UnitTests
                         item.Delete();
                         Logger.Log("Deleted Outlook calendar TEST entry: " + subject, EventType.Information);
                     }
-
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Logger.Log("Could not delete Outlook calendar TEST entries: " + ex.Message, EventType.Information);
             }
-
-            
-           
         }
 
         [Test]
@@ -322,11 +314,11 @@ namespace GoContactSyncMod.UnitTests
 
             // create new contact to sync
             Outlook.ContactItem outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
-            outlookContact.FileAs = name;          
+            outlookContact.FileAs = name;
 
             outlookContact.HomeAddress = "10 Parades";
 
-            outlookContact.BusinessAddress = "11 Parades";         
+            outlookContact.BusinessAddress = "11 Parades";
 
             outlookContact.OtherAddress = "12 Parades";
 
@@ -335,11 +327,10 @@ namespace GoContactSyncMod.UnitTests
             outlookContact.Email2Address = "  "; //Test empty Email Address
 
             outlookContact.FullName = name;
-           
+
             outlookContact.Save();
 
-
-            sync.SyncOption = SyncOption.OutlookToGoogleOnly;     
+            sync.SyncOption = SyncOption.OutlookToGoogleOnly;
 
             Contact googleContact = new Contact();
             sync.UpdateContact(outlookContact, googleContact);
@@ -349,7 +340,7 @@ namespace GoContactSyncMod.UnitTests
             sync.SaveGoogleContact(match);
             googleContact = null;
 
-            sync.SyncOption = SyncOption.GoogleToOutlookOnly;   
+            sync.SyncOption = SyncOption.GoogleToOutlookOnly;
             //load the same contact from google.
             MatchContacts(sync);
             match = sync.ContactByProperty(name, email);
@@ -360,13 +351,13 @@ namespace GoContactSyncMod.UnitTests
 
             // match recreatedOutlookContact with outlookContact
             Assert.AreEqual(outlookContact.FileAs, recreatedOutlookContact.FileAs);
-           
+
             Assert.AreEqual(outlookContact.HomeAddress, recreatedOutlookContact.HomeAddress);
             Assert.AreEqual(outlookContact.BusinessAddress, recreatedOutlookContact.BusinessAddress);
             Assert.AreEqual(outlookContact.OtherAddress, recreatedOutlookContact.OtherAddress);
 
             Assert.AreEqual(outlookContact.FullName, recreatedOutlookContact.FullName);
-            
+
             DeleteTestContacts(match);
             recreatedOutlookContact.Delete();
         }
@@ -379,8 +370,8 @@ namespace GoContactSyncMod.UnitTests
             // create new contact to sync
             Outlook.ContactItem outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
             outlookContact.CompanyName = name;
-           
-            outlookContact.BusinessAddress = "11 Parades";           
+
+            outlookContact.BusinessAddress = "11 Parades";
 
             outlookContact.Save();
 
@@ -524,7 +515,7 @@ namespace GoContactSyncMod.UnitTests
             // create new contact to sync
             Outlook.ContactItem outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
             outlookContact.FullName = name;
-            outlookContact.FileAs = "SaveAs";           
+            outlookContact.FileAs = "SaveAs";
 
             outlookContact.Save();
 
@@ -610,7 +601,7 @@ namespace GoContactSyncMod.UnitTests
             // get extended prop
             Assert.AreEqual(ContactPropertiesUtils.GetOutlookId(outlookContact), ContactPropertiesUtils.GetGoogleOutlookContactId(sync.SyncProfile, match.GoogleContact));
 
-            DeleteTestContacts(match);    
+            DeleteTestContacts(match);
         }
 
         [Test]
@@ -683,7 +674,7 @@ namespace GoContactSyncMod.UnitTests
         public void TestSyncDeletedGoogle()
         {
             //ToDo: Check for eache SyncOption and SyncDelete combination
-            sync.SyncOption = SyncOption.MergeOutlookWins;            
+            sync.SyncOption = SyncOption.MergeOutlookWins;
             sync.SyncDelete = true;
 
             // create new contact to sync
@@ -705,7 +696,7 @@ namespace GoContactSyncMod.UnitTests
             sync.SaveContact(match);
 
             // delete google contact
-            sync.ContactsRequest.Delete(match.GoogleContact);    
+            sync.ContactsRequest.Delete(match.GoogleContact);
 
             // sync
             MatchContacts(sync);
@@ -718,12 +709,12 @@ namespace GoContactSyncMod.UnitTests
             // sync
             MatchContacts(sync);
             ContactsMatcher.SyncContacts(sync);
-            match = sync.ContactByProperty(name, email);            
+            match = sync.ContactByProperty(name, email);
 
             // check if outlook contact still exists
             Assert.IsNull(match);
 
-            DeleteTestContacts(match);    
+            DeleteTestContacts(match);
         }
 
         [Test]
@@ -768,7 +759,7 @@ namespace GoContactSyncMod.UnitTests
             Image image = Utilities.GetGooglePhoto(sync, match.GoogleContact);
             Assert.IsNotNull(image);
 
-            DeleteTestContacts(match);      
+            DeleteTestContacts(match);
         }
 
         [Test]
@@ -791,13 +782,13 @@ namespace GoContactSyncMod.UnitTests
 
             bool saved = Utilities.SetOutlookPhoto(outlookContact, AppDomain.CurrentDomain.BaseDirectory + "\\SamplePic.jpg");
             Assert.IsTrue(saved);
-            
+
             outlookContact.Save();
-        
+
             Image image = Utilities.GetOutlookPhoto(outlookContact);
             Assert.IsNotNull(image);
 
-            outlookContact.Delete();       
+            outlookContact.Delete();
         }
 
         [Test]
@@ -806,7 +797,7 @@ namespace GoContactSyncMod.UnitTests
             sync.SyncOption = SyncOption.MergeOutlookWins;
 
             Assert.IsTrue(File.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\SamplePic.jpg"));
-           
+
             // create new contact to sync
             Outlook.ContactItem outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
             outlookContact.FullName = name;
@@ -839,7 +830,7 @@ namespace GoContactSyncMod.UnitTests
 
             // delete outlook contact
             outlookContact.Delete();
-            
+
             // recreate outlook contact
             outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
 
@@ -856,9 +847,8 @@ namespace GoContactSyncMod.UnitTests
             // outlook contact should now have a photo
             Assert.IsNotNull(Utilities.GetOutlookPhoto(outlookContact));
 
-
             Thread.Sleep(5000);
-            DeleteTestContacts();                 
+            DeleteTestContacts();
         }
 
         [Test]
@@ -896,7 +886,7 @@ namespace GoContactSyncMod.UnitTests
             //load the same contact from google.
             MatchContacts(sync);
             match = sync.ContactByProperty(name, email);
-            ContactsMatcher.SyncContact(match, sync);            
+            ContactsMatcher.SyncContact(match, sync);
 
             // google contact should now have the same group
             System.Collections.ObjectModel.Collection<Group> googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleContact);
@@ -922,10 +912,9 @@ namespace GoContactSyncMod.UnitTests
             match = sync.ContactByProperty(name, email);
             ContactsMatcher.SyncContact(match, sync);
 
-
             Assert.AreEqual(groupName, outlookContact.Categories);
 
-            DeleteTestContacts(match);    
+            DeleteTestContacts(match);
 
             // delete test group
             Group group = sync.GetGoogleGroupByName(groupName);
@@ -999,16 +988,16 @@ namespace GoContactSyncMod.UnitTests
             //sync and save contact to outlook.
             match = sync.ContactByProperty(name, email);
             sync.UpdateContact(match.GoogleContact, outlookContact);
-            sync.SaveContact(match);            
-            
+            sync.SaveContact(match);
+
             // google and outlook should now have no category except for the System Group: My Contacts
             googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleContact);
             Assert.AreEqual(1, googleGroups.Count);
             Assert.AreEqual(null, outlookContact.Categories);
             Assert.Contains(sync.GetGoogleGroupByName(Synchronizer.myContactsGroup), googleGroups);
 
-            DeleteTestContacts(match);       
-            
+            DeleteTestContacts(match);
+
             // delete test group
             if (group != null)
                 sync.ContactsRequest.Delete(group);
@@ -1037,7 +1026,7 @@ namespace GoContactSyncMod.UnitTests
             Assert.AreEqual(groupName, outlookContact.Categories);
 
             //Now sync Groups
-            MatchContacts(sync);            
+            MatchContacts(sync);
             ContactsMatcher.SyncGroups(sync);
 
             Contact googleContact = new Contact();
@@ -1056,27 +1045,27 @@ namespace GoContactSyncMod.UnitTests
             System.Collections.ObjectModel.Collection<Group> googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleContact);
             Group group = sync.GetGoogleGroupByName(groupName);
             Assert.AreEqual(2, googleGroups.Count);
-            Assert.Contains(sync.GetGoogleGroupByName(Synchronizer.myContactsGroup),  googleGroups);
+            Assert.Contains(sync.GetGoogleGroupByName(Synchronizer.myContactsGroup), googleGroups);
             Assert.Contains(group, googleGroups);
 
             // delete group from outlook
-            Utilities.RemoveOutlookGroup(outlookContact, groupName);            
-           
+            Utilities.RemoveOutlookGroup(outlookContact, groupName);
+
             //save contact to google.
             sync.SaveContact(match);
 
             //load the same contact from google.
             MatchContacts(sync);
             match = sync.ContactByProperty(name, email);
-            sync.UpdateContact(outlookContact, match.GoogleContact);         
+            sync.UpdateContact(outlookContact, match.GoogleContact);
 
             // google and outlook should now have no category
             googleGroups = Utilities.GetGoogleGroups(sync, match.GoogleContact);
             Assert.AreEqual(null, outlookContact.Categories);
             Assert.AreEqual(1, googleGroups.Count);
-            Assert.Contains(sync.GetGoogleGroupByName(Synchronizer.myContactsGroup),  googleGroups);
+            Assert.Contains(sync.GetGoogleGroupByName(Synchronizer.myContactsGroup), googleGroups);
 
-            DeleteTestContacts(match);       
+            DeleteTestContacts(match);
 
             // delete test group
             if (group != null)
@@ -1126,7 +1115,7 @@ namespace GoContactSyncMod.UnitTests
             // reset matches
             sync.ResetMatch(match.GoogleContact);
             //Not, because NULL: sync.ResetMatch(match.OutlookContact.GetOriginalItemFromOutlook(sync));
-            
+
             // load same contact match
             MatchContacts(sync);
             match = sync.ContactByProperty(name, email);
@@ -1136,7 +1125,7 @@ namespace GoContactSyncMod.UnitTests
             Assert.IsNotNull(match.GoogleContact);
             Assert.IsNotNull(match.OutlookContact);
 
-            DeleteTestContacts();    
+            DeleteTestContacts();
 
             // create new contact to sync
             outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
@@ -1163,7 +1152,7 @@ namespace GoContactSyncMod.UnitTests
             ContactsMatcher.SyncContact(match, sync);
 
             // delete google contact           
-            sync.ContactsRequest.Delete(match.GoogleContact);   
+            sync.ContactsRequest.Delete(match.GoogleContact);
             match.GoogleContact = null;
 
             //load the same contact from google.
@@ -1186,7 +1175,7 @@ namespace GoContactSyncMod.UnitTests
             Assert.IsNotNull(match.OutlookContact);
             Assert.IsNotNull(match.GoogleContact);
 
-            outlookContact.Delete();   
+            outlookContact.Delete();
         }
 
         [Test]
@@ -1521,15 +1510,13 @@ namespace GoContactSyncMod.UnitTests
                     System.Runtime.InteropServices.Marshal.ReleaseComObject(outlookContact);
                     outlookContact = null;
                 }
-                
             }
         }
-
 
         private void DeleteTestContact(OutlookContactInfo outlookContact)
         {
             if (outlookContact != null)
-                DeleteTestContact(outlookContact.GetOriginalItemFromOutlook());             
+                DeleteTestContact(outlookContact.GetOriginalItemFromOutlook());
         }
 
         private void DeleteTestContact(Contact googleContact)
@@ -1541,63 +1528,6 @@ namespace GoContactSyncMod.UnitTests
                 Thread.Sleep(2000);
             }
         }
-
-        //[Test]
-        //public void TestMultiProfileSync()
-        //{
-        //    sync.SyncOption = SyncOption.MergeOutlookWins;
-
-        //    string timestamp = DateTime.Now.Ticks.ToString();
-        //    string name = "AN OUTLOOK TEST CONTACT";
-        //    string email = "email00@outlook.com";
-        //    name = name.Replace(" ", "_");
-
-        //    // delete previously failed test contacts
-        //    DeleteExistingTestContacts(name, email);
-
-        //    sync.Load();
-        //    ContactsMatcher.SyncContacts(sync);
-
-        //    // create new contact to sync
-        //    Outlook.ContactItem outlookContact = Syncronizer.CreateOutlookContactItem(Syncronizer.SyncContactsFolder);
-        //    outlookContact.FullName = name;
-        //    outlookContact.FileAs = name;
-        //    outlookContact.Email1Address = email;
-        //    outlookContact.Email2Address = email.Replace("00", "01");
-        //    outlookContact.Email3Address = email.Replace("00", "02");
-        //    outlookContact.HomeAddress = "10 Parades";
-        //    outlookContact.PrimaryTelephoneNumber = "123";
-        //    outlookContact.Save();
-
-        //    Contact googleContact = new Contact();
-        //    ContactSync.UpdateContact(outlookContact, googleContact);
-        //    ContactMatch match = new ContactMatch(outlookContact, googleContact);
-
-        //    //save contacts
-        //    sync.SaveContact(match);
-
-        //    // delete outlook contact
-        //    outlookContact.Delete();
-
-        //    // sync with different profile
-        //    sync.SyncProfile = "test profile 2";
-        //    sync.Load();
-        //    ContactsMatcher.SyncContacts(sync);
-        //    // find match
-        //    match = null;
-        //    match = sync.ContactByProperty(name, email);
-        //    sync.SaveContact(match);
-
-        //    // there should now be a contact under the new profile
-        //    match = sync.ContactByProperty(name, email);
-        //    Assert.IsNotNull(match.OutlookContact);
-            
-        //    // now delete the original outlook contact
-        //    sync.SyncProfile = "test profile";
-        //    match.OutlookContact.Delete();
-
-
-        //}
 
         [Ignore("TestMassSyncToGoogle")]
         public void TestMassSyncToGoogle()
@@ -1624,7 +1554,7 @@ namespace GoContactSyncMod.UnitTests
 
             for (int i = 0; i < c; i++)
             {
-                outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);                
+                outlookContact = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
                 outlookContact.FullName = names[i];
                 outlookContact.FileAs = names[i];
                 outlookContact.Email1Address = emails[i];
@@ -1650,14 +1580,14 @@ namespace GoContactSyncMod.UnitTests
                 + ((float)time.TotalSeconds / c) + " s per contact)");
 
             // received: Synced 50 contacts to google in 30.137 s (0.60274 s per contact)
-        }       
+        }
 
         [Ignore("TestCreatingGoogeAccountThatFailed1")]
         public void TestCreatingGoogeAccountThatFailed1()
         {
             Outlook.ContactItem outlookContact = sync.OutlookContacts.Find(
                 string.Format("[FirstName]='{0}' AND [LastName]='{1}'",
-                ConfigurationManager.AppSettings["Test.FirstName"], 
+                ConfigurationManager.AppSettings["Test.FirstName"],
                 ConfigurationManager.AppSettings["Test.LastName"])) as Outlook.ContactItem;
 
             ContactMatch match = FindMatch(outlookContact);
@@ -1691,7 +1621,7 @@ namespace GoContactSyncMod.UnitTests
 
             Uri feedUri = new Uri(ContactsQuery.CreateContactsUri("default"));
             Contact createdEntry = sync.ContactsRequest.Insert(feedUri, googleContact);
-            
+
             ContactPropertiesUtils.SetOutlookGoogleContactId(sync, outlookContact, createdEntry);
             match.GoogleContact = createdEntry;
             outlookContact.Save();
@@ -1834,30 +1764,6 @@ namespace GoContactSyncMod.UnitTests
             outlookContact.Save();
         }
 
-        //private void DeleteExistingTestContacts(string name, string email)
-        //{
-        //    MatchContacts(sync);
-        //    ContactsMatcher.SyncGroups(sync);
-        //    ContactMatch match = sync.ContactByProperty(name, email);
-
-        //    try
-        //    {
-        //        while (match != null)
-        //        {
-        //            ContactsMatcher.SyncContact(match, sync);
-        //            DeleteTestContacts(match);    
-
-        //            MatchContacts(sync);
-        //            match = sync.ContactByProperty(name, email);
-        //        }
-        //    }
-        //    catch { }
-
-        //    Outlook.ContactItem prevOutlookContact = sync.OutlookContacts.Find("[Email1Address] = '" + email + "'") as Outlook.ContactItem;
-        //    if (prevOutlookContact != null)
-        //        prevOutlookContact.Delete();
-        //}
-
         internal ContactMatch FindMatch(Outlook.ContactItem outlookContact)
         {
             foreach (ContactMatch match in sync.Contacts)
@@ -1873,6 +1779,5 @@ namespace GoContactSyncMod.UnitTests
             Thread.Sleep(5000); //Wait, until Contact is really saved and available to retrieve again
             sync.MatchContacts();
         }
-        
     }
 }
