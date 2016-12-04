@@ -11,10 +11,13 @@ namespace GoContactSyncMod
 {
     internal static class Utilities
     {
-        //private static string tempPhotoPath = AppDomain.CurrentDomain.BaseDirectory + "\\TempOutlookContactPhoto.jpg";
-        //private static string tempPhotoPath = Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData) + @"\" + System.Windows.Forms.Application.ProductName + @"\TempOutlookContactPhoto.jpg";
-        private static string tempPhotoPath = Path.GetTempPath() + @"\TempOutlookContactPhoto.jpg";
-
+        public static string GetTempFileName(string extension)
+        {
+            string fileName = Path.GetRandomFileName();
+            fileName = Path.ChangeExtension(fileName, extension);
+            fileName = Path.Combine(Path.GetTempPath(), fileName);
+            return fileName;
+        }
 
         public static byte[] BitmapToBytes(Bitmap bitmap)
         {
@@ -32,6 +35,7 @@ namespace GoContactSyncMod
                 return false;
             return true;
         }
+
         public static bool HasPhoto(Outlook.ContactItem outlookContact)
         {
             return outlookContact.HasPicture;
@@ -46,7 +50,6 @@ namespace GoContactSyncMod
             {
                 using (var client = new WebClient())
                 {
-                    //client.Headers.Add(HttpRequestHeader.Authorization, "GoogleLogin auth=" + sync.ContactsRequest.Service.QueryClientLoginToken());
                     client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + sync.ContactsRequest.Settings.OAuth2Parameters.AccessToken);
                     client.Headers.Add(HttpRequestHeader.ContentType, "image/*");
                     using (var pic = new Bitmap(image))
@@ -66,6 +69,7 @@ namespace GoContactSyncMod
             }
             return true;
         }
+
         public static Image GetGooglePhoto(Synchronizer sync, Contact googleContact)
         {
             if (!HasPhoto(googleContact))
@@ -73,15 +77,13 @@ namespace GoContactSyncMod
 
             try
             {
-                using (WebClient client = new WebClient())
+                using (var client = new WebClient())
                 {
-                    //client.Headers.Add(HttpRequestHeader.Authorization, "GoogleLogin auth=" + sync.ContactsRequest.Service.QueryClientLoginToken());
                     client.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + sync.ContactsRequest.Settings.OAuth2Parameters.AccessToken);
                     Stream stream = client.OpenRead(googleContact.PhotoUri.AbsoluteUri);
                     BinaryReader reader = new BinaryReader(stream);
                     Image image = Image.FromStream(stream);
                     reader.Close();
-
                     return image;
                 }
             }
@@ -96,7 +98,6 @@ namespace GoContactSyncMod
             try
             {
                 outlookContact.AddPicture(fullImagePath);
-                //outlookContact.Save();
                 return true;
             }
             catch
@@ -104,18 +105,23 @@ namespace GoContactSyncMod
                 return false;
             }
         }
+
         public static bool SetOutlookPhoto(Outlook.ContactItem outlookContact, Image image)
         {
             try
             {
-                image.Save(tempPhotoPath);
-                return SetOutlookPhoto(outlookContact, tempPhotoPath);
+                string fn = GetTempFileName("jpg");
+                image.Save(fn);
+                var ret = SetOutlookPhoto(outlookContact, fn);
+                File.Delete(fn);
+                return ret;
             }
             catch
             {
                 return false;
             }
         }
+
         public static Image GetOutlookPhoto(Outlook.ContactItem outlookContact)
         {
             if (!HasPhoto(outlookContact))
@@ -125,24 +131,24 @@ namespace GoContactSyncMod
             {
                 foreach (Outlook.Attachment a in outlookContact.Attachments)
                 {
-                    // CH Fixed this to Contains, due to outlook picture that looks like "ContactPicture_138382.jpg"
                     if (a.DisplayName.ToUpper().Contains("CONTACTPICTURE") || a.DisplayName.ToUpper().Contains("CONTACTPHOTO"))
                     {
+                        string fn = GetTempFileName("jpg");
+                        a.SaveAsFile(fn);
 
-                        //TODO: Check why always the first added picture is returned
-                        //If you add another picture, still the old picture is saved to tempPhotoPath
-                        a.SaveAsFile(tempPhotoPath);
-
-                        return Image.FromFile(tempPhotoPath);
-
+                        using (var fs = new FileStream(fn, FileMode.Open))
+                        {
+                            var img = Image.FromStream(fs);
+                            fs.Close();
+                            File.Delete(fn);
+                            return img;
+                        }
                     }
                 }
                 return null;
             }
             catch
             {
-                // There's an error here... If Outlook says it has a contact photo, and we can't get it, Something's broken.
-
                 return null;
             }
         }
@@ -182,6 +188,7 @@ namespace GoContactSyncMod
                 return CropImage(original, r);
             }
         }
+
         public static Image CropImage(Image original, Rectangle cropArea)
         {
             using (Bitmap bmpImage = new Bitmap(original))
@@ -191,16 +198,6 @@ namespace GoContactSyncMod
             }
         }
 
-        public static void DeleteTempPhoto()
-        {
-            try
-            {
-                if (File.Exists(tempPhotoPath))
-                    File.Delete(tempPhotoPath);
-            }
-            catch { }
-        }
-
         public static bool ContainsGroup(Synchronizer sync, Contact googleContact, string groupName)
         {
             Group group = sync.GetGoogleGroupByName(groupName);
@@ -208,6 +205,7 @@ namespace GoContactSyncMod
                 return false;
             return ContainsGroup(googleContact, group);
         }
+
         public static bool ContainsGroup(Contact googleContact, Group group)
         {
             foreach (GroupMembership m in googleContact.GroupMembership)
@@ -217,6 +215,7 @@ namespace GoContactSyncMod
             }
             return false;
         }
+
         public static bool ContainsGroup(Outlook.ContactItem outlookContact, string group)
         {
             if (outlookContact.Categories == null)
@@ -240,6 +239,7 @@ namespace GoContactSyncMod
             }
             return groups;
         }
+
         public static void AddGoogleGroup(Contact googleContact, Group group)
         {
             if (ContainsGroup(googleContact, group))
@@ -249,6 +249,7 @@ namespace GoContactSyncMod
             m.HRef = group.GroupEntry.Id.AbsoluteUri;
             googleContact.GroupMembership.Add(m);
         }
+
         public static void RemoveGoogleGroup(Contact googleContact, Group group)
         {
             if (!ContainsGroup(googleContact, group))
@@ -291,6 +292,7 @@ namespace GoContactSyncMod
             }
             return categories;
         }
+
         public static void AddOutlookGroup(Outlook.ContactItem outlookContact, string group)
         {
             if (ContainsGroup(outlookContact, group))
@@ -304,6 +306,7 @@ namespace GoContactSyncMod
             else
                 outlookContact.Categories += group;
         }
+
         public static void RemoveOutlookGroup(Outlook.ContactItem outlookContact, string group)
         {
             if (!ContainsGroup(outlookContact, group))
@@ -312,45 +315,6 @@ namespace GoContactSyncMod
             outlookContact.Categories = outlookContact.Categories.Replace(", " + group, "");
             outlookContact.Categories = outlookContact.Categories.Replace(group, "");
         }
-
-        //ToDo: Workaround to save google Content is also not working, beause of error when closing the StreamWriter
-        //public static bool SaveGoogleNoteContent(Syncronizer sync, Google.Documents.Document updated, Google.Documents.Document googleNote)
-        //{
-
-        //    if (updated.DocumentEntry.EditUri == null || googleNote.MediaSource == null)
-        //        throw new Exception("Must reload note from google.");
-
-        //    StreamWriter writer = null;
-        //    StreamReader reader = null;
-        //    WebClient client = null;
-        //    try
-        //    {
-        //        client = new WebClient();
-        //        client.Headers.Add(HttpRequestHeader.Authorization, "GoogleLogin auth=" + sync.DocumentsRequest.Service.QueryClientLoginToken());
-        //        client.Headers.Add(HttpRequestHeader.ContentType, googleNote.MediaSource.ContentType);
-        //        Stream s = client.OpenWrite(updated.DocumentEntry.EditUri.ToString(), "PUT");
-        //        writer = new StreamWriter(s);
-        //        reader = new StreamReader(googleNote.MediaSource.GetDataStream());
-        //        string body = reader.ReadToEnd();
-        //        writer.Write(body);
-        //    }
-        //    catch
-        //    {
-        //        return false;
-        //    }
-        //    finally
-        //    {
-        //        if (client != null)
-        //            client.Dispose();
-        //        if (writer != null)
-        //            writer.Close(); //This throws an exception 400 (Ungültige Anforderung)
-        //        if (reader != null)
-        //            reader.Close();
-
-        //    }
-
-        //    return true;
-        //}
 
         static public string ConvertToText(string rtf)
         {
@@ -527,7 +491,6 @@ namespace GoContactSyncMod
         private string _folderName;
         private string _folderID;
         private bool _isDefaultFolder;
-
 
         public GoogleCalendar(string folderName, string folderID, bool isDefaultFolder)
         {

@@ -167,7 +167,7 @@ namespace GoContactSyncMod
 
                 //Contacts-Scope
                 scopes.Add("https://www.google.com/m8/feeds");
-                
+
                 //Calendar-Scope
                 //Didn't work: scopes.Add("https://www.googleapis.com/auth/calendar");
                 scopes.Add(CalendarService.Scope.Calendar);
@@ -1159,7 +1159,7 @@ namespace GoContactSyncMod
             return ret;
         }
 
-        
+
 
         /// <summary>
         /// Load the contacts from Google and Outlook
@@ -3102,8 +3102,6 @@ namespace GoContactSyncMod
                 //Delete Photo on Google side, if no Outlook photo exists
                 ContactsRequest.Delete(match.GoogleContact.PhotoUri, match.GoogleContact.PhotoEtag);
             }
-
-            Utilities.DeleteTempPhoto();
         }
 
         //public void SaveOutlookPhoto(ContactMatch match)
@@ -3417,7 +3415,7 @@ namespace GoContactSyncMod
 
         }
 
-       
+
         ///// <summary>
         ///// Reset the match link between Google and Outlook contact
         ///// </summary>
