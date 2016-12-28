@@ -6,7 +6,6 @@ using Google.Contacts;
 
 namespace GoContactSyncMod
 {
-
     internal static class ContactSync
     {
         internal static DateTime outlookDateNone = new DateTime(4501, 1, 1);
@@ -29,12 +28,17 @@ namespace GoContactSyncMod
                 postalAddress.Street = source.HomeAddressStreet;
                 postalAddress.City = source.HomeAddressCity;
                 postalAddress.Postcode = source.HomeAddressPostalCode;
-                postalAddress.Country = source.HomeAddressCountry;
+
+                //By default Outlook is not setting Country in formatted string in case Windows is configured for the same country 
+                //(Control Panel\Regional Settings).  So set country in Google only if Outlook address has it
+                if (source.HomeAddress.EndsWith("\r\n" + source.HomeAddressCountry))
+                {
+                    postalAddress.Country = source.HomeAddressCountry;
+                }
                 postalAddress.Pobox = source.HomeAddressPostOfficeBox;
                 postalAddress.Region = source.HomeAddressState;
                 postalAddress.Primary = destination.PostalAddresses.Count == 0;
                 postalAddress.Rel = ContactsRelationships.IsHome;
-                //postalAddress.Subregion = source.home
                 destination.PostalAddresses.Add(postalAddress);
             }
 
@@ -44,7 +48,12 @@ namespace GoContactSyncMod
                 postalAddress.Street = source.BusinessAddressStreet;
                 postalAddress.City = source.BusinessAddressCity;
                 postalAddress.Postcode = source.BusinessAddressPostalCode;
-                postalAddress.Country = source.BusinessAddressCountry;
+                //By default Outlook is not setting Country in formatted string in case Windows is configured for the same country 
+                //(Control Panel\Regional Settings).  So set country in Google only if Outlook address has it
+                if (source.BusinessAddress.EndsWith("\r\n" + source.BusinessAddressCountry))
+                {
+                    postalAddress.Country = source.BusinessAddressCountry;
+                }
                 postalAddress.Pobox = source.BusinessAddressPostOfficeBox;
                 postalAddress.Region = source.BusinessAddressState;
                 postalAddress.Primary = destination.PostalAddresses.Count == 0;
@@ -58,7 +67,12 @@ namespace GoContactSyncMod
                 postalAddress.Street = source.OtherAddressStreet;
                 postalAddress.City = source.OtherAddressCity;
                 postalAddress.Postcode = source.OtherAddressPostalCode;
-                postalAddress.Country = source.OtherAddressCountry;
+                //By default Outlook is not setting Country in formatted string in case Windows is configured for the same country 
+                //(Control Panel\Regional Settings).  So set country in Google only if Outlook address has it
+                if (source.OtherAddress.EndsWith("\r\n" + source.OtherAddressCountry))
+                {
+                    postalAddress.Country = source.OtherAddressCountry;
+                }
                 postalAddress.Pobox = source.OtherAddressPostOfficeBox;
                 postalAddress.Region = source.OtherAddressState;
                 postalAddress.Primary = destination.PostalAddresses.Count == 0;
@@ -604,6 +618,8 @@ namespace GoContactSyncMod
             #endregion DetectOutlookFileAsFormat
 
             #region Name
+
+
             slave.Title = master.Name.NamePrefix;
             slave.FirstName = master.Name.GivenName;
             slave.MiddleName = master.Name.AdditionalName;
@@ -1112,8 +1128,6 @@ namespace GoContactSyncMod
                 destination.Email3Address = string.Empty;
                 destination.Email3DisplayName = string.Empty;
             }
-
         }
-
     }
 }

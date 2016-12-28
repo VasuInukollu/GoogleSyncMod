@@ -226,14 +226,13 @@ namespace GoContactSyncMod
 
         public static Collection<Group> GetGoogleGroups(Synchronizer sync, Contact googleContact)
         {
-            int c = googleContact.GroupMembership.Count;
-            Collection<Group> groups = new Collection<Group>();
-            string id;
-            Group group;
+            var c = googleContact.GroupMembership.Count;
+            var groups = new Collection<Group>();
+           
             for (int i = 0; i < c; i++)
             {
-                id = googleContact.GroupMembership[i].HRef;
-                group = sync.GetGoogleGroupById(id);
+                var id = googleContact.GroupMembership[i].HRef;
+                var group = sync.GetGoogleGroupById(id);
 
                 groups.Add(group);
             }

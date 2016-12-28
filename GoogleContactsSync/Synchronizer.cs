@@ -600,21 +600,6 @@ namespace GoContactSyncMod
                 mapiFolder = OutlookNameSpace.GetFolderFromID(syncFolder);
                 if (mapiFolder == null)
                     throw new Exception("Error getting OutlookFolder: " + syncFolder);
-
-                //Outlook.MAPIFolder Folder = OutlookNameSpace.GetFolderFromID(_syncFolder);
-                //if (Folder != null)
-                //{
-                //    for (int i = 1; i <= Folder.Folders.Count; i++)
-                //    {
-                //        Outlook.Folder subFolder = Folder.Folders[i] as Outlook.Folder;
-                //        if ((Outlook.OlDefaultFolders.olFolderContacts == outlookDefaultFolder && Outlook.OlItemType.olContactItem == subFolder.DefaultItemType) 
-                //                 
-                //                )
-                //        {
-                //            mapiFolder = subFolder as Outlook.MAPIFolder;
-                //        }
-                //    }
-                //}
             }
 
             try
@@ -734,7 +719,8 @@ namespace GoContactSyncMod
 
             return ret;
         }
-        private void LoadGoogleGroups()
+
+        internal void LoadGoogleGroups()
         {
             string message = "Error Loading Google Groups. Cannot connect to Google.\r\nPlease ensure you are connected to the internet. If you are behind a proxy, change your proxy configuration!";
             try
@@ -1159,8 +1145,6 @@ namespace GoContactSyncMod
             return ret;
         }
 
-
-
         /// <summary>
         /// Load the contacts from Google and Outlook
         /// </summary>
@@ -1169,8 +1153,6 @@ namespace GoContactSyncMod
             LoadOutlookContacts();
             LoadGoogleGroups();
             LoadGoogleContacts();
-            RemoveOutlookDuplicatedContacts();
-            RemoveGoogleDuplicatedContacts();
         }
 
         /// <summary>
@@ -1191,7 +1173,7 @@ namespace GoContactSyncMod
 
                 try
                 {
-                    string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e1);
+                    var oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e1);
 
                     //check if Google event is linked to Outlook appointment
                     if (string.IsNullOrEmpty(oid))
@@ -1211,7 +1193,7 @@ namespace GoContactSyncMod
                         {
                             try
                             {
-                                string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, a);
+                                var gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, a);
 
                                 //check to which Outlook appoinment Google event is linked
                                 if (AppointmentPropertiesUtils.GetGoogleId(e1) == gid)
@@ -1241,6 +1223,7 @@ namespace GoContactSyncMod
                             finally
                             {
                                 Marshal.ReleaseComObject(a);
+                                a = null;
                             }
                         }
                         else
@@ -1290,7 +1273,7 @@ namespace GoContactSyncMod
                     if (ola1 == null)
                         continue;
 
-                    string gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, ola1);
+                    var gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, ola1);
                     //check if Outlook appointment is linked to Google event
                     if (string.IsNullOrEmpty(gid))
                         continue;
@@ -1309,7 +1292,7 @@ namespace GoContactSyncMod
                             var e = GetGoogleAppointmentById(gid);
                             if (e != null)
                             {
-                                string oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
+                                var oid = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, e);
                                 //check to which Outlook appoinment Google event is linked
                                 if (AppointmentPropertiesUtils.GetOutlookId(ola1) == oid)
                                 {
@@ -1342,7 +1325,10 @@ namespace GoContactSyncMod
                         finally
                         {
                             if (ola2 != null)
+                            {
                                 Marshal.ReleaseComObject(ola2);
+                                ola2 = null;
+                            }
                         }
                     }
                     else
@@ -1362,211 +1348,14 @@ namespace GoContactSyncMod
                 finally
                 {
                     if (ola1 != null)
+                    {
                         Marshal.ReleaseComObject(ola1);
+                        ola1 = null;
+                    }
                 }
             }
         }
 
-        /// <summary>
-        /// Remove duplicates from Google: two different Google contacts pointing to the same Outlook contact.
-        /// </summary>
-        private void RemoveGoogleDuplicatedContacts()
-        {
-            Logger.Log("Removing Google duplicated contacts...", EventType.Information);
-
-            var contacts = new Dictionary<string, int>();
-
-            //scan all Google contacts
-            for (int i = 0; i < GoogleContacts.Count; i++)
-            {
-                Contact c1 = GoogleContacts[i];
-                if (c1 == null)
-                    continue;
-
-                try
-                {
-                    string oid = ContactPropertiesUtils.GetGoogleOutlookContactId(SyncProfile, c1);
-                    //check if Google contact is linked to Outlook contact
-                    if (string.IsNullOrEmpty(oid))
-                        continue;
-
-                    //check if there is already another Google contact linked to the same Outlook contact 
-                    if (contacts.ContainsKey(oid))
-                    {
-                        var c2 = GoogleContacts[contacts[oid]];
-                        if (c2 == null)
-                        {
-                            contacts.Remove(oid);
-                            continue;
-                        }
-
-                        var a = GetOutlookContactById(oid);
-                        if (a != null)
-                        {
-                            try
-                            {
-                                string gid = ContactPropertiesUtils.GetOutlookGoogleContactId(this, a);
-                                //check to which Outlook contact Google contact is linked
-                                if (ContactPropertiesUtils.GetGoogleId(c1) == gid)
-                                {
-                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c2);
-                                    if (!string.IsNullOrEmpty(c2.Title))
-                                    {
-                                        Logger.Log("Duplicated contact: " + c2.Title + ".", EventType.Debug);
-                                    }
-                                    contacts[oid] = i;
-                                }
-                                else if (ContactPropertiesUtils.GetGoogleId(c2) == gid)
-                                {
-                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c1);
-                                    if (!string.IsNullOrEmpty(c1.Title))
-                                    {
-                                        Logger.Log("Duplicated contact: " + c1.Title + ".", EventType.Debug);
-                                    }
-                                }
-                                else
-                                {
-                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c1);
-                                    ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c2);
-                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, a);
-                                }
-                            }
-                            finally
-                            {
-                                if (a != null)
-                                    Marshal.ReleaseComObject(a);
-                            }
-                        }
-                        else
-                        {
-                            //duplicated Google contacts found, but Outlook contact does not exist
-                            //so lets clean the link from Google contacts
-                            ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c1);
-                            ContactPropertiesUtils.ResetGoogleOutlookContactId(SyncProfile, c2);
-                            contacts.Remove(oid);
-                        }
-                    }
-                    else
-                    {
-                        contacts.Add(oid, i);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    //this is needed because some contacts throw exceptions
-                    if (c1 != null && !string.IsNullOrEmpty(c1.Title))
-                        Logger.Log("Accessing Google contact: " + c1.Title + " threw and exception. Skipping: " + ex.Message, EventType.Warning);
-                    else
-                        Logger.Log("Accessing Google contact threw and exception. Skipping: " + ex.Message, EventType.Warning);
-                    continue;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Remove duplicates from Outlook: two different Outlook contacts pointing to the same Google contact.
-        /// Such situation typically happens when copy/paste'ing synchronized contact in Outlook
-        /// </summary>
-        private void RemoveOutlookDuplicatedContacts()
-        {
-            Logger.Log("Removing Outlook duplicated contacts...", EventType.Information);
-
-            var contacts = new Dictionary<string, int>();
-
-            //scan all contacts
-            for (int i = 1; i <= OutlookContacts.Count; i++)
-            {
-                Outlook.ContactItem olc1 = null;
-
-                try
-                {
-                    olc1 = OutlookContacts[i] as Outlook.ContactItem;
-                    if (olc1 == null)
-                        continue;
-
-                    string gid = ContactPropertiesUtils.GetOutlookGoogleContactId(this, olc1);
-                    //check if Outlook contact  is linked to Google contact
-                    if (string.IsNullOrEmpty(gid))
-                        continue;
-
-                    //check if there is already another Outlook contact linked to the same Google contact 
-                    if (contacts.ContainsKey(gid))
-                    {
-                        var olc2 = OutlookContacts[contacts[gid]] as Outlook.ContactItem;
-                        if (olc2 == null)
-                        {
-                            contacts.Remove(gid);
-                            continue;
-                        }
-                        try
-                        {
-                            var c = GetGoogleContactById(gid);
-                            if (c != null)
-                            {
-                                string oid = ContactPropertiesUtils.GetGoogleOutlookContactId(SyncProfile, c);
-                                //check to which Outlook contact Google contact is linked
-                                if (ContactPropertiesUtils.GetOutlookId(olc1) == oid)
-                                {
-                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
-                                    if (!string.IsNullOrEmpty(olc2.FileAs))
-                                    {
-                                        Logger.Log("Duplicated contact: " + olc2.FileAs + ".", EventType.Debug);
-                                    }
-                                    contacts[oid] = i;
-                                }
-                                else if (ContactPropertiesUtils.GetOutlookId(olc2) == oid)
-                                {
-                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
-                                    if (!string.IsNullOrEmpty(olc1.FileAs))
-                                    {
-                                        Logger.Log("Duplicated contact: " + olc1.FileAs + ".", EventType.Debug);
-                                    }
-                                }
-                                else
-                                {
-                                    //duplicated Outlook contacts found, but Google contact does not exist
-                                    //so lets clean the link from Outlook contacts  
-                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
-                                    ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
-                                    contacts.Remove(gid);
-                                }
-                            }
-                            else
-                            {
-                                //duplicated Outlook contacts found, but Google contact does not exist
-                                //so lets clean the link from Outlook contacts
-                                ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc1);
-                                ContactPropertiesUtils.ResetOutlookGoogleContactId(this, olc2);
-                                contacts.Remove(gid);
-                            }
-                        }
-                        finally
-                        {
-                            if (olc2 != null)
-                                Marshal.ReleaseComObject(olc2);
-                        }
-                    }
-                    else
-                    {
-                        contacts.Add(gid, i);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    //this is needed because some contacts throw exceptions
-                    if (olc1 != null && !string.IsNullOrEmpty(olc1.FileAs))
-                        Logger.Log("Accessing Outlook contact: " + olc1.FileAs + " threw and exception. Skipping: " + ex.Message, EventType.Debug);
-                    else
-                        Logger.Log("Accessing Outlook contact threw and exception. Skipping: " + ex.Message, EventType.Debug);
-                    continue;
-                }
-                finally
-                {
-                    if (olc1 != null)
-                        Marshal.ReleaseComObject(olc1);
-                }
-            }
-        }
         public void LoadAppointments()
         {
             LoadOutlookAppointments();
@@ -1586,7 +1375,6 @@ namespace GoContactSyncMod
             Contacts = ContactsMatcher.MatchContacts(this, out duplicateDataException);
             if (duplicateDataException != null)
             {
-
                 if (DuplicatesFound != null)
                     DuplicatesFound("Google duplicates found", duplicateDataException.Message);
                 else
@@ -2450,22 +2238,25 @@ namespace GoContactSyncMod
 
         public void SaveGoogleContact(ContactMatch match)
         {
-            Outlook.ContactItem outlookContactItem = match.OutlookContact.GetOriginalItemFromOutlook();
+            Outlook.ContactItem olc = null;
             try
             {
-                ContactPropertiesUtils.SetGoogleOutlookContactId(SyncProfile, match.GoogleContact, outlookContactItem);
+                olc = match.OutlookContact.GetOriginalItemFromOutlook();
+                ContactPropertiesUtils.SetGoogleOutlookContactId(SyncProfile, match.GoogleContact, olc);
                 match.GoogleContact = SaveGoogleContact(match.GoogleContact);
-                ContactPropertiesUtils.SetOutlookGoogleContactId(this, outlookContactItem, match.GoogleContact);
-                outlookContactItem.Save();
+                ContactPropertiesUtils.SetOutlookGoogleContactId(this, olc, match.GoogleContact);
+                olc.Save();
 
                 //Now save the Photo
-                SaveGooglePhoto(match, outlookContactItem);
-
+                SaveGooglePhoto(match, olc);
             }
             finally
             {
-                Marshal.ReleaseComObject(outlookContactItem);
-                outlookContactItem = null;
+                if (olc != null)
+                {
+                    Marshal.ReleaseComObject(olc);
+                    olc = null;
+                }
             }
         }
 
@@ -3045,15 +2836,15 @@ namespace GoContactSyncMod
         //    //Utilities.DeleteTempPhoto();
         //}
 
-        public void SaveGooglePhoto(ContactMatch match, Outlook.ContactItem outlookContactitem)
+        public void SaveGooglePhoto(ContactMatch match, Outlook.ContactItem olc)
         {
             bool hasGooglePhoto = Utilities.HasPhoto(match.GoogleContact);
-            bool hasOutlookPhoto = Utilities.HasPhoto(outlookContactitem);
+            bool hasOutlookPhoto = Utilities.HasPhoto(olc);
 
             if (hasOutlookPhoto)
             {
                 // add outlook photo to google
-                using (var outlookPhoto = Utilities.GetOutlookPhoto(outlookContactitem))
+                using (var outlookPhoto = Utilities.GetOutlookPhoto(olc))
                 {
                     if (outlookPhoto != null)
                     {
@@ -3074,8 +2865,8 @@ namespace GoContactSyncMod
                                         ContactsRequest.SetPhoto(match.GoogleContact, stream);
 
                                         //Just save the Outlook Contact to have the same lastUpdate date as Google
-                                        ContactPropertiesUtils.SetOutlookGoogleContactId(this, outlookContactitem, match.GoogleContact);
-                                        outlookContactitem.Save();
+                                        ContactPropertiesUtils.SetOutlookGoogleContactId(this, olc, match.GoogleContact);
+                                        olc.Save();
                                     }
                                 }
                                 break; //Exit because photo save succeeded
@@ -3211,9 +3002,10 @@ namespace GoContactSyncMod
                     //group already present in google. just update
                     return ContactsRequest.Update(group);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    //TODO: save google group xml for diagnistics
+                    Logger.Log(ex, EventType.Debug);
+                    Logger.Log("Group dump: " + group.ToString(), EventType.Debug);
                     throw;
                 }
             }
@@ -3577,20 +3369,12 @@ namespace GoContactSyncMod
         /// <summary>
         /// Reset the match link between Outlook and Google appointment
         /// </summary>
-        public void ResetMatch(Outlook.AppointmentItem outlookAppointment)
+        public void ResetMatch(Outlook.AppointmentItem ola)
         {
-            if (outlookAppointment != null)
-            {
-                //try
-                //{
-                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, outlookAppointment);
-                outlookAppointment.Save();
-                //}
-                //finally
-                //{
-                //    Marshal.ReleaseComObject(OutlookAppointment);
-                //    OutlookAppointment = null;
-                //}
+            if (ola != null)
+            {               
+                AppointmentPropertiesUtils.ResetOutlookGoogleAppointmentId(this, ola);
+                ola.Save();
             }
         }
 
@@ -3614,24 +3398,6 @@ namespace GoContactSyncMod
             }
             return null;
         }
-
-        //public ContactMatch ContactEmail(string email)
-        //{
-        //    foreach (ContactMatch m in Contacts)
-        //    {
-        //        if (m.GoogleContact != null &&
-        //            (m.GoogleContact.PrimaryEmail != null && m.GoogleContact.PrimaryEmail.Address == email))
-        //        {
-        //            return m;
-        //        }
-        //        else if (m.OutlookContact != null && (
-        //            m.OutlookContact.Email1Address != null && m.OutlookContact.Email1Address == email))
-        //        {
-        //            return m;
-        //        }
-        //    }
-        //    return null;
-        //}
 
         /// <summary>
         /// Used to find duplicates.
@@ -3803,7 +3569,7 @@ namespace GoContactSyncMod
 
         public Group CreateGroup(string name)
         {
-            Group group = new Group();
+            var group = new Group();
             group.Title = name;
             group.GroupEntry.Dirty = true;
             return group;
