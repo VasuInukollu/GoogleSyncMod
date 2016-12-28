@@ -59,12 +59,12 @@ namespace GoContactSyncMod
                         //sync.SkippedCountNotMatches++;
                         continue;
                     }
-                    else if (Synchronizer.MonthsInPast > 0 &&
-                             (ola.IsRecurring && ola.GetRecurrencePattern().PatternEndDate < DateTime.Now.AddMonths(-Synchronizer.MonthsInPast) ||
-                             !ola.IsRecurring && ola.End < DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) ||
-                        Synchronizer.MonthsInFuture > 0 &&
-                             (ola.IsRecurring && ola.GetRecurrencePattern().PatternStartDate > DateTime.Now.AddMonths(Synchronizer.MonthsInFuture) ||
-                             !ola.IsRecurring && ola.Start > DateTime.Now.AddMonths(Synchronizer.MonthsInFuture)))
+                    else if (Synchronizer.TimeMin != null &&
+                             (ola.IsRecurring && ola.GetRecurrencePattern().PatternEndDate < Synchronizer.TimeMin ||
+                             !ola.IsRecurring && ola.End < Synchronizer.TimeMin) ||
+                        Synchronizer.TimeMax != null &&
+                             (ola.IsRecurring && ola.GetRecurrencePattern().PatternStartDate > Synchronizer.TimeMax ||
+                             !ola.IsRecurring && ola.Start > Synchronizer.TimeMax))
                     {
                         Logger.Log("Skipping Outlook appointment because it is out of months range to sync:" + ola.Subject + " - " + ola.Start, EventType.Debug);
                         continue;
@@ -229,21 +229,12 @@ namespace GoContactSyncMod
             string googleAppointmentId = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, match.OutlookAppointment);
             if (!string.IsNullOrEmpty(googleAppointmentId))
             {
-                //if (match.OutlookAppointment.IsRecurring && match.OutlookAppointment.RecurrenceState == Outlook.OlRecurrenceState.olApptMaster &&
-                //    (Syncronizer.MonthsInPast == 0 || new DateTime(DateTime.Now.AddMonths(-Syncronizer.MonthsInPast).Year, match.OutlookAppointment.End.Month, match.OutlookAppointment.End.Day) >= DateTime.Now.AddMonths(-Syncronizer.MonthsInPast)) &&
-                //    (Syncronizer.MonthsInFuture == 0 || new DateTime(DateTime.Now.AddMonths(-Syncronizer.MonthsInPast).Year, match.OutlookAppointment.Start.Month, match.OutlookAppointment.Start.Day) <= DateTime.Now.AddMonths(Syncronizer.MonthsInFuture))                        
-                //    ||
-                //    (Syncronizer.MonthsInPast == 0 || match.OutlookAppointment.End >= DateTime.Now.AddMonths(-Syncronizer.MonthsInPast)) &&
-                //    (Syncronizer.MonthsInFuture == 0 || match.OutlookAppointment.Start <= DateTime.Now.AddMonths(Syncronizer.MonthsInFuture))                        
-                //    )
-                //{
-
                 //Redundant check if exist, but in case an error occurred in MatchAppointments or not all appointments have been loaded (e.g. because months before/after constraint)
                 Event matchingGoogleAppointment = null;
                 if (sync.AllGoogleAppointments != null)
                     matchingGoogleAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
                 else
-                    matchingGoogleAppointment = sync.LoadGoogleAppointments(googleAppointmentId, 0, 0, null, null);
+                    matchingGoogleAppointment = sync.LoadGoogleAppointments(googleAppointmentId, null, null, null, null);
                 if (matchingGoogleAppointment == null)
                 {
                     if (sync.SyncOption == SyncOption.OutlookToGoogleOnly || !sync.SyncDelete)

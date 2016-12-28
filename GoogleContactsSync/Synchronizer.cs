@@ -104,8 +104,9 @@ namespace GoContactSyncMod
         public static string SyncAppointmentsGoogleFolder { get; set; }
         public static string SyncAppointmentsGoogleTimeZone { get; set; }
 
-        public static ushort MonthsInPast { get; set; }
-        public static ushort MonthsInFuture { get; set; }
+        public static DateTime? TimeMin { get; set; }
+        public static DateTime? TimeMax { get; set; }
+
         public static string Timezone { get; set; }
         public static bool MappingBetweenTimeZonesRequired { get; set; }
 
@@ -613,8 +614,10 @@ namespace GoContactSyncMod
             finally
             {
                 if (mapiFolder != null)
+                {
                     Marshal.ReleaseComObject(mapiFolder);
-                mapiFolder = null;
+                    mapiFolder = null;
+                }
             }
         }
 
@@ -764,7 +767,7 @@ namespace GoContactSyncMod
         private void LoadGoogleAppointments()
         {
             Logger.Log("Loading Google appointments...", EventType.Information);
-            LoadGoogleAppointments(null, MonthsInPast, MonthsInFuture, null, null);
+            LoadGoogleAppointments(null, TimeMin, TimeMax, null, null);
             Logger.Log("Google Appointments Found: " + GoogleAppointments.Count, EventType.Debug);
         }
 
@@ -812,10 +815,10 @@ namespace GoContactSyncMod
                 var query = EventRequest.List(SyncAppointmentsGoogleFolder);
                 string pageToken = null;
 
-                if (MonthsInPast != 0)
-                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
-                if (MonthsInFuture != 0)
-                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+                if (TimeMin != null)
+                    query.TimeMin = TimeMin;
+                if (TimeMax != null)
+                    query.TimeMax = TimeMax;
 
                 Logger.Log("Processing single updates.", EventType.Information);
 
@@ -924,10 +927,10 @@ namespace GoContactSyncMod
                 var query = EventRequest.List(SyncAppointmentsGoogleFolder);
                 string pageToken = null;
 
-                if (MonthsInPast != 0)
-                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
-                if (MonthsInFuture != 0)
-                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+                if (TimeMin != null)
+                    query.TimeMin = TimeMin;
+                if (TimeMax != null)
+                    query.TimeMax = TimeMax;
 
                 Logger.Log("Processing batch updates.", EventType.Information);
 
@@ -1068,7 +1071,7 @@ namespace GoContactSyncMod
             }
         }
 
-        internal Google.Apis.Calendar.v3.Data.Event LoadGoogleAppointments(string id, ushort restrictMonthsInPast, ushort restrictMonthsInFuture, DateTime? restrictStartTime, DateTime? restrictEndTime)
+        internal Google.Apis.Calendar.v3.Data.Event LoadGoogleAppointments(string id, DateTime? start, DateTime? end, DateTime? restrictStartTime, DateTime? restrictEndTime)
         {
             string message = "Error Loading Google appointments. Cannot connect to Google.\r\nPlease ensure you are connected to the internet. If you are behind a proxy, change your proxy configuration!";
 
@@ -1084,12 +1087,12 @@ namespace GoContactSyncMod
                 //query.MaxResults = 256; //ToDo: Find a way to retrieve all appointments
 
                 //Only Load events from month range, but only if not a distinct Google Appointment is searched for
-                if (restrictMonthsInPast != 0)
-                    query.TimeMin = DateTime.Now.AddMonths(-MonthsInPast);
+                if (start != null)
+                    query.TimeMin = TimeMin;
                 if (restrictStartTime != null && (query.TimeMin == default(DateTime) || restrictStartTime > query.TimeMin))
                     query.TimeMin = restrictStartTime.Value;
-                if (restrictMonthsInFuture != 0)
-                    query.TimeMax = DateTime.Now.AddMonths(MonthsInFuture);
+                if (end != null)
+                    query.TimeMax = TimeMax;
                 if (restrictEndTime != null && (query.TimeMax == default(DateTime) || restrictEndTime < query.TimeMax))
                     query.TimeMax = restrictEndTime.Value;
 
@@ -1139,7 +1142,7 @@ namespace GoContactSyncMod
             }
 
             //Remember, if all Google Appointments have been loaded
-            if (restrictMonthsInPast == 0 && restrictMonthsInFuture == 0 && restrictStartTime == null && restrictEndTime == null) //restrictStartDate == null)
+            if (start == null && end == null && restrictStartTime == null && restrictEndTime == null) //restrictStartDate == null)
                 AllGoogleAppointments = GoogleAppointments;
 
             return ret;
@@ -1161,6 +1164,9 @@ namespace GoContactSyncMod
         private void RemoveGoogleDuplicatedAppointments()
         {
             Logger.Log("Removing Google duplicated appointments...", EventType.Information);
+
+            if (GoogleAppointments.Count < 2)
+                return;
 
             var appointments = new Dictionary<string, int>();
 
@@ -1259,6 +1265,9 @@ namespace GoContactSyncMod
         private void RemoveOutlookDuplicatedAppointments()
         {
             Logger.Log("Removing Outlook duplicated appointments...", EventType.Information);
+
+            if (OutlookAppointments.Count < 2)
+                return;
 
             var appointments = new Dictionary<string, int>();
 
@@ -1413,8 +1422,8 @@ namespace GoContactSyncMod
             if (SyncAppointments)
             {
                 Logger.Log("Sync appointments", EventType.Debug);
-                Logger.Log("MonthsInPast: " + MonthsInPast, EventType.Debug);
-                Logger.Log("MonthsInFuture: " + MonthsInFuture, EventType.Debug);
+                Logger.Log("TimeMin: " + TimeMin, EventType.Debug);
+                Logger.Log("TimeMax: " + TimeMax, EventType.Debug);
                 Logger.Log("SyncAppointmentsFolder: " + SyncAppointmentsFolder, EventType.Debug);
                 Logger.Log("SyncAppointmentsGoogleFolder: " + SyncAppointmentsGoogleFolder, EventType.Debug);
                 Logger.Log("SyncAppointmentsForceRTF: " + SyncAppointmentsForceRTF, EventType.Debug);

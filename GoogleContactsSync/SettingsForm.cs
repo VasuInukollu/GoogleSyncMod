@@ -802,8 +802,8 @@ namespace GoContactSyncMod
                     Synchronizer.SyncContactsFolder = syncContactsFolder;
                     Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
                     Synchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
-                    Synchronizer.MonthsInPast = Convert.ToUInt16(pastMonthInterval.Value);
-                    Synchronizer.MonthsInFuture = Convert.ToUInt16(futureMonthInterval.Value);
+                    Synchronizer.TimeMin = DateTime.Now.AddMonths(-Convert.ToUInt16(pastMonthInterval.Value));
+                    Synchronizer.TimeMax = DateTime.Now.AddMonths(Convert.ToUInt16(futureMonthInterval.Value));
                     Synchronizer.Timezone = Timezone;
 
                     sync.SyncOption = syncOption;

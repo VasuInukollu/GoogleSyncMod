@@ -43,8 +43,8 @@ namespace GoContactSyncMod.UnitTests
             sync.SyncProfile = syncProfile;
             Assert.IsNotNull(syncAppointmentsFolder);
             Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
-            Synchronizer.MonthsInPast = 1;
-            Synchronizer.MonthsInFuture = 1;
+            Synchronizer.TimeMin = DateTime.Now.AddMonths(-1);
+            Synchronizer.TimeMax = DateTime.Now.AddMonths(1);
 
             sync.LoginToGoogle(gmailUsername);
             sync.LoginToOutlook();

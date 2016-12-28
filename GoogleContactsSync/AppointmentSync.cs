@@ -990,10 +990,9 @@ namespace GoContactSyncMod
 
         public static bool UpdateRecurrenceExceptions(Outlook.AppointmentItem master, Event slave, Synchronizer sync)
         {
-
             bool ret = false;
 
-            Outlook.Exceptions exceptions = master.GetRecurrencePattern().Exceptions;
+            var exceptions = master.GetRecurrencePattern().Exceptions;
 
             if (exceptions != null && exceptions.Count != 0)
             {
@@ -1002,8 +1001,9 @@ namespace GoContactSyncMod
                     if (!exception.Deleted)
                     {
                         //Add exception time (but only if in given time range
-                        if ((Synchronizer.MonthsInPast == 0 || exception.AppointmentItem.End >= DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) &&
-                             (Synchronizer.MonthsInFuture == 0 || exception.AppointmentItem.Start <= DateTime.Now.AddMonths(Synchronizer.MonthsInFuture)))
+                        if (
+                            (Synchronizer.TimeMin == null || exception.AppointmentItem.End >= Synchronizer.TimeMin) &&
+                             (Synchronizer.TimeMax == null || exception.AppointmentItem.Start <= Synchronizer.TimeMax))
                         {
                             //slave.Times.Add(new Google.GData.Extensions.When(exception.AppointmentItem.Start, exception.AppointmentItem.Start, exception.AppointmentItem.AllDayEvent));
                             var googleRecurrenceException = Factory.NewEvent();
@@ -1019,7 +1019,6 @@ namespace GoContactSyncMod
                                 //DateTime start = exception.OriginalDate.AddHours(master.Start.Hour).AddMinutes(master.Start.Minute).AddSeconds(master.Start.Second);
                                 googleRecurrenceException.OriginalStartTime.DateTime = exception.OriginalDate;
                             }
-
 
                             try
                             {
@@ -1065,8 +1064,8 @@ namespace GoContactSyncMod
                         //    if (googleRecurrenceException != null)
                         //        googleRecurrenceException.Delete();
 
-                        if ((Synchronizer.MonthsInPast == 0 || exception.OriginalDate >= DateTime.Now.AddMonths(-Synchronizer.MonthsInPast)) &&
-                             (Synchronizer.MonthsInFuture == 0 || exception.OriginalDate <= DateTime.Now.AddMonths(Synchronizer.MonthsInFuture)))
+                        if ((Synchronizer.TimeMin == null || exception.OriginalDate >= Synchronizer.TimeMin) &&
+                             (Synchronizer.TimeMax == null || exception.OriginalDate <= Synchronizer.TimeMax))
                         {
                             //First create deleted occurrences, to delete it later again
                             var googleRecurrenceException = Factory.NewEvent();
@@ -1109,11 +1108,7 @@ namespace GoContactSyncMod
                                 //usually only an error is thrown, if an already cancelled event is to be deleted again
                                 Logger.Log(ex.Message, EventType.Debug);
                             }
-
-
                         }
-
-
                     }
                 }
             }
@@ -1164,7 +1159,7 @@ namespace GoContactSyncMod
                     else if (googleRecurrenceException.End != null)
                         timeMax = googleRecurrenceException.End.DateTime;
 
-                    googleRecurrenceException = sync.LoadGoogleAppointments(googleRecurrenceException.Id, 0, 0, timeMin, timeMax); //Reload, just in case it was updated by master recurrence                                
+                    googleRecurrenceException = sync.LoadGoogleAppointments(googleRecurrenceException.Id, null, null, timeMin, timeMax); //Reload, just in case it was updated by master recurrence                                
                     if (googleRecurrenceException != null)
                     {
                         if (googleRecurrenceException.Status.Equals("cancelled"))
