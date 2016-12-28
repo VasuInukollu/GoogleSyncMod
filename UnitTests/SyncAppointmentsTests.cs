@@ -53,30 +53,77 @@ namespace GoContactSyncMod.UnitTests
         [SetUp]
         public void SetUp()
         {
-            // delete previously failed test appointments
             DeleteTestAppointments();
         }
 
         private void DeleteTestAppointments()
         {
-            sync.LoadAppointments();
+            Outlook.MAPIFolder mapiFolder = null;
+            Outlook.Items items = null;
 
-            Outlook.AppointmentItem outlookAppointment = sync.OutlookAppointments.Find("[Subject] = '" + name + "'") as Outlook.AppointmentItem;
-            while (outlookAppointment != null)
+            if (string.IsNullOrEmpty(Synchronizer.SyncAppointmentsFolder))
             {
-                DeleteTestAppointment(outlookAppointment);
-                outlookAppointment = sync.OutlookAppointments.Find("[Subject] = '" + name + "'") as Outlook.AppointmentItem;
+                mapiFolder = Synchronizer.OutlookNameSpace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
             }
-
-            foreach (Event googleAppointment in sync.GoogleAppointments)
+            else
             {
-                if (googleAppointment != null &&
-                    googleAppointment.Summary != null &&
-                    googleAppointment.Summary == name)
+                mapiFolder = Synchronizer.OutlookNameSpace.GetFolderFromID(Synchronizer.SyncAppointmentsFolder);
+            }
+            Assert.NotNull(mapiFolder);
+
+            try
+            {
+                items = mapiFolder.Items;
+                Assert.NotNull(items);
+
+                object item = items.GetFirst();
+                while (item != null)
                 {
-                    DeleteTestAppointment(googleAppointment);
+                    if (item is Outlook.AppointmentItem)
+                    {
+                        var ola = item as Outlook.AppointmentItem;
+                        if (ola.Subject == name)
+                        {
+                            var s = ola.Subject + " - " + ola.Start;
+                            ola.Delete();
+                            Logger.Log("Deleted Outlook test appointment: " + s, EventType.Information);
+                        }
+                        Marshal.ReleaseComObject(ola);
+                    }
+                    Marshal.ReleaseComObject(item);
+                    item = items.GetNext();
                 }
             }
+            finally
+            {
+                if (mapiFolder != null)
+                    Marshal.ReleaseComObject(mapiFolder);
+                if (items != null)
+                    Marshal.ReleaseComObject(items);
+            }
+
+            var query = sync.EventRequest.List(Synchronizer.SyncAppointmentsGoogleFolder);
+            Events feed;
+            string pageToken = null;
+            do
+            {
+                query.PageToken = pageToken;
+                feed = query.Execute();
+                foreach (Event e in feed.Items)
+                {
+                    if (!e.Status.Equals("cancelled") && e.Summary != null && e.Summary == name)
+                    {
+                        sync.EventRequest.Delete(Synchronizer.SyncAppointmentsGoogleFolder, e.Id).Execute();
+                        Logger.Log("Deleted Google test appointment: " + e.Summary + " - " + Synchronizer.GetTime(e), EventType.Information);
+                    }
+                }
+                pageToken = feed.NextPageToken;
+            }
+            while (pageToken != null);
+
+            sync.LoadAppointments();
+            Assert.AreEqual(0, sync.GoogleAppointments.Count);
+            Assert.AreEqual(0, sync.OutlookAppointments.Count);
         }
 
         void Logger_LogUpdated(string message)
@@ -513,39 +560,39 @@ namespace GoContactSyncMod.UnitTests
             }
         }
 
-        private void DeleteTestAppointment(Outlook.AppointmentItem outlookAppointment)
+        private void DeleteTestAppointment(Outlook.AppointmentItem ola)
         {
-            if (outlookAppointment != null)
+            if (ola != null)
             {
                 try
                 {
-                    string name = outlookAppointment.Subject;
-                    outlookAppointment.Delete();
+                    string name = ola.Subject;
+                    ola.Delete();
                     Logger.Log("Deleted Outlook test appointment: " + name, EventType.Information);
                 }
                 finally
                 {
-                    Marshal.ReleaseComObject(outlookAppointment);
-                    outlookAppointment = null;
+                    Marshal.ReleaseComObject(ola);
+                    ola = null;
                 }
             }
         }
 
-        private void DeleteTestAppointment(Event googleAppointment)
+        private void DeleteTestAppointment(Event e)
         {
-            if (googleAppointment != null && !googleAppointment.Status.Equals("cancelled"))
+            if (e != null && !e.Status.Equals("cancelled"))
             {
-                sync.EventRequest.Delete(Synchronizer.SyncAppointmentsGoogleFolder, googleAppointment.Id);
-                Logger.Log("Deleted Google test appointment: " + googleAppointment.Summary, EventType.Information);
-                Thread.Sleep(2000);
+                sync.EventRequest.Delete(Synchronizer.SyncAppointmentsGoogleFolder, e.Id);
+                Logger.Log("Deleted Google test appointment: " + e.Summary, EventType.Information);
+                //Thread.Sleep(2000);
             }
         }
 
-        internal AppointmentMatch FindMatch(Outlook.AppointmentItem outlookAppointment)
+        internal AppointmentMatch FindMatch(Outlook.AppointmentItem ola)
         {
             foreach (AppointmentMatch match in sync.Appointments)
             {
-                if (match.OutlookAppointment != null && match.OutlookAppointment.EntryID == outlookAppointment.EntryID)
+                if (match.OutlookAppointment != null && match.OutlookAppointment.EntryID == ola.EntryID)
                     return match;
             }
             return null;
@@ -553,17 +600,17 @@ namespace GoContactSyncMod.UnitTests
 
         private void MatchAppointments(Synchronizer sync)
         {
-            Thread.Sleep(5000); //Wait, until Appointment is really saved and available to retrieve again
+            //Thread.Sleep(5000); //Wait, until Appointment is really saved and available to retrieve again
             sync.MatchAppointments();
         }
 
-        internal AppointmentMatch FindMatch(Event googleAppointment)
+        internal AppointmentMatch FindMatch(Event e)
         {
-            if (googleAppointment != null)
+            if (e != null)
             {
                 foreach (AppointmentMatch match in sync.Appointments)
                 {
-                    if (match.GoogleAppointment != null && match.GoogleAppointment.Id == googleAppointment.Id)
+                    if (match.GoogleAppointment != null && match.GoogleAppointment.Id == e.Id)
                         return match;
                 }
             }
