@@ -618,7 +618,7 @@ namespace GoContactSyncMod
             {
                 bool syncContactFolderIsValid = (contactFoldersComboBox.SelectedIndex >= 1 && contactFoldersComboBox.SelectedIndex < contactFoldersComboBox.Items.Count)
                                                 || !btSyncContacts.Checked;
-                
+
                 bool syncAppointmentFolderIsValid = (appointmentFoldersComboBox.SelectedIndex >= 1 && appointmentFoldersComboBox.SelectedIndex < appointmentFoldersComboBox.Items.Count)
                         && (appointmentGoogleFoldersComboBox.SelectedIndex == appointmentGoogleFoldersComboBox.Items.Count - 1 || appointmentGoogleFoldersComboBox.SelectedIndex >= 1 && appointmentGoogleFoldersComboBox.SelectedIndex < appointmentGoogleFoldersComboBox.Items.Count)
                                                 || !btSyncAppointments.Checked;
@@ -813,8 +813,8 @@ namespace GoContactSyncMod
                     sync.contactsSynchronizer.UseFileAs = chkUseFileAs.Checked;
                     sync.SyncContacts = btSyncContacts.Checked;
                     sync.SyncAppointments = btSyncAppointments.Checked;
-                    Synchronizer.SyncAppointmentsForceRTF = btSyncAppointmentsForceRTF.Checked;
-                    Synchronizer.SyncContactsForceRTF = btSyncContactsForceRTF.Checked;
+                    AppointmentsSynchronizer.SyncAppointmentsForceRTF = btSyncAppointmentsForceRTF.Checked;
+                    ContactsSynchronizer.SyncContactsForceRTF = btSyncContactsForceRTF.Checked;
 
                     if (!sync.SyncContacts && !sync.SyncAppointments)
                     {
@@ -1259,7 +1259,7 @@ namespace GoContactSyncMod
             try
             {
                 cancelButton.Enabled = false; //Cancel is only working for sync currently, not for reset
-                await ResetMatches(btSyncContacts.Checked,  btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
+                await ResetMatches(btSyncContacts.Checked, btSyncAppointments.Checked);//ToDo: Google.Documents API Replaced by Google.Drive API on 21-Apr-2015
             }
             catch (Exception ex)
             {
@@ -1678,7 +1678,7 @@ namespace GoContactSyncMod
             ValidateSyncButton();
         }
 
-        
+
 
         private void appointmentFoldersComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {

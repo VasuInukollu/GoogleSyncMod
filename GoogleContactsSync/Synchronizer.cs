@@ -17,7 +17,7 @@ namespace GoContactSyncMod
     {
         public const int OutlookUserPropertyMaxLength = 32;
         public const string OutlookUserPropertyTemplate = "g/con/{0}/";
-        
+
         public static object _syncRoot = new object();
         internal static string UserName;
 
@@ -54,7 +54,6 @@ namespace GoContactSyncMod
 
         public delegate void NotificationHandler(string message);
 
-        
         public delegate void ErrorNotificationHandler(string title, Exception ex, EventType eventType);
         public delegate void TimeZoneNotificationHandler(string timeZone);
 
@@ -72,18 +71,6 @@ namespace GoContactSyncMod
         }
 
         public static Outlook.Application OutlookApplication { get; private set; }
-        
-        public string OutlookPropertyPrefix { get; private set; }
-
-        public string OutlookPropertyNameId
-        {
-            get { return OutlookPropertyPrefix + "id"; }
-        }
-
-        public string OutlookPropertyNameSynced
-        {
-            get { return OutlookPropertyPrefix + "up"; }
-        }
 
         private SyncOption _syncOption = SyncOption.MergeOutlookWins;
         public SyncOption SyncOption
@@ -122,14 +109,11 @@ namespace GoContactSyncMod
         /// If true sync also contacts
         /// </summary>
         public bool SyncContacts { get; set; }
-        public static bool SyncContactsForceRTF { get; set; }
 
         /// <summary>
         /// If true sync also appointments (calendar)
         /// </summary>
         public bool SyncAppointments { get; set; }
-        public static bool SyncAppointmentsForceRTF { get; set; }
-        
 
         public void LoginToGoogle(string username)
         {
@@ -204,9 +188,8 @@ namespace GoContactSyncMod
             //Remove characters not allowed for Outlook user property names: []_#
             userId = userId.Replace("#", "").Replace("[", "").Replace("]", "").Replace("_", "");
 
-            OutlookPropertyPrefix = string.Format(OutlookUserPropertyTemplate, userId);
-            appointmentsSynchronizer.OutlookPropertyPrefix = OutlookPropertyPrefix;
-            contactsSynchronizer.OutlookPropertyPrefix = OutlookPropertyPrefix;
+            appointmentsSynchronizer.OutlookPropertyPrefix = string.Format(OutlookUserPropertyTemplate, userId);
+            contactsSynchronizer.OutlookPropertyPrefix = string.Format(OutlookUserPropertyTemplate, userId);
         }
 
         public void LoginToOutlook()
@@ -384,7 +367,7 @@ namespace GoContactSyncMod
                 else
                     Logger.Log("Connected to Outlook: " + VersionInformation.GetOutlookVersion(OutlookApplication), EventType.Debug);
             }
-           
+
             //Just try to access the outlookNamespace to check, if it is still accessible, throws COMException, if not reachable 
             try
             {
@@ -521,7 +504,7 @@ namespace GoContactSyncMod
             {
                 Logger.Log("Sync contacts", EventType.Debug);
                 Logger.Log("SyncContactsFolder: " + ContactsSynchronizer.SyncContactsFolder, EventType.Debug);
-                Logger.Log("SyncContactsForceRTF: " + SyncContactsForceRTF, EventType.Debug);
+                Logger.Log("SyncContactsForceRTF: " + ContactsSynchronizer.SyncContactsForceRTF, EventType.Debug);
                 Logger.Log("UseFileAs: " + contactsSynchronizer.UseFileAs, EventType.Debug);
             }
 
@@ -532,7 +515,7 @@ namespace GoContactSyncMod
                 Logger.Log("TimeMax: " + AppointmentsSynchronizer.TimeMax, EventType.Debug);
                 Logger.Log("SyncAppointmentsFolder: " + AppointmentsSynchronizer.SyncAppointmentsFolder, EventType.Debug);
                 Logger.Log("SyncAppointmentsGoogleFolder: " + AppointmentsSynchronizer.SyncAppointmentsGoogleFolder, EventType.Debug);
-                Logger.Log("SyncAppointmentsForceRTF: " + SyncAppointmentsForceRTF, EventType.Debug);
+                Logger.Log("SyncAppointmentsForceRTF: " + AppointmentsSynchronizer.SyncAppointmentsForceRTF, EventType.Debug);
             }
         }
 
@@ -664,8 +647,6 @@ namespace GoContactSyncMod
                 }
             }
         }
-
-       
 
         public void Dispose()
         {

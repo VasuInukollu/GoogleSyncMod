@@ -373,7 +373,7 @@ namespace GoContactSyncMod
                     }
                     else
                     {
-                        if (!Synchronizer.SyncAppointmentsForceRTF)
+                        if (!AppointmentsSynchronizer.SyncAppointmentsForceRTF)
                         {
                             slave.Body = master.Description;
                         }

@@ -136,13 +136,13 @@ namespace GoContactSyncMod
                         string fn = GetTempFileName("jpg");
                         a.SaveAsFile(fn);
 
+                        Image img = null;
                         using (var fs = new FileStream(fn, FileMode.Open))
                         {
-                            var img = Image.FromStream(fs);
-                            fs.Close();
-                            File.Delete(fn);
-                            return img;
+                            img = Image.FromStream(fs);
                         }
+                        File.Delete(fn);
+                        return img;
                     }
                 }
                 return null;

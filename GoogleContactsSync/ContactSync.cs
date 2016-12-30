@@ -619,7 +619,6 @@ namespace GoContactSyncMod
 
             #region Name
 
-
             slave.Title = master.Name.NamePrefix;
             slave.FirstName = master.Name.GivenName;
             slave.MiddleName = master.Name.AdditionalName;
@@ -1043,14 +1042,13 @@ namespace GoContactSyncMod
 
                 if (!nonRTF.Equals(master.Content))
                 {
-
                     if (string.IsNullOrEmpty(nonRTF) || nonRTF.Equals(slave.Body))
                     { //only update, if RTF text is same as plain text and is different between master and slave
                         slave.Body = master.Content;
                     }
                     else
                     {
-                        if (!Synchronizer.SyncContactsForceRTF)
+                        if (!ContactsSynchronizer.SyncContactsForceRTF)
                         {
                             slave.Body = master.Content;
                         }
@@ -1071,7 +1069,6 @@ namespace GoContactSyncMod
 
         public static void SetEmails(Contact source, Outlook.ContactItem destination)
         {
-
             if (source.Emails.Count > 0)
             {
                 //only sync, if Email changed
