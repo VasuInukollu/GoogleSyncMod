@@ -792,7 +792,7 @@ namespace GoContactSyncMod
                         sync.contactsSynchronizer.DuplicatesFound += new ContactsSynchronizer.DuplicatesFoundHandler(OnDuplicatesFound);
                         sync.appointmentsSynchronizer.ErrorEncountered += new AppointmentsSynchronizer.ErrorNotificationHandler(OnErrorEncountered);
                         sync.contactsSynchronizer.ErrorEncountered += new ContactsSynchronizer.ErrorNotificationHandler(OnErrorEncountered);
-                        sync.TimeZoneChanges += new Synchronizer.TimeZoneNotificationHandler(OnTimeZoneChanges);
+                        sync.appointmentsSynchronizer.TimeZoneChanges += new AppointmentsSynchronizer.TimeZoneNotificationHandler(OnTimeZoneChanges);
                     }
 
                     Logger.ClearLog();

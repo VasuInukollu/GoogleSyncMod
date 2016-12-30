@@ -55,9 +55,7 @@ namespace GoContactSyncMod
         public delegate void NotificationHandler(string message);
 
         public delegate void ErrorNotificationHandler(string title, Exception ex, EventType eventType);
-        public delegate void TimeZoneNotificationHandler(string timeZone);
-
-        public event TimeZoneNotificationHandler TimeZoneChanges;
+        
 
         private static Outlook.NameSpace _outlookNamespace;
         public static Outlook.NameSpace OutlookNameSpace
@@ -557,24 +555,7 @@ namespace GoContactSyncMod
 
                     if (SyncAppointments)
                     {
-                        Logger.Log("Outlook default time zone: " + TimeZoneInfo.Local.Id, EventType.Information);
-                        Logger.Log("Google default time zone: " + AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone, EventType.Information);
-                        if (string.IsNullOrEmpty(AppointmentsSynchronizer.Timezone))
-                        {
-                            TimeZoneChanges?.Invoke(AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone);
-                            Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
-                        }
-                        else if (string.IsNullOrEmpty(AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone))
-                        {
-                            //Timezone was set, but some users do not have time zone set in Google
-                            AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone = AppointmentsSynchronizer.Timezone;
-                        }
-                        AppointmentsSynchronizer.MappingBetweenTimeZonesRequired = false;
-                        if (TimeZoneInfo.Local.Id != AppointmentSync.IanaToWindows(AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone))
-                        {
-                            AppointmentsSynchronizer.MappingBetweenTimeZonesRequired = true;
-                            Logger.Log("Different time zones in Outlook (" + TimeZoneInfo.Local.Id + ") and Google (mapped to " + AppointmentSync.IanaToWindows(AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone) + ")", EventType.Warning);
-                        }
+                        appointmentsSynchronizer.SetTimeZone();
                         appointmentsSynchronizer.MatchAppointments();
                     }
 
@@ -622,7 +603,7 @@ namespace GoContactSyncMod
                         Logger.Log("Syncing appointments...", EventType.Information);
                         AppointmentsMatcher.SyncAppointments(appointmentsSynchronizer);
 
-                        appointmentsSynchronizer.DeleteAppointments(appointmentsSynchronizer.Appointments);
+                        appointmentsSynchronizer.DeleteAppointments();
                     }
                 }
                 finally

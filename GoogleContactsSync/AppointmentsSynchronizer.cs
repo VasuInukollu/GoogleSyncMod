@@ -21,6 +21,10 @@ namespace GoContactSyncMod
 
         public static bool SyncAppointmentsForceRTF { get; set; }
 
+        public delegate void TimeZoneNotificationHandler(string timeZone);
+
+        public event TimeZoneNotificationHandler TimeZoneChanges;
+
         public EventsResource EventRequest { get; set; }
 
         public static string SyncAppointmentsFolder { get; set; }
@@ -74,8 +78,6 @@ namespace GoContactSyncMod
         public void ReadGoogleAppointmentConfig(Google.Apis.Services.BaseClientService.Initializer initializer)
         {
             CalendarRequest = GoogleServices.CreateCalendarService(initializer);
-
-
 
             calendarList = CalendarRequest.CalendarList.List().Execute().Items;
 
@@ -136,13 +138,13 @@ namespace GoContactSyncMod
             EventRequest = CalendarRequest.Events;
         }
 
-        public void DeleteAppointments(List<AppointmentMatch> appointments)
+        public void DeleteAppointments()
         {
-            foreach (AppointmentMatch match in appointments)
+            foreach (var m in Appointments)
             {
                 try
                 {
-                    DeleteAppointment(match);
+                    DeleteAppointment(m);
                 }
                 catch (Exception ex)
                 {
@@ -150,7 +152,7 @@ namespace GoContactSyncMod
                     {
                         ErrorCount++;
                         SyncedCount--;
-                        string message = string.Format("Failed to synchronize appointment: {0}:\n{1}", match.OutlookAppointment != null ? match.OutlookAppointment.Subject + " - " + match.OutlookAppointment.Start + ")" : match.GoogleAppointment.Summary + " - " + GetTime(match.GoogleAppointment), ex.Message);
+                        string message = string.Format("Failed to synchronize appointment: {0}:\n{1}", m.OutlookAppointment != null ? m.OutlookAppointment.Subject + " - " + m.OutlookAppointment.Start + ")" : m.GoogleAppointment.Summary + " - " + GetTime(m.GoogleAppointment), ex.Message);
                         Exception newEx = new Exception(message, ex);
                         ErrorEncountered("Error", newEx, EventType.Error);
                     }
@@ -160,7 +162,7 @@ namespace GoContactSyncMod
             }
         }
 
-        public static string GetTime(Google.Apis.Calendar.v3.Data.Event googleAppointment)
+        public static string GetTime(Event googleAppointment)
         {
             string ret = string.Empty;
 
@@ -172,6 +174,28 @@ namespace GoContactSyncMod
                 ret += " Recurrence"; //ToDo: Return Recurrence Start/End
 
             return ret;
+        }
+
+        public void SetTimeZone()
+        {
+            Logger.Log("Outlook default time zone: " + TimeZoneInfo.Local.Id, EventType.Information);
+            Logger.Log("Google default time zone: " + SyncAppointmentsGoogleTimeZone, EventType.Information);
+            if (string.IsNullOrEmpty(Timezone))
+            {
+                TimeZoneChanges?.Invoke(SyncAppointmentsGoogleTimeZone);
+                Logger.Log("Timezone not configured, changing to default value from Google, it could be adjusted later in GUI.", EventType.Information);
+            }
+            else if (string.IsNullOrEmpty(SyncAppointmentsGoogleTimeZone))
+            {
+                //Timezone was set, but some users do not have time zone set in Google
+                SyncAppointmentsGoogleTimeZone = Timezone;
+            }
+            MappingBetweenTimeZonesRequired = false;
+            if (TimeZoneInfo.Local.Id != AppointmentSync.IanaToWindows(SyncAppointmentsGoogleTimeZone))
+            {
+                MappingBetweenTimeZonesRequired = true;
+                Logger.Log("Different time zones in Outlook (" + TimeZoneInfo.Local.Id + ") and Google (mapped to " + AppointmentSync.IanaToWindows(SyncAppointmentsGoogleTimeZone) + ")", EventType.Warning);
+            }
         }
 
         public void DeleteAppointment(AppointmentMatch match)
@@ -428,7 +452,7 @@ namespace GoContactSyncMod
         /// <summary>
         /// Updates Outlook appointment from master to slave (including groups/categories)
         /// </summary>
-        public bool UpdateAppointment(ref Google.Apis.Calendar.v3.Data.Event master, Outlook.AppointmentItem slave, List<Google.Apis.Calendar.v3.Data.Event> googleAppointmentExceptions)
+        public bool UpdateAppointment(ref Event master, Outlook.AppointmentItem slave, List<Event> googleAppointmentExceptions)
         {
 
             //if (master.Participants.Count > 1)

@@ -89,11 +89,11 @@ namespace GoContactSyncMod
 
                 //try to match this appointment to one of Google appointments               
 
-                string googleAppointmentId = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola);
+                var gid = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(sync, ola);
 
-                if (googleAppointmentId != null)
+                if (gid != null)
                 {
-                    Event foundAppointment = sync.GetGoogleAppointmentById(googleAppointmentId);
+                    var foundAppointment = sync.GetGoogleAppointmentById(gid);
                     var match = new AppointmentMatch(ola, null);
 
                     if (foundAppointment != null && !foundAppointment.Status.Equals("cancelled"))
@@ -117,7 +117,7 @@ namespace GoContactSyncMod
 
             for (int i = 0; i < OutlookAppointmentsWithoutSyncId.Count; i++)
             {
-                Outlook.AppointmentItem ola = OutlookAppointmentsWithoutSyncId[i];
+                var ola = OutlookAppointmentsWithoutSyncId[i];
 
                 NotificationReceived?.Invoke(string.Format("Matching appointment {0} of {1} by unique properties: {2} ...", i + 1, OutlookAppointmentsWithoutSyncId.Count, ola.Subject));
 
@@ -188,7 +188,7 @@ namespace GoContactSyncMod
                 //Search for original recurrent event in matches
                 //AtomId atomId = new AtomId(googleAppointment.Id.AbsoluteUri.Substring(0, googleAppointment.Id.AbsoluteUri.LastIndexOf("/") + 1) + googleAppointment.RecurringEventId);
                 bool found = false;
-                foreach (AppointmentMatch match in result)
+                foreach (var match in result)
                 {
                     if (match.GoogleAppointment != null && googleAppointment.RecurringEventId.Equals(match.GoogleAppointment.Id))
                     {
