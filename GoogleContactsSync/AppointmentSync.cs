@@ -219,7 +219,7 @@ namespace GoContactSyncMod
                     ZonedDateTime start_zoned = start_local.InZoneLeniently(zone);
                     DateTime start_utc = start_zoned.ToDateTimeUtc();
                     slave.Start.DateTime = start_utc;
-                    if (google_start_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                    if (google_start_tz != AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone)
                         slave.Start.TimeZone = google_start_tz;
                 }
                 if (string.IsNullOrEmpty(google_end_tz))
@@ -234,7 +234,7 @@ namespace GoContactSyncMod
                     ZonedDateTime end_zoned = end_local.InZoneLeniently(zone);
                     DateTime end_utc = end_zoned.ToDateTimeUtc();
                     slave.End.DateTime = end_utc;
-                    if (google_end_tz != Synchronizer.SyncAppointmentsGoogleTimeZone)
+                    if (google_end_tz != AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone)
                         slave.End.TimeZone = google_end_tz;
                 }
             }
@@ -417,9 +417,9 @@ namespace GoContactSyncMod
                         //before setting times in Outlook, set correct time zone
                         if (master.Start.TimeZone == null)
                         {
-                            if (Synchronizer.MappingBetweenTimeZonesRequired)
+                            if (AppointmentsSynchronizer.MappingBetweenTimeZonesRequired)
                             {
-                                var outlook_tz = IanaToWindows(Synchronizer.SyncAppointmentsGoogleTimeZone);
+                                var outlook_tz = IanaToWindows(AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone);
                                 slave.StartTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
                             }
                         }
@@ -429,7 +429,7 @@ namespace GoContactSyncMod
                             slave.StartTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
                         }
                         //master.Start.DateTime is specified in Google calendar default time zone
-                        var startUTC = LocaltoUTC(master.Start.DateTime.Value, Synchronizer.SyncAppointmentsGoogleTimeZone);
+                        var startUTC = LocaltoUTC(master.Start.DateTime.Value, AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone);
 
                         if (slave.StartUTC != startUTC)
                             slave.StartUTC = startUTC;
@@ -442,9 +442,9 @@ namespace GoContactSyncMod
                         //before setting times in Outlook, set correct time zone
                         if (master.End.TimeZone == null)
                         {
-                            if (Synchronizer.MappingBetweenTimeZonesRequired)
+                            if (AppointmentsSynchronizer.MappingBetweenTimeZonesRequired)
                             {
-                                var outlook_tz = IanaToWindows(Synchronizer.SyncAppointmentsGoogleTimeZone);
+                                var outlook_tz = IanaToWindows(AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone);
                                 slave.EndTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
                             }
                         }
@@ -454,7 +454,7 @@ namespace GoContactSyncMod
                             slave.EndTimeZone = Synchronizer.OutlookApplication.TimeZones[outlook_tz];
                         }
                         //master.End.DateTime is specified in Google calendar default time zone
-                        var endUTC = LocaltoUTC(master.End.DateTime.Value, Synchronizer.SyncAppointmentsGoogleTimeZone);
+                        var endUTC = LocaltoUTC(master.End.DateTime.Value, AppointmentsSynchronizer.SyncAppointmentsGoogleTimeZone);
 
                         if (slave.EndUTC != endUTC)
                             slave.EndUTC = endUTC;
@@ -462,7 +462,7 @@ namespace GoContactSyncMod
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log("Error updating event's AllDay/Start/End: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, slave.IsRecurring ? EventType.Debug : EventType.Warning);
+                    Logger.Log("Error updating event's AllDay/Start/End: " + master.Summary + " - " + AppointmentsSynchronizer.GetTime(master) + ": " + ex.Message, slave.IsRecurring ? EventType.Debug : EventType.Warning);
                 }
             }
 
@@ -984,11 +984,11 @@ namespace GoContactSyncMod
             catch (Exception ex)
             {
                 Logger.Log(ex, EventType.Debug);
-                Logger.Log("Error updating event's BYSETPOS: " + master.Summary + " - " + Synchronizer.GetTime(master) + ": " + ex.Message, EventType.Error);
+                Logger.Log("Error updating event's BYSETPOS: " + master.Summary + " - " + AppointmentsSynchronizer.GetTime(master) + ": " + ex.Message, EventType.Error);
             }
         }
 
-        public static bool UpdateRecurrenceExceptions(Outlook.AppointmentItem master, Event slave, Synchronizer sync)
+        public static bool UpdateRecurrenceExceptions(Outlook.AppointmentItem master, Event slave, AppointmentsSynchronizer sync)
         {
             bool ret = false;
 
@@ -1002,8 +1002,8 @@ namespace GoContactSyncMod
                     {
                         //Add exception time (but only if in given time range
                         if (
-                            (Synchronizer.TimeMin == null || exception.AppointmentItem.End >= Synchronizer.TimeMin) &&
-                             (Synchronizer.TimeMax == null || exception.AppointmentItem.Start <= Synchronizer.TimeMax))
+                            (AppointmentsSynchronizer.TimeMin == null || exception.AppointmentItem.End >= AppointmentsSynchronizer.TimeMin) &&
+                             (AppointmentsSynchronizer.TimeMax == null || exception.AppointmentItem.Start <= AppointmentsSynchronizer.TimeMax))
                         {
                             //slave.Times.Add(new Google.GData.Extensions.When(exception.AppointmentItem.Start, exception.AppointmentItem.Start, exception.AppointmentItem.AllDayEvent));
                             var googleRecurrenceException = Factory.NewEvent();
@@ -1064,8 +1064,8 @@ namespace GoContactSyncMod
                         //    if (googleRecurrenceException != null)
                         //        googleRecurrenceException.Delete();
 
-                        if ((Synchronizer.TimeMin == null || exception.OriginalDate >= Synchronizer.TimeMin) &&
-                             (Synchronizer.TimeMax == null || exception.OriginalDate <= Synchronizer.TimeMax))
+                        if ((AppointmentsSynchronizer.TimeMin == null || exception.OriginalDate >= AppointmentsSynchronizer.TimeMin) &&
+                             (AppointmentsSynchronizer.TimeMax == null || exception.OriginalDate <= AppointmentsSynchronizer.TimeMax))
                         {
                             //First create deleted occurrences, to delete it later again
                             var googleRecurrenceException = Factory.NewEvent();
@@ -1097,7 +1097,7 @@ namespace GoContactSyncMod
                                 //googleRecurrenceExceptions.Add(googleRecurrenceException);                                  
 
                                 //ToDo: check promptDeletion and syncDeletion options
-                                sync.EventRequest.Delete(Synchronizer.SyncAppointmentsGoogleFolder, googleRecurrenceException.Id).Execute();
+                                sync.EventRequest.Delete(AppointmentsSynchronizer.SyncAppointmentsGoogleFolder, googleRecurrenceException.Id).Execute();
                                 Logger.Log("Deleted obsolete recurrence exception from Google: " + master.Subject + " - " + exception.OriginalDate, EventType.Information);
                                 //sync.DeletedCount++;
 
@@ -1116,7 +1116,7 @@ namespace GoContactSyncMod
             return ret;
         }
 
-        public static bool UpdateRecurrenceExceptions(List<Event> googleRecurrenceExceptions, Outlook.AppointmentItem slave, Synchronizer sync)
+        public static bool UpdateRecurrenceExceptions(List<Event> googleRecurrenceExceptions, Outlook.AppointmentItem slave, AppointmentsSynchronizer sync)
         {
             bool ret = false;
 
@@ -1140,7 +1140,6 @@ namespace GoContactSyncMod
                 {
                     Logger.Log("Google Appointment with OriginalEvent found, but Outlook occurrence not found: " + googleRecurrenceException.Summary + " - " + googleRecurrenceException.OriginalStartTime.DateTime + ": " + ignored, EventType.Debug);
                 }
-
 
                 if (outlookRecurrenceException != null)
                 {
@@ -1180,21 +1179,14 @@ namespace GoContactSyncMod
                             if (sync.UpdateAppointment(ref googleRecurrenceException, outlookRecurrenceException, null))
                             {
                                 outlookRecurrenceException.Save();
-                                Logger.Log("Updated recurrence exception from Google to Outlook: " + googleRecurrenceException.Summary + " - " + Synchronizer.GetTime(googleRecurrenceException), EventType.Information);
+                                Logger.Log("Updated recurrence exception from Google to Outlook: " + googleRecurrenceException.Summary + " - " + AppointmentsSynchronizer.GetTime(googleRecurrenceException), EventType.Information);
                             }
                         }
                         ret = true;
-
-
                     }
                     else
                         Logger.Log("Error updating recurrence exception from Google to Outlook (couldn't be reload from Google): " + outlookRecurrenceException.Subject + " - " + outlookRecurrenceException.Start, EventType.Information);
-
                 }
-
-
-                //}
-
             }
 
             return ret;

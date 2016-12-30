@@ -789,8 +789,9 @@ namespace GoContactSyncMod
                     if (sync == null)
                     {
                         sync = new Synchronizer();
-                        sync.DuplicatesFound += new Synchronizer.DuplicatesFoundHandler(OnDuplicatesFound);
-                        sync.ErrorEncountered += new Synchronizer.ErrorNotificationHandler(OnErrorEncountered);
+                        sync.contactsSynchronizer.DuplicatesFound += new ContactsSynchronizer.DuplicatesFoundHandler(OnDuplicatesFound);
+                        sync.appointmentsSynchronizer.ErrorEncountered += new AppointmentsSynchronizer.ErrorNotificationHandler(OnErrorEncountered);
+                        sync.contactsSynchronizer.ErrorEncountered += new ContactsSynchronizer.ErrorNotificationHandler(OnErrorEncountered);
                         sync.TimeZoneChanges += new Synchronizer.TimeZoneNotificationHandler(OnTimeZoneChanges);
                     }
 
@@ -799,17 +800,17 @@ namespace GoContactSyncMod
                     Logger.Log("Sync started (" + SyncProfile + ").", EventType.Information);
                     //SetSyncConsoleText(Logger.GetText());
                     sync.SyncProfile = SyncProfile;
-                    Synchronizer.SyncContactsFolder = syncContactsFolder;
-                    Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
-                    Synchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
-                    Synchronizer.TimeMin = DateTime.Now.AddMonths(-Convert.ToUInt16(pastMonthInterval.Value));
-                    Synchronizer.TimeMax = DateTime.Now.AddMonths(Convert.ToUInt16(futureMonthInterval.Value));
-                    Synchronizer.Timezone = Timezone;
+                    ContactsSynchronizer.SyncContactsFolder = syncContactsFolder;
+                    AppointmentsSynchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
+                    AppointmentsSynchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
+                    AppointmentsSynchronizer.TimeMin = DateTime.Now.AddMonths(-Convert.ToUInt16(pastMonthInterval.Value));
+                    AppointmentsSynchronizer.TimeMax = DateTime.Now.AddMonths(Convert.ToUInt16(futureMonthInterval.Value));
+                    AppointmentsSynchronizer.Timezone = Timezone;
 
                     sync.SyncOption = syncOption;
                     sync.SyncDelete = btSyncDelete.Checked;
                     sync.PromptDelete = btPromptDelete.Checked && btSyncDelete.Checked;
-                    sync.UseFileAs = chkUseFileAs.Checked;
+                    sync.contactsSynchronizer.UseFileAs = chkUseFileAs.Checked;
                     sync.SyncContacts = btSyncContacts.Checked;
                     sync.SyncAppointments = btSyncAppointments.Checked;
                     Synchronizer.SyncAppointmentsForceRTF = btSyncAppointmentsForceRTF.Checked;
@@ -844,7 +845,7 @@ namespace GoContactSyncMod
                     lastSync = DateTime.Now;
                     SetLastSyncText("Last synced at " + lastSync.ToString());
 
-                    string message = string.Format("Sync complete. Synced: {1} out of {0}. Deleted: {2}. Skipped: {3}. Errors: {4}.", sync.TotalCount, sync.SyncedCount, sync.DeletedCount, sync.SkippedCount, sync.ErrorCount);
+                    var message = string.Format("Sync complete. Synced: {1} out of {0}. Deleted: {2}. Skipped: {3}. Errors: {4}.", sync.TotalCount, sync.SyncedCount + sync.appointmentsSynchronizer.SyncedCount + sync.contactsSynchronizer.SyncedCount, sync.DeletedCount + sync.appointmentsSynchronizer.DeletedCount + sync.contactsSynchronizer.DeletedCount, sync.SkippedCount + sync.appointmentsSynchronizer.SkippedCount + sync.contactsSynchronizer.SkippedCount, sync.ErrorCount + sync.appointmentsSynchronizer.ErrorCount + sync.contactsSynchronizer.ErrorCount);
                     Logger.Log(message, EventType.Information);
 
                     if (reportSyncResultCheckBox.Checked)
@@ -854,9 +855,9 @@ namespace GoContactSyncMod
                         notifyIcon.BalloonTipText = string.Format("{0}. {1}", DateTime.Now, message);
                         */
                         ToolTipIcon icon;
-                        if (sync.ErrorCount > 0)
+                        if (sync.ErrorCount + sync.appointmentsSynchronizer.ErrorCount + sync.contactsSynchronizer.ErrorCount > 0)
                             icon = ToolTipIcon.Error;
-                        else if (sync.SkippedCount > 0)
+                        else if (sync.SkippedCount + sync.appointmentsSynchronizer.SkippedCount + sync.contactsSynchronizer.SkippedCount > 0)
                             icon = ToolTipIcon.Warning;
                         else
                             icon = ToolTipIcon.Info;
@@ -869,8 +870,8 @@ namespace GoContactSyncMod
 
                     }
                     string toolTip = string.Format("{0}\nLast sync: {1}", Application.ProductName, DateTime.Now.ToString("dd.MM. HH:mm"));
-                    if (sync.ErrorCount + sync.SkippedCount > 0)
-                        toolTip += string.Format("\nWarnings: {0}.", sync.ErrorCount + sync.SkippedCount);
+                    if (sync.ErrorCount + sync.appointmentsSynchronizer.ErrorCount + sync.contactsSynchronizer.ErrorCount + sync.SkippedCount + sync.appointmentsSynchronizer.SkippedCount + sync.contactsSynchronizer.SkippedCount > 0)
+                        toolTip += string.Format("\nWarnings: {0}.", sync.ErrorCount + sync.appointmentsSynchronizer.ErrorCount + sync.contactsSynchronizer.ErrorCount + sync.SkippedCount + sync.appointmentsSynchronizer.SkippedCount + sync.contactsSynchronizer.SkippedCount);
                     if (toolTip.Length >= 64)
                         toolTip = toolTip.Substring(0, 63);
                     notifyIcon.Text = toolTip;
@@ -987,7 +988,7 @@ namespace GoContactSyncMod
                 appointmentTimezonesComboBox.Text = timeZone;
             }
             Timezone = timeZone;
-            Synchronizer.Timezone = timeZone;
+            AppointmentsSynchronizer.Timezone = timeZone;
         }
 
         void OnDuplicatesFound(string title, string message)
@@ -1302,9 +1303,9 @@ namespace GoContactSyncMod
             sync.SyncContacts = syncContacts;
             sync.SyncAppointments = syncAppointments;
 
-            Synchronizer.SyncContactsFolder = syncContactsFolder;
-            Synchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
-            Synchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
+            ContactsSynchronizer.SyncContactsFolder = syncContactsFolder;
+            AppointmentsSynchronizer.SyncAppointmentsFolder = syncAppointmentsFolder;
+            AppointmentsSynchronizer.SyncAppointmentsGoogleFolder = syncAppointmentsGoogleFolder;
             sync.SyncProfile = SyncProfile;
 
             sync.LoginToGoogle(UserName.Text);
@@ -1331,21 +1332,21 @@ namespace GoContactSyncMod
                 Logger.Log("Resetting Google appointment matches...", EventType.Information);
                 try
                 {
-                    await sync.ResetGoogleAppointmentMatches(deleteGoogleAppointments, cancellationTokenSource.Token);
-                    sync.LoadAppointments();
-                    sync.ResetOutlookAppointmentMatches(deleteOutlookAppointments);
+                    await sync.appointmentsSynchronizer.ResetGoogleAppointmentMatches(deleteGoogleAppointments, cancellationTokenSource.Token);
+                    sync.appointmentsSynchronizer.LoadAppointments();
+                    sync.appointmentsSynchronizer.ResetOutlookAppointmentMatches(deleteOutlookAppointments);
                 }
                 catch (TaskCanceledException)
                 {
                     Logger.Log("Task cancelled by user.", EventType.Information);
-                    sync.LoadAppointments();
+                    sync.appointmentsSynchronizer.LoadAppointments();
                 }
             }
 
             if (sync.SyncContacts)
             {
-                sync.LoadContacts();
-                sync.ResetContactMatches();
+                sync.contactsSynchronizer.LoadContacts();
+                sync.contactsSynchronizer.ResetContactMatches();
             }
 
             lastSync = DateTime.Now;
@@ -1899,7 +1900,7 @@ namespace GoContactSyncMod
 
                 sync.SyncAppointments = btSyncAppointments.Checked;
                 sync.LoginToGoogle(UserName.Text);
-                foreach (CalendarListEntry calendar in sync.calendarList)
+                foreach (CalendarListEntry calendar in sync.appointmentsSynchronizer.calendarList)
                 {
                     googleAppointmentFolders.Add(new GoogleCalendar(calendar.Summary, calendar.Id, calendar.Primary.HasValue ? calendar.Primary.Value : false));
                 }

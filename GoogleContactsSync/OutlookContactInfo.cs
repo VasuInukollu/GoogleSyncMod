@@ -39,14 +39,14 @@ namespace GoContactSyncMod
             // Not public - we are always constructed from an Outlook.ContactItem (constructor below)
         }
 
-        public OutlookContactInfo(ContactItem item, Synchronizer sync)
+        public OutlookContactInfo(ContactItem item, ContactsSynchronizer sync)
         {
             UserProperties = new UserPropertiesHolder();
             Update(item, sync);
         }
         #endregion
 
-        internal void Update(ContactItem outlookContactItem, Synchronizer sync)
+        internal void Update(ContactItem outlookContactItem, ContactsSynchronizer sync)
         {
             EntryID = outlookContactItem.EntryID;
             FileAs = outlookContactItem.FileAs;

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Google.Contacts;
-using Google.Documents;
 using Google.Apis.Calendar.v3.Data;
+using Outlook = Microsoft.Office.Interop.Outlook;
+using System.Runtime.InteropServices;
 
 namespace GoContactSyncMod
 {
@@ -14,7 +15,6 @@ namespace GoContactSyncMod
         {
             _form = new ConflictResolverForm();
         }
-
 
         #region IConflictResolver Members
 
@@ -40,7 +40,7 @@ namespace GoContactSyncMod
             _form.GoogleItemTextBox.Text = string.Empty;
             if (match.OutlookContact != null)
             {
-                Microsoft.Office.Interop.Outlook.ContactItem item = match.OutlookContact.GetOriginalItemFromOutlook();
+                Outlook.ContactItem item = match.OutlookContact.GetOriginalItemFromOutlook();
                 try
                 {
                     _form.OutlookItemTextBox.Text = ContactMatch.GetSummary(item);
@@ -49,16 +49,14 @@ namespace GoContactSyncMod
                 {
                     if (item != null)
                     {
-                        System.Runtime.InteropServices.Marshal.ReleaseComObject(item);
+                        Marshal.ReleaseComObject(item);
                         item = null;
                     }
                 }
-
             }
 
             if (match.GoogleContact != null)
                 _form.GoogleItemTextBox.Text = ContactMatch.GetSummary(match.GoogleContact);
-
 
             return Resolve();
         }
@@ -75,7 +73,7 @@ namespace GoContactSyncMod
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
 
-            Microsoft.Office.Interop.Outlook.ContactItem item = outlookContact.GetOriginalItemFromOutlook();
+            Outlook.ContactItem item = outlookContact.GetOriginalItemFromOutlook();
             try
             {
                 _form.OutlookItemTextBox.Text = ContactMatch.GetSummary(item);
@@ -84,24 +82,20 @@ namespace GoContactSyncMod
             {
                 if (item != null)
                 {
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(item);
+                    Marshal.ReleaseComObject(item);
                     item = null;
                 }
             }
-
-
 
             _form.GoogleComboBox.DataSource = googleContacts;
             _form.GoogleComboBox.Visible = true;
             _form.AllCheckBox.Visible = false;
             _form.skip.Text = "Keep both";
 
-
             ConflictResolution res = Resolve();
             googleContact = _form.GoogleComboBox.SelectedItem as Contact;
 
             return res;
-
         }
 
         public DeleteResolution ResolveDelete(OutlookContactInfo outlookContact)
@@ -115,7 +109,7 @@ namespace GoContactSyncMod
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
-            Microsoft.Office.Interop.Outlook.ContactItem item = outlookContact.GetOriginalItemFromOutlook();
+            Outlook.ContactItem item = outlookContact.GetOriginalItemFromOutlook();
             try
             {
                 _form.OutlookItemTextBox.Text = ContactMatch.GetSummary(item);
@@ -124,7 +118,7 @@ namespace GoContactSyncMod
             {
                 if (item != null)
                 {
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(item);
+                    Marshal.ReleaseComObject(item);
                     item = null;
                 }
             }
@@ -156,11 +150,8 @@ namespace GoContactSyncMod
             return ResolveDeletedOutlook();
         }
 
-
-
         private ConflictResolution Resolve()
         {
-
             switch (SettingsForm.Instance.ShowConflictDialog(_form))
             {
                 case System.Windows.Forms.DialogResult.Ignore:
@@ -179,7 +170,6 @@ namespace GoContactSyncMod
 
         private DeleteResolution ResolveDeletedOutlook()
         {
-
             switch (SettingsForm.Instance.ShowConflictDialog(_form))
             {
                 case System.Windows.Forms.DialogResult.No:
@@ -195,7 +185,6 @@ namespace GoContactSyncMod
 
         private DeleteResolution ResolveDeletedGoogle()
         {
-
             switch (SettingsForm.Instance.ShowConflictDialog(_form))
             {
                 case System.Windows.Forms.DialogResult.No:
@@ -209,32 +198,7 @@ namespace GoContactSyncMod
             }
         }
 
-        //private string GetPropertyInfos(object myObject)
-        //{
-        //    // get all public static properties of OutlookItem
-        //    PropertyInfo[] propertyInfos;
-        //    propertyInfos = myObject.GetType().GetProperties();
-        //    // sort properties by name
-        //    Array.Sort(propertyInfos,
-        //            delegate(PropertyInfo propertyInfo1, PropertyInfo propertyInfo2)
-        //            { return propertyInfo1.Name.CompareTo(propertyInfo2.Name); });
-
-        //    string ret = String.Empty;
-        //    // write property names
-        //    foreach (PropertyInfo propertyInfo in propertyInfos)
-        //    {
-        //        object value = propertyInfo.GetValue(myObject, null);
-
-        //        if (value != null && !(value is string))
-        //            ret += propertyInfo.Name + ": " + value + "\r\n";
-        //    }
-
-        //    return ret;
-        //}
-
-       
-
-        public ConflictResolution Resolve(Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment, Event googleAppointment, Synchronizer sync, bool isNewMatch)
+        public ConflictResolution Resolve(Outlook.AppointmentItem outlookAppointment, Event googleAppointment, AppointmentsSynchronizer sync, bool isNewMatch)
         {
             string name = string.Empty;
 
@@ -248,7 +212,7 @@ namespace GoContactSyncMod
 
             if (googleAppointment != null)
             {
-                name = googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
+                name = googleAppointment.Summary + " - " + AppointmentsSynchronizer.GetTime(googleAppointment);
                 _form.GoogleItemTextBox.Text += googleAppointment.Description;
             }
 
@@ -266,27 +230,24 @@ namespace GoContactSyncMod
                 "\" have been changed. Choose which you would like to keep.";
             }
 
-
-
-
             return Resolve();
         }
 
-        public ConflictResolution Resolve(string message, Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment, Event googleAppointment, Synchronizer sync, bool keepOutlook, bool keepGoogle)
+        public ConflictResolution Resolve(string message, Outlook.AppointmentItem outlookAppointment, Event googleAppointment, AppointmentsSynchronizer sync, bool keepOutlook, bool keepGoogle)
         {
-           // string name = string.Empty;
+            // string name = string.Empty;
 
             _form.OutlookItemTextBox.Text = string.Empty;
             _form.GoogleItemTextBox.Text = string.Empty;
             if (outlookAppointment != null)
             {
-               // name = outlookAppointment.Subject + " - " + outlookAppointment.Start;
+                // name = outlookAppointment.Subject + " - " + outlookAppointment.Start;
                 _form.OutlookItemTextBox.Text += outlookAppointment.Body;
             }
 
             if (googleAppointment != null)
             {
-               // name = googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
+                // name = googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment);
                 _form.GoogleItemTextBox.Text += googleAppointment.Description;
             }
 
@@ -299,19 +260,18 @@ namespace GoContactSyncMod
             return Resolve();
         }
 
-        public ConflictResolution Resolve(string message, Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment, Event googleAppointment, Synchronizer sync)
+        public ConflictResolution Resolve(string message, Outlook.AppointmentItem outlookAppointment, Event googleAppointment, AppointmentsSynchronizer sync)
         {
             return Resolve(message, outlookAppointment, googleAppointment, sync, true, false);
         }
 
-        public ConflictResolution Resolve(string message, Event googleAppointment, Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment, Synchronizer sync)
+        public ConflictResolution Resolve(string message, Event googleAppointment, Outlook.AppointmentItem outlookAppointment, AppointmentsSynchronizer sync)
         {
             return Resolve(message, outlookAppointment, googleAppointment, sync, false, true);
         }
 
-        public DeleteResolution ResolveDelete(Microsoft.Office.Interop.Outlook.AppointmentItem outlookAppointment)
+        public DeleteResolution ResolveDelete(Outlook.AppointmentItem outlookAppointment)
         {
-
             _form.Text = "Google appointment deleted";
             _form.messageLabel.Text =
                 "Google appointment \"" + outlookAppointment.Subject + " - " + outlookAppointment.Start +
@@ -319,8 +279,6 @@ namespace GoContactSyncMod
 
             _form.GoogleItemTextBox.Text = string.Empty;
             _form.OutlookItemTextBox.Text += outlookAppointment.Body;
-
-
 
             _form.keepOutlook.Text = "Keep Outlook";
             _form.keepGoogle.Text = "Delete Outlook";
@@ -331,10 +289,9 @@ namespace GoContactSyncMod
 
         public DeleteResolution ResolveDelete(Event googleAppointment)
         {
-
             _form.Text = "Outlook appointment deleted";
             _form.messageLabel.Text =
-                "Outlook appointment \"" + googleAppointment.Summary + " - " + Synchronizer.GetTime(googleAppointment) +
+                "Outlook appointment \"" + googleAppointment.Summary + " - " + AppointmentsSynchronizer.GetTime(googleAppointment) +
                 "\" doesn't exist anymore. Do you want to delete it also on Google side?";
 
             _form.OutlookItemTextBox.Text = string.Empty;

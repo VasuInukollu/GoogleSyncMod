@@ -257,7 +257,9 @@
     </Compile>
     <Compile Include="AppointmentPropertiesUtils.cs" />
     <Compile Include="AppointmentsMatcher.cs" />
+    <Compile Include="AppointmentsSynchronizer.cs" />
     <Compile Include="AppointmentSync.cs" />
+    <Compile Include="ContactsSynchronizer.cs" />
     <Compile Include="DeleteDuplicatedPropertiesForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -28,7 +28,7 @@ namespace GoContactSyncMod
         /// <param name="sync">Syncronizer instance</param>
         /// <param name="duplicatesFound">Exception returned, if duplicates have been found (null else)</param>
         /// <returns>Returns a list of m pairs (outlook contact + google contact) for all contact. Those that weren't matche will have it's peer set to null</returns>
-        public static List<ContactMatch> MatchContacts(Synchronizer sync, out DuplicateDataException duplicatesFound)
+        public static List<ContactMatch> MatchContacts(ContactsSynchronizer sync, out DuplicateDataException duplicatesFound)
         {
             Logger.Log("Matching Outlook and Google contacts...", EventType.Information);
             var result = new List<ContactMatch>();
@@ -545,7 +545,7 @@ namespace GoContactSyncMod
             return false;
         }
 
-        public static void SyncContacts(Synchronizer sync)
+        public static void SyncContacts(ContactsSynchronizer sync)
         {
             for (int i = 0; i < sync.Contacts.Count; i++)
             {
@@ -554,7 +554,7 @@ namespace GoContactSyncMod
                 SyncContact(match, sync);
             }
         }
-        public static void SyncContact(ContactMatch m, Synchronizer sync)
+        public static void SyncContact(ContactMatch m, ContactsSynchronizer sync)
         {
             var olc = m.OutlookContact != null ? m.OutlookContact.GetOriginalItemFromOutlook() : null;
 
@@ -655,7 +655,7 @@ namespace GoContactSyncMod
                     }
 
                     //create a Outlook contact from Google contact                                                            
-                    olc = Synchronizer.CreateOutlookContactItem(Synchronizer.SyncContactsFolder);
+                    olc = ContactsSynchronizer.CreateOutlookContactItem(ContactsSynchronizer.SyncContactsFolder);
 
                     sync.UpdateContact(m.GoogleContact, olc);
                     m.OutlookContact = new OutlookContactInfo(olc, sync);
@@ -882,7 +882,7 @@ namespace GoContactSyncMod
         /// Adds new Google Groups to the Google account.
         /// </summary>
         /// <param name="sync"></param>
-        public static void SyncGroups(Synchronizer sync)
+        public static void SyncGroups(ContactsSynchronizer sync)
         {
             foreach (ContactMatch match in sync.Contacts)
             {
