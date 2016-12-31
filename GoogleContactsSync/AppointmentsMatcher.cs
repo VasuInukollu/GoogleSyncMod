@@ -93,15 +93,15 @@ namespace GoContactSyncMod
 
                 if (gid != null)
                 {
-                    var foundAppointment = sync.GetGoogleAppointmentById(gid);
+                    var e = sync.GetGoogleAppointmentById(gid);
                     var match = new AppointmentMatch(ola, null);
 
-                    if (foundAppointment != null && !foundAppointment.Status.Equals("cancelled"))
+                    if (e != null && !e.Status.Equals("cancelled"))
                     {
                         //we found a match by google id, that is not deleted or cancelled yet
-                        match.AddGoogleAppointment(foundAppointment);
+                        match.AddGoogleAppointment(e);
                         result.Add(match);
-                        sync.GoogleAppointments.Remove(foundAppointment);
+                        sync.GoogleAppointments.Remove(e);
                     }
                     else
                     {
@@ -110,7 +110,6 @@ namespace GoContactSyncMod
                 }
                 else
                     OutlookAppointmentsWithoutSyncId.Add(ola);
-
             }
             #endregion
             #region Match the remaining appointments by properties
@@ -128,13 +127,13 @@ namespace GoContactSyncMod
                 //foreach Google appointment try to match and create a match pair if found some match(es)
                 for (int j = sync.GoogleAppointments.Count - 1; j >= 0; j--)
                 {
-                    var googleAppointment = sync.GoogleAppointments[j];
+                    var e = sync.GoogleAppointments[j];
                     // only match if there is a appointment targetBody, else
                     // a matching Google appointment will be created at each sync                
-                    if (!googleAppointment.Status.Equals("cancelled") && ola.Subject == googleAppointment.Summary && googleAppointment.Start.DateTime != null && ola.Start == googleAppointment.Start.DateTime)
+                    if (!e.Status.Equals("cancelled") && ola.Subject == e.Summary && e.Start.DateTime != null && ola.Start == e.Start.DateTime)
                     {
-                        match.AddGoogleAppointment(googleAppointment);
-                        sync.GoogleAppointments.Remove(googleAppointment);
+                        match.AddGoogleAppointment(e);
+                        sync.GoogleAppointments.Remove(e);
                     }
                 }
 
@@ -182,24 +181,23 @@ namespace GoContactSyncMod
             //for each Google appointment exception, assign to proper match
             for (int i = 0; i < googleAppointmentExceptions.Count; i++)
             {
-                var googleAppointment = googleAppointmentExceptions[i];
-                NotificationReceived?.Invoke(string.Format("Adding Google appointment exception {0} of {1} : {2} ...", i + 1, googleAppointmentExceptions.Count, googleAppointment.Summary + " - " + AppointmentsSynchronizer.GetTime(googleAppointment)));
+                var e = googleAppointmentExceptions[i];
+                NotificationReceived?.Invoke(string.Format("Adding Google appointment exception {0} of {1} : {2} ...", i + 1, googleAppointmentExceptions.Count, e.Summary + " - " + AppointmentsSynchronizer.GetTime(e)));
 
                 //Search for original recurrent event in matches
-                //AtomId atomId = new AtomId(googleAppointment.Id.AbsoluteUri.Substring(0, googleAppointment.Id.AbsoluteUri.LastIndexOf("/") + 1) + googleAppointment.RecurringEventId);
                 bool found = false;
-                foreach (var match in result)
+                foreach (var m in result)
                 {
-                    if (match.GoogleAppointment != null && googleAppointment.RecurringEventId.Equals(match.GoogleAppointment.Id))
+                    if (m.GoogleAppointment != null && e.RecurringEventId.Equals(m.GoogleAppointment.Id))
                     {
-                        match.GoogleAppointmentExceptions.Add(googleAppointment);
+                        m.GoogleAppointmentExceptions.Add(e);
                         found = true;
                         break;
                     }
                 }
 
                 if (!found)
-                    Logger.Log(string.Format("No match found for Google appointment exception: {0}", googleAppointment.Summary + " - " + AppointmentsSynchronizer.GetTime(googleAppointment)), EventType.Debug);
+                    Logger.Log(string.Format("No match found for Google appointment exception: {0}", e.Summary + " - " + AppointmentsSynchronizer.GetTime(e)), EventType.Debug);
             }
 
             return result;
@@ -321,7 +319,7 @@ namespace GoContactSyncMod
                     case DeleteResolution.DeleteGoogle:
                     case DeleteResolution.DeleteGoogleAlways:
                         //Avoid recreating a OutlookAppointment already existing
-                        //==> Delete this googleAppointment instead if previous match existed but no match exists anymore 
+                        //==> Delete this e instead if previous match existed but no match exists anymore 
                         return;
                     default:
                         throw new ApplicationException("Cancelled");
@@ -342,16 +340,15 @@ namespace GoContactSyncMod
             sync.UpdateAppointment(ref match.GoogleAppointment, match.OutlookAppointment, match.GoogleAppointmentExceptions);
         }
 
-        private static void SyncAppointmentBothExists(AppointmentMatch match, AppointmentsSynchronizer sync)
+        private static void SyncAppointmentBothExists(AppointmentMatch m, AppointmentsSynchronizer sync)
         {
             //ToDo: Check how to overcome appointment recurrences, which need more than 60 seconds to update and therefore get updated again and again because of time tolerance 60 seconds violated again and again
-
 
             //merge appointment details                
 
             //determine if this appointment pair were synchronized
             //DateTime? lastUpdated = GetOutlookPropertyValueDateTime(match.OutlookAppointment, sync.OutlookPropertyNameUpdated);
-            DateTime? lastSynced = AppointmentPropertiesUtils.GetOutlookLastSync(sync, match.OutlookAppointment);
+            DateTime? lastSynced = AppointmentPropertiesUtils.GetOutlookLastSync(sync, m.OutlookAppointment);
             if (lastSynced.HasValue)
             {
                 //appointment pair was syncronysed before.
@@ -359,33 +356,32 @@ namespace GoContactSyncMod
                 //determine if Google appointment was updated since last sync
 
                 //lastSynced is stored without seconds. take that into account.
-                DateTime lastUpdatedOutlook = match.OutlookAppointment.LastModificationTime.AddSeconds(-match.OutlookAppointment.LastModificationTime.Second);
-                DateTime lastUpdatedGoogle = match.GoogleAppointment.Updated.Value.AddSeconds(-match.GoogleAppointment.Updated.Value.Second);
+                DateTime lastUpdatedOutlook = m.OutlookAppointment.LastModificationTime.AddSeconds(-m.OutlookAppointment.LastModificationTime.Second);
+                DateTime lastUpdatedGoogle = m.GoogleAppointment.Updated.Value.AddSeconds(-m.GoogleAppointment.Updated.Value.Second);
                 //consider GoogleAppointmentExceptions, because if they are updated, the master appointment doesn't have a new Saved TimeStamp
-                foreach (Event googleAppointment in match.GoogleAppointmentExceptions)
+                foreach (var e in m.GoogleAppointmentExceptions)
                 {
-                    if (googleAppointment.Updated != null)//happens for cancelled events
+                    if (e.Updated != null)//happens for cancelled events
                     {
-                        DateTime lastUpdatedGoogleException = googleAppointment.Updated.Value.AddSeconds(-googleAppointment.Updated.Value.Second);
+                        DateTime lastUpdatedGoogleException = e.Updated.Value.AddSeconds(-e.Updated.Value.Second);
                         if (lastUpdatedGoogleException > lastUpdatedGoogle)
                             lastUpdatedGoogle = lastUpdatedGoogleException;
                     }
-                    else if (match.OutlookAppointment.IsRecurring && match.OutlookAppointment.RecurrenceState == Outlook.OlRecurrenceState.olApptMaster)
+                    else if (m.OutlookAppointment.IsRecurring && m.OutlookAppointment.RecurrenceState == Outlook.OlRecurrenceState.olApptMaster)
                     {
                         Outlook.AppointmentItem outlookRecurrenceException = null;
                         try
                         {
-                            var slaveRecurrence = match.OutlookAppointment.GetRecurrencePattern();
-                            if (googleAppointment.OriginalStartTime != null && !string.IsNullOrEmpty(googleAppointment.OriginalStartTime.Date))
-                                outlookRecurrenceException = slaveRecurrence.GetOccurrence(DateTime.Parse(googleAppointment.OriginalStartTime.Date));
-                            else if (googleAppointment.OriginalStartTime != null && googleAppointment.OriginalStartTime.DateTime != null)
-                                outlookRecurrenceException = slaveRecurrence.GetOccurrence(googleAppointment.OriginalStartTime.DateTime.Value);
+                            var slaveRecurrence = m.OutlookAppointment.GetRecurrencePattern();
+                            if (e.OriginalStartTime != null && !string.IsNullOrEmpty(e.OriginalStartTime.Date))
+                                outlookRecurrenceException = slaveRecurrence.GetOccurrence(DateTime.Parse(e.OriginalStartTime.Date));
+                            else if (e.OriginalStartTime != null && e.OriginalStartTime.DateTime != null)
+                                outlookRecurrenceException = slaveRecurrence.GetOccurrence(e.OriginalStartTime.DateTime.Value);
                         }
                         catch (Exception ignored)
                         {
-                            Logger.Log("Google Appointment with OriginalEvent found, but Outlook occurrence not found: " + googleAppointment.Summary + " - " + googleAppointment.OriginalStartTime.DateTime + ": " + ignored, EventType.Debug);
+                            Logger.Log("Google Appointment with OriginalEvent found, but Outlook occurrence not found: " + e.Summary + " - " + e.OriginalStartTime.DateTime + ": " + ignored, EventType.Debug);
                         }
-
 
                         if (outlookRecurrenceException != null && outlookRecurrenceException.MeetingStatus != Outlook.OlMeetingStatus.olMeetingCanceled)
                         {
@@ -408,14 +404,14 @@ namespace GoContactSyncMod
                         case SyncOption.MergeOutlookWins:
                         case SyncOption.OutlookToGoogleOnly:
                             //overwrite Google appointment
-                            Logger.Log("Outlook and Google appointment have been updated, Outlook appointment is overwriting Google because of SyncOption " + sync.SyncOption + ": " + match.OutlookAppointment.Subject + ".", EventType.Information);
-                            sync.UpdateAppointment(match.OutlookAppointment, ref match.GoogleAppointment);
+                            Logger.Log("Outlook and Google appointment have been updated, Outlook appointment is overwriting Google because of SyncOption " + sync.SyncOption + ": " + m.OutlookAppointment.Subject + ".", EventType.Information);
+                            sync.UpdateAppointment(m.OutlookAppointment, ref m.GoogleAppointment);
                             break;
                         case SyncOption.MergeGoogleWins:
                         case SyncOption.GoogleToOutlookOnly:
                             //overwrite outlook appointment
-                            Logger.Log("Outlook and Google appointment have been updated, Google appointment is overwriting Outlook because of SyncOption " + sync.SyncOption + ": " + match.GoogleAppointment.Summary + ".", EventType.Information);
-                            sync.UpdateAppointment(ref match.GoogleAppointment, match.OutlookAppointment, match.GoogleAppointmentExceptions);
+                            Logger.Log("Outlook and Google appointment have been updated, Google appointment is overwriting Outlook because of SyncOption " + sync.SyncOption + ": " + m.GoogleAppointment.Summary + ".", EventType.Information);
+                            sync.UpdateAppointment(ref m.GoogleAppointment, m.OutlookAppointment, m.GoogleAppointmentExceptions);
                             break;
                         case SyncOption.MergePrompt:
                             //promp for sync option
@@ -425,23 +421,23 @@ namespace GoContactSyncMod
                             {
                                 using (var r = new ConflictResolver())
                                 {
-                                    sync.ConflictResolution = r.Resolve(match.OutlookAppointment, match.GoogleAppointment, sync, false);
+                                    sync.ConflictResolution = r.Resolve(m.OutlookAppointment, m.GoogleAppointment, sync, false);
                                 }
                             }
                             switch (sync.ConflictResolution)
                             {
                                 case ConflictResolution.Skip:
                                 case ConflictResolution.SkipAlways:
-                                    Logger.Log(string.Format("User skipped appointment ({0}).", match.ToString()), EventType.Information);
+                                    Logger.Log(string.Format("User skipped appointment ({0}).", m.ToString()), EventType.Information);
                                     sync.SkippedCount++;
                                     break;
                                 case ConflictResolution.OutlookWins:
                                 case ConflictResolution.OutlookWinsAlways:
-                                    sync.UpdateAppointment(match.OutlookAppointment, ref match.GoogleAppointment);
+                                    sync.UpdateAppointment(m.OutlookAppointment, ref m.GoogleAppointment);
                                     break;
                                 case ConflictResolution.GoogleWins:
                                 case ConflictResolution.GoogleWinsAlways:
-                                    sync.UpdateAppointment(ref match.GoogleAppointment, match.OutlookAppointment, match.GoogleAppointmentExceptions);
+                                    sync.UpdateAppointment(ref m.GoogleAppointment, m.OutlookAppointment, m.GoogleAppointmentExceptions);
                                     break;
                                 default:
                                     throw new ApplicationException("Cancelled");
@@ -464,9 +460,9 @@ namespace GoContactSyncMod
 
                     if ((int)lastUpdatedGoogle.Subtract(lastSynced.Value).TotalSeconds > TimeTolerance &&
                         sync.SyncOption == SyncOption.OutlookToGoogleOnly)
-                        Logger.Log("Google appointment has been updated since last sync, but Outlook appointment is overwriting Google because of SyncOption " + sync.SyncOption + ": " + match.OutlookAppointment.Subject + ".", EventType.Information);
+                        Logger.Log("Google appointment has been updated since last sync, but Outlook appointment is overwriting Google because of SyncOption " + sync.SyncOption + ": " + m.OutlookAppointment.Subject + ".", EventType.Information);
 
-                    sync.UpdateAppointment(match.OutlookAppointment, ref match.GoogleAppointment);
+                    sync.UpdateAppointment(m.OutlookAppointment, ref m.GoogleAppointment);
 
                     //at the moment use Outlook as "master" source of appointments - in the event of a conflict Google appointment will be overwritten.
                     //TODO: control conflict resolution by SyncOption
@@ -485,9 +481,9 @@ namespace GoContactSyncMod
 
                     if ((int)lastUpdatedOutlook.Subtract(lastSynced.Value).TotalSeconds > TimeTolerance &&
                         sync.SyncOption == SyncOption.GoogleToOutlookOnly)
-                        Logger.Log("Outlook appointment has been updated since last sync, but Google appointment is overwriting Outlook because of SyncOption " + sync.SyncOption + ": " + match.OutlookAppointment.Subject + ".", EventType.Information);
+                        Logger.Log("Outlook appointment has been updated since last sync, but Google appointment is overwriting Outlook because of SyncOption " + sync.SyncOption + ": " + m.OutlookAppointment.Subject + ".", EventType.Information);
 
-                    sync.UpdateAppointment(ref match.GoogleAppointment, match.OutlookAppointment, match.GoogleAppointmentExceptions);
+                    sync.UpdateAppointment(ref m.GoogleAppointment, m.OutlookAppointment, m.GoogleAppointmentExceptions);
                 }
             }
             else
@@ -499,12 +495,12 @@ namespace GoContactSyncMod
                     case SyncOption.MergeOutlookWins:
                     case SyncOption.OutlookToGoogleOnly:
                         //overwrite Google appointment
-                        sync.UpdateAppointment(match.OutlookAppointment, ref match.GoogleAppointment);
+                        sync.UpdateAppointment(m.OutlookAppointment, ref m.GoogleAppointment);
                         break;
                     case SyncOption.MergeGoogleWins:
                     case SyncOption.GoogleToOutlookOnly:
                         //overwrite outlook appointment
-                        sync.UpdateAppointment(ref match.GoogleAppointment, match.OutlookAppointment, match.GoogleAppointmentExceptions);
+                        sync.UpdateAppointment(ref m.GoogleAppointment, m.OutlookAppointment, m.GoogleAppointmentExceptions);
                         break;
                     case SyncOption.MergePrompt:
                         //promp for sync option
@@ -514,23 +510,23 @@ namespace GoContactSyncMod
                         {
                             using (var r = new ConflictResolver())
                             {
-                                sync.ConflictResolution = r.Resolve(match.OutlookAppointment, match.GoogleAppointment, sync, true);
+                                sync.ConflictResolution = r.Resolve(m.OutlookAppointment, m.GoogleAppointment, sync, true);
                             }
                         }
                         switch (sync.ConflictResolution)
                         {
                             case ConflictResolution.Skip:
                             case ConflictResolution.SkipAlways: //Keep both, Google AND Outlook
-                                sync.Appointments.Add(new AppointmentMatch(match.OutlookAppointment, null));
-                                sync.Appointments.Add(new AppointmentMatch(null, match.GoogleAppointment));
+                                sync.Appointments.Add(new AppointmentMatch(m.OutlookAppointment, null));
+                                sync.Appointments.Add(new AppointmentMatch(null, m.GoogleAppointment));
                                 break;
                             case ConflictResolution.OutlookWins:
                             case ConflictResolution.OutlookWinsAlways:
-                                sync.UpdateAppointment(match.OutlookAppointment, ref match.GoogleAppointment);
+                                sync.UpdateAppointment(m.OutlookAppointment, ref m.GoogleAppointment);
                                 break;
                             case ConflictResolution.GoogleWins:
                             case ConflictResolution.GoogleWinsAlways:
-                                sync.UpdateAppointment(ref match.GoogleAppointment, match.OutlookAppointment, match.GoogleAppointmentExceptions);
+                                sync.UpdateAppointment(ref m.GoogleAppointment, m.OutlookAppointment, m.GoogleAppointmentExceptions);
                                 break;
                             default:
                                 throw new ApplicationException("Canceled");
@@ -540,21 +536,21 @@ namespace GoContactSyncMod
             }
         }
 
-        public static void SyncAppointment(AppointmentMatch match, AppointmentsSynchronizer sync)
+        public static void SyncAppointment(AppointmentMatch m, AppointmentsSynchronizer sync)
         {
-            if (match.GoogleAppointment == null && match.OutlookAppointment != null)
+            if (m.GoogleAppointment == null && m.OutlookAppointment != null)
             {
                 //no Google appointment                               
-                SyncAppointmentNoGoogle(match, sync);
+                SyncAppointmentNoGoogle(m, sync);
             }
-            else if (match.OutlookAppointment == null && match.GoogleAppointment != null)
+            else if (m.OutlookAppointment == null && m.GoogleAppointment != null)
             {
                 //no Outlook appointment                               
-                SyncAppointmentNoOutlook(match, sync);
+                SyncAppointmentNoOutlook(m, sync);
             }
-            else if (match.OutlookAppointment != null && match.GoogleAppointment != null)
+            else if (m.OutlookAppointment != null && m.GoogleAppointment != null)
             {
-                SyncAppointmentBothExists(match, sync);
+                SyncAppointmentBothExists(m, sync);
             }
             else
                 throw new ArgumentNullException("AppointmenttMatch has all peers null.");
@@ -582,7 +578,7 @@ namespace GoContactSyncMod
         {
             if (googleAppointment == null)
                 return;
-            //throw new ArgumentNullException("googleAppointment must not be null.");
+            //throw new ArgumentNullException("e must not be null.");
 
             if (GoogleAppointment == null)
                 GoogleAppointment = googleAppointment;

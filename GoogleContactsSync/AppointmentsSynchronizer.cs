@@ -162,15 +162,15 @@ namespace GoContactSyncMod
             }
         }
 
-        public static string GetTime(Event googleAppointment)
+        public static string GetTime(Event e)
         {
-            string ret = string.Empty;
+            var ret = string.Empty;
 
-            if (googleAppointment.Start != null && !string.IsNullOrEmpty(googleAppointment.Start.Date))
-                ret += googleAppointment.Start.Date;
-            else if (googleAppointment.Start != null && googleAppointment.Start.DateTime != null)
-                ret += googleAppointment.Start.DateTime.Value.ToString();
-            if (googleAppointment.Recurrence != null && googleAppointment.Recurrence.Count > 0)
+            if (e.Start != null && !string.IsNullOrEmpty(e.Start.Date))
+                ret += e.Start.Date;
+            else if (e.Start != null && e.Start.DateTime != null)
+                ret += e.Start.DateTime.Value.ToString();
+            if (e.Recurrence != null && e.Recurrence.Count > 0)
                 ret += " Recurrence"; //ToDo: Return Recurrence Start/End
 
             return ret;
@@ -245,7 +245,7 @@ namespace GoContactSyncMod
                         Outlook.AppointmentItem item = match.OutlookAppointment;
                         //try
                         //{
-                        string outlookAppointmentId = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, match.OutlookAppointment);
+                        var outlookAppointmentId = AppointmentPropertiesUtils.GetOutlookGoogleAppointmentId(this, match.OutlookAppointment);
                         try
                         {
                             //First reset OutlookGoogleContactId to restore it later from trash
@@ -288,7 +288,7 @@ namespace GoContactSyncMod
                     else if (match.GoogleAppointment.Status != "cancelled")
                     {
                         // outlook appointment was deleted, delete Google appointment
-                        Google.Apis.Calendar.v3.Data.Event item = match.GoogleAppointment;
+                        Event item = match.GoogleAppointment;
                         ////try
                         ////{
                         //string outlookAppointmentId = AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(SyncProfile, match.GoogleAppointment);
@@ -327,7 +327,7 @@ namespace GoContactSyncMod
         /// <summary>
         /// Updates Outlook appointment from master to slave (including groups/categories)
         /// </summary>
-        public void UpdateAppointment(Outlook.AppointmentItem master, ref Google.Apis.Calendar.v3.Data.Event slave)
+        public void UpdateAppointment(Outlook.AppointmentItem master, ref Event slave)
         {
             bool updated = false;
             if (slave.Creator != null && !AppointmentSync.IsOrganizer(slave.Creator.Email)) // && AppointmentPropertiesUtils.GetGoogleOutlookAppointmentId(this.SyncProfile, slave) != null)
@@ -578,7 +578,7 @@ namespace GoContactSyncMod
         /// Save the google Appointment
         /// </summary>
         /// <param name="googleAppointment"></param>
-        internal Google.Apis.Calendar.v3.Data.Event SaveGoogleAppointment(Google.Apis.Calendar.v3.Data.Event googleAppointment)
+        internal Event SaveGoogleAppointment(Event googleAppointment)
         {
             //check if this contact was not yet inserted on google.
             if (googleAppointment.Id == null)
@@ -588,7 +588,7 @@ namespace GoContactSyncMod
 
                 try
                 {
-                    Google.Apis.Calendar.v3.Data.Event createdEntry = EventRequest.Insert(googleAppointment, SyncAppointmentsGoogleFolder).Execute();
+                    Event createdEntry = EventRequest.Insert(googleAppointment, SyncAppointmentsGoogleFolder).Execute();
                     return createdEntry;
                 }
                 catch (Exception ex)
@@ -603,7 +603,7 @@ namespace GoContactSyncMod
                 try
                 {
                     //contact already present in google. just update
-                    Google.Apis.Calendar.v3.Data.Event updated = EventRequest.Update(googleAppointment, SyncAppointmentsGoogleFolder, googleAppointment.Id).Execute();
+                    Event updated = EventRequest.Update(googleAppointment, SyncAppointmentsGoogleFolder, googleAppointment.Id).Execute();
                     return updated;
                 }
                 catch (Exception ex)
@@ -691,9 +691,8 @@ namespace GoContactSyncMod
 
         }
 
-        public Google.Apis.Calendar.v3.Data.Event ResetMatch(Google.Apis.Calendar.v3.Data.Event googleAppointment)
+        public Event ResetMatch(Event googleAppointment)
         {
-
             if (googleAppointment != null)
             {
                 AppointmentPropertiesUtils.ResetGoogleOutlookAppointmentId(SyncProfile, googleAppointment);
@@ -715,21 +714,21 @@ namespace GoContactSyncMod
             }
         }
 
-        public Google.Apis.Calendar.v3.Data.Event GetGoogleAppointmentById(string id)
+        public Event GetGoogleAppointmentById(string id)
         {
             //ToDo: Temporary remove prefix used by v2:
             id = id.Replace("http://www.google.com/calendar/feeds/default/events/", "");
             id = id.Replace("https://www.google.com/calendar/feeds/default/events/", "");
 
             //AtomId atomId = new AtomId(id);
-            foreach (Google.Apis.Calendar.v3.Data.Event appointment in GoogleAppointments)
+            foreach (Event appointment in GoogleAppointments)
             {
                 if (appointment.Id.Equals(id))
                     return appointment;
             }
 
             if (AllGoogleAppointments != null)
-                foreach (Google.Apis.Calendar.v3.Data.Event appointment in AllGoogleAppointments)
+                foreach (Event appointment in AllGoogleAppointments)
                 {
                     if (appointment.Id.Equals(id))
                         return appointment;
@@ -923,7 +922,6 @@ namespace GoContactSyncMod
             }
         }
 
-
         /// <summary>
         /// Resets Google appointment matches via batch updates.
         /// </summary>
@@ -949,7 +947,7 @@ namespace GoContactSyncMod
                 Events feed;
                 var br = new BatchRequest(CalendarRequest);
 
-                var events = new Dictionary<string, Google.Apis.Calendar.v3.Data.Event>();
+                var events = new Dictionary<string, Event>();
                 bool gone_error = false;
                 bool modified_error = false;
                 bool rate_error = false;
@@ -984,7 +982,7 @@ namespace GoContactSyncMod
                         }
                     }
 
-                    foreach (Google.Apis.Calendar.v3.Data.Event a in feed.Items)
+                    foreach (Event a in feed.Items)
                     {
                         if (a.Id != null && !events.ContainsKey(a.Id))
                         {
@@ -1007,7 +1005,7 @@ namespace GoContactSyncMod
 
                             if (r != null)
                             {
-                                br.Queue<Google.Apis.Calendar.v3.Data.Event>(r, (content, error, ii, msg) =>
+                                br.Queue<Event>(r, (content, error, ii, msg) =>
                                 {
                                     if (error != null && msg != null)
                                     {
@@ -1101,15 +1099,15 @@ namespace GoContactSyncMod
             RemoveGoogleDuplicatedAppointments();
         }
 
-        internal Google.Apis.Calendar.v3.Data.Event LoadGoogleAppointments(string id, DateTime? start, DateTime? end, DateTime? restrictStartTime, DateTime? restrictEndTime)
+        internal Event LoadGoogleAppointments(string id, DateTime? start, DateTime? end, DateTime? restrictStartTime, DateTime? restrictEndTime)
         {
             string message = "Error Loading Google appointments. Cannot connect to Google.\r\nPlease ensure you are connected to the internet. If you are behind a proxy, change your proxy configuration!";
 
-            Google.Apis.Calendar.v3.Data.Event ret = null;
+            Event ret = null;
             try
             {
 
-                GoogleAppointments = new Collection<Google.Apis.Calendar.v3.Data.Event>();
+                GoogleAppointments = new Collection<Event>();
 
                 var query = EventRequest.List(SyncAppointmentsGoogleFolder);
 
@@ -1136,7 +1134,7 @@ namespace GoContactSyncMod
                 {
                     query.PageToken = pageToken;
                     feed = query.Execute();
-                    foreach (Google.Apis.Calendar.v3.Data.Event a in feed.Items)
+                    foreach (Event a in feed.Items)
                     {
                         if ((a.RecurringEventId != null || !a.Status.Equals("cancelled")) &&
                             !GoogleAppointments.Contains(a) //ToDo: For an unknown reason, some appointments are duplicate in GoogleAppointments, therefore remove all duplicates before continuing  
